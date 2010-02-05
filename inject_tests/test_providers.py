@@ -1,6 +1,6 @@
 import unittest
 
-from inject import providers, invoker, errors, scopes
+from inject import providers, errors, scopes
 
 
 class InstanceTestCase(unittest.TestCase):
