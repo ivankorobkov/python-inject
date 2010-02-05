@@ -54,7 +54,9 @@ class Factory(object):
         else:
             # Not a callable, create an instance provider.
             provider = cls.instance_class(bindto)
-            if scope is not None:
+            # It's ok when scope is "noscope" or None,
+            # otherwise raise an error.
+            if scope is not None and scope is not scopes.no:
                 raise errors.CantBeScopedError(bindto)
         
         return provider

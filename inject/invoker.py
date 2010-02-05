@@ -56,7 +56,7 @@ class Invoker(object):
            hasattr(func, 'im_self') and \
            hasattr(func, 'im_self') and \
            func.im_self is None:
-            return super(Invoker, cls).__new__(cls, func, scope=scope)
+            return super(Invoker, cls).__new__(cls)
         
         return func
     
