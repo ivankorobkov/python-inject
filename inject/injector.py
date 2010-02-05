@@ -15,13 +15,18 @@ def unregister(injector):
 
 class IInjector(object):
     
+    '''Injector interface.'''
+    
     bindings = None
     
-    def bind(self, type, annotation=None, scope=None, to=None,to_instance=None,
-             to_provider=None):
+    def bind(self, type, annotation=None, to=None, scope=None):
+        '''Specify a binding for a type and optional annotation.'''
         pass
     
-    def get_instance(self, type, annotation):
+    def get_instance(self, type, annotation=None):
+        '''Return an instance for a type and optional annotation, using
+        the injector bindings.
+        '''
         pass
 
 
@@ -33,6 +38,7 @@ class Injector(IInjector):
         self.bindings = {}
     
     def bind(self, type, annotation=None, to=None, scope=None):
+        '''Specify a binding for a type and optional annotation.'''
         if annotation is not None:
             key = self.key_class(type, annotation)
         else:
@@ -45,7 +51,12 @@ class Injector(IInjector):
                           % key)
         self.bindings[key] = provider
     
-    def get_key(self, type, annotation):
+    def get_key(self, type, annotation=None):
+        '''Return a key.
+        
+        If annotation is None return type, otherwise combine type
+        and annotation into a single key.
+        '''
         if annotation is not None:
             key = self.key_class(type, annotation)
         else:
@@ -53,6 +64,7 @@ class Injector(IInjector):
         return key
     
     def get_provider(self, key):
+        '''Return a provider for a key, or None.'''
         bindings = self.bindings
         if key in bindings:
             provider = bindings[key]
@@ -64,6 +76,9 @@ class Injector(IInjector):
         return provider
     
     def get_instance(self, type, annotation=None):
+        '''Return an instance for a type and optional annotation, using
+        the injector bindings.
+        '''
         key = self.get_key(type, annotation)
         provider = self.get_provider(key)
         if provider is None:

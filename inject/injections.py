@@ -11,6 +11,17 @@ super_param = object()
 
 class attr(object):
     
+    '''Attribute injection is a descriptor, which injects an instance into
+    a specified class attribute.
+    
+    Example::
+        
+        class A(object): pass
+        class B(object):
+            a = attr('a', A)
+    
+    '''
+    
     injection_class = Injection
     
     def __init__(self, attr, type, annotation=None, scope=None, bindto=None):
@@ -28,6 +39,19 @@ class attr(object):
 
 
 class param(object):
+    
+    '''Param injector is a function decorator, which injects the required
+    non-given params directly into a function, passes them as keyword args.
+    
+    Example::
+        
+        class A(object): pass
+        class B(object):
+            @param('a', A)
+            def __init__(self, a):
+                self.a = a
+    
+    '''
     
     injection_class = Injection
     

@@ -4,11 +4,13 @@ from inject.key import Key
 
 class Injection(object):
     
+    '''Injection serves injection requests.'''
+    
     __slots__ = ('key', 'type', 'provider')
     
     injector = None    
     key_class = Key
-    provider_class = None
+    provider_class = None  # Set below.
     
     def __init__(self, type, annotation=None, scope=None, bindto=None):
         self.key = self.key_class(type, annotation)

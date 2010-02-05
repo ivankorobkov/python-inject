@@ -1,3 +1,4 @@
+'''Inject errors.'''
 
 
 class NoProviderError(Exception):
@@ -22,5 +23,17 @@ class NoParamError(Exception):
             pass
     
     '''
+
+
+class CantBeScopedError(Exception):
     
-    pass
+    '''CanBeScopedError is raised when a provider cannot be scoped.
+    For example, the instance provider cannot be scoped.
+    '''
+
+
+class NoRequestRegisteredError(Exception):
+    
+    '''NoRequestError is raised when a request scoped provider is accessed but 
+    no request is registered.
+    '''    
