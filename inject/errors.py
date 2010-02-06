@@ -7,8 +7,8 @@ class NoProviderError(Exception):
     
     def __init__(self, key):
         self.key = key
-        msg = 'There is no provider for key %s.' % key
-        Exception.__init__(msg)
+        msg = 'There is no provider for %s.' % key
+        Exception.__init__(self, msg)
 
 
 class NoParamError(Exception):

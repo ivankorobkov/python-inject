@@ -1,6 +1,7 @@
 import warnings
 
 from inject import errors, providers
+from inject.key import Key
 from inject.injection import Injection
 
 
@@ -32,6 +33,7 @@ class IInjector(object):
 
 class Injector(IInjector):
     
+    key_class = Key
     provider_class = providers.Factory
     
     def __init__(self):

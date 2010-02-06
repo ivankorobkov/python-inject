@@ -4,7 +4,20 @@ from inject.key import Key
 
 class Injection(object):
     
-    '''Injection serves injection requests.'''
+    '''Injection serves injection requests.
+    
+    Resolving flow:
+        
+        1. If an injector is registered, try to get an instance from it.
+            a. If an annotation exists, try to get an instance for
+               Key(type, annotation).
+            b. If no instance is returned, try to get an instance for type.
+            c. Return an instance, or continue.
+        2. If the injection has a provider (either from a callable type,
+           or from a bindto argument), use it to get an instance and return it.
+        3. Otherwise, raise NoProviderError.
+    
+    '''
     
     __slots__ = ('key', 'type', 'provider')
     
@@ -25,6 +38,7 @@ class Injection(object):
         self.provider = provider
     
     def get_instance(self):
+        '''Return an instance, or raise NoProviderError.'''
         key = self.key
         type = self.type
         injector = self.injector
