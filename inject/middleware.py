@@ -7,16 +7,20 @@ class WsgiInjectMiddleware(object):
     and unregisters it after returning the response.
     '''
     
-    def __init__(self, app, scope=scopes.req):
+    def __init__(self, app, reqscope=scopes.req):
         self.app = app
-        self.scope = scope
+        self.reqscope = reqscope
     
     def __call__(self, environ, start_response):
         try:
-            self.scope.register(environ)
-            return iter(self.app(environ, start_response))
+            self.reqscope.register(environ)
+            # We have to manually iterate over the response,
+            # so that all its parts have been generated before
+            # the request is unregistered.
+            for s in iter(self.app(environ, start_response)):
+                yield s
         finally:
-            self.scope.unregister(environ)
+            self.reqscope.unregister(environ)
 
 
 class DjangoInjectMiddleware(object):

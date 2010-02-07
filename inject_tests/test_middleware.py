@@ -28,7 +28,9 @@ class WsgiTestCase(unittest.TestCase):
                 self.counter = counter
             
             def __iter__(self):
+                yield 'Start'
                 yield 'Request #%s' % self.counter
+                yield 'End'
         
         
         class Application(object):
@@ -45,9 +47,9 @@ class WsgiTestCase(unittest.TestCase):
         response = list(app({}, None))
         response2 = list(app({}, None))
         response3 = list(app({}, None))
-        self.assertEqual(response[0], 'Request #1')
-        self.assertEqual(response2[0], 'Request #2')
-        self.assertEqual(response3[0], 'Request #3')
+        self.assertEqual(response, ['Start', 'Request #1', 'End'])
+        self.assertEqual(response2, ['Start', 'Request #2', 'End'])
+        self.assertEqual(response3, ['Start', 'Request #3', 'End'])
 
 
 class DjangoTestCase(unittest.TestCase):
