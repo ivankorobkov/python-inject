@@ -24,9 +24,10 @@ class attr(object):
     
     injection_class = Injection
     
-    def __init__(self, attr, type, annotation=None, scope=None, bindto=None):
+    def __init__(self, attr, type, annotation=None, bindto=None, scope=None):
         self.attr = attr
-        self.injection = self.injection_class(type, annotation, scope, bindto) 
+        self.injection = self.injection_class(type, annotation, bindto=bindto,
+                                              scope=scope) 
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -41,7 +42,10 @@ class attr(object):
 class param(object):
     
     '''Param injector is a function decorator, which injects the required
-    non-given params directly into a function, passes them as keyword args.
+    non-given params directly into a function, passing them as keyword args.
+    
+    Set an argument to C{super_param} to indicate that it is injected in
+    a super class.
     
     Example::
         
@@ -50,13 +54,20 @@ class param(object):
             @param('a', A)
             def __init__(self, a):
                 self.a = a
-    
+        
+        class C(B):
+            @param('a2', A):
+            def __init__(self, a2, a=super_param):
+                super(C, self).__init__(a)
+                self.a2 = a2
+        
     '''
     
     injection_class = Injection
     
-    def __new__(cls, name, type, annotation=None, scope=None, bindto=None):
-        injection = cls.injection_class(type, annotation, scope, bindto)
+    def __new__(cls, name, type, annotation=None, bindto=None, scope=None):
+        injection = cls.injection_class(type, annotation, scope=scope,
+                                        bindto=bindto)
         
         def decorator(func):
             if getattr(func, 'injection_wrapper', False):

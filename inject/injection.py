@@ -25,7 +25,7 @@ class Injection(object):
     key_class = Key
     provider_class = None  # Set below.
     
-    def __init__(self, type, annotation=None, scope=None, bindto=None):
+    def __init__(self, type, annotation=None, bindto=None, scope=None):
         self.key = self.key_class(type, annotation)
         self.type = type
         
