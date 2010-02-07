@@ -25,11 +25,6 @@ class B(object):
     a4 = inject.attr('a4', A)
 
 
-b = B()
-print b.a2
-b2 = B()
-
-
 class AFactory(object):
     
     a_class = A
@@ -72,8 +67,8 @@ d2 = D()
 
 import timeit
 n = 10**5
-print timeit.Timer('C().a', 'from __main__ import C').timeit(n)
-print timeit.Timer('C2().a', 'from __main__ import C2').timeit(n)
-print timeit.Timer('B().a;', 'from __main__ import B').timeit(n)
-print timeit.Timer('B().a2;', 'from __main__ import B').timeit(n)
-print timeit.Timer('D()', 'from __main__ import D').timeit(n)
+print 'Simple:      ', timeit.Timer('C().a', 'from __main__ import C').timeit(n)
+print 'Factory:     ', timeit.Timer('C2().a', 'from __main__ import C2').timeit(n)
+print 'Attr:        ', timeit.Timer('B().a;', 'from __main__ import B').timeit(n)
+print 'Attr unbound:', timeit.Timer('B().a2;', 'from __main__ import B').timeit(n)
+print 'Param:       ', timeit.Timer('D()', 'from __main__ import D').timeit(n)

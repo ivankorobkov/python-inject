@@ -1,6 +1,8 @@
 '''WSGI inject middleware example.
 
-Execute:
+You don't have to install anything (even the inject package)
+to run the examples.
+Run:
     python wsgi.py
 Then open http://127.0.0.1:8000/ in a browser.
 
@@ -8,7 +10,18 @@ Every time you reload a page, requests counter increases by 2.
 It is not a bug, don't forget about every browser making a request 
 for a favicon.
 '''
-import inject
+try:
+    import inject
+except ImportError:
+    # Must be running as an example without 
+    # installing the inject package.
+    import os
+    import sys
+    cwd = os.getcwd()
+    parent = os.path.normpath(os.path.join(cwd, os.pardir)) 
+    sys.path.append(parent)
+    import inject
+
 from datetime import datetime
 from inject.middleware import WsgiInjectMiddleware
 from wsgiref.simple_server import make_server
@@ -28,10 +41,13 @@ class Hello(object):
         self.__class__.counter += 1
     
     def __str__(self):
+        s = ''
         if self.counter == 1:
-            return 'Hello! This is the first request.\n\n'
+            s = 'Hello! This is the first request.'
         else:
-            return 'Hello! I have served %s requests.\n\n' % self.counter
+            s = 'Hello! I have served %s requests.' % self.counter
+        s += '\nDon\' forget about favicon requests.\n\n'
+        return s
 
 
 class Application(object):
@@ -71,7 +87,7 @@ class Application(object):
     def text4(self, started_at, ended_at):
         return 'The request ended at %s,\n' \
                'but started at %s.\n' \
-               'It took %s to serve a request.\n\n' \
+               'It took %s to serve the request.\n\n' \
                'There are two datetime object here, but the first\n' \
                'is not request scoped (ended_at), while the second\n' \
                '(started_at) is.' % (ended_at, started_at, 

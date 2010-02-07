@@ -39,7 +39,6 @@ class DjangoInjectMiddleware(object):
     def process_request(self, request):
         '''Register a request scope for a request.'''
         self.scope.register(request.META)
-        return request
     
     def process_response(self, request, response):
         '''Unregister a request scope.'''

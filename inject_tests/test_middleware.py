@@ -86,8 +86,8 @@ class DjangoTestCase(unittest.TestCase):
         request = Request()
         
         m = self.middleware_class()
-        request2 = m.process_request(request)
-        self.assertTrue(request2 is request)
+        mresponse = m.process_request(request)
+        self.assertTrue(mresponse is None)
         
         c1 = request.do()
         c2 = request.do()
