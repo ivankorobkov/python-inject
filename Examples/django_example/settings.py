@@ -6,7 +6,8 @@ except ImportError:
     import os
     import sys
     cwd = os.getcwd()
-    parent = os.path.normpath(os.path.join(cwd, os.pardir, os.pardir)) 
+    parent = os.path.normpath(os.path.join(cwd, os.pardir, os.pardir, 
+                                           'Source'))
     sys.path.append(parent)
 
 DEBUG = True

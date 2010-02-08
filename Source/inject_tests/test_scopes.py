@@ -21,6 +21,60 @@ class AbstractTestCase(unittest.TestCase):
         def func(): pass
         
         self.assertTrue(getattr(func, scopes.SCOPE_ATTR) is scope)
+    
+    def testInjectAttr(self):
+        '''Scope inject_attr() should create a scoped injection.'''
+        self.scope_called = False
+        
+        class MyScope(self.scope_class):
+            testcase = self
+            def scope(self, provider):
+                self.testcase.scope_called = True
+                return provider
+        myscope = MyScope()
+        
+        attr = myscope.inject_attr('attr', dict)
+        self.assertTrue(isinstance(attr, MyScope.attr_class))
+        self.assertTrue(self.scope_called)
+        
+        del self.scope_called
+    
+    
+    def testInjectParam(self):
+        '''Scope inject_param() should create a scoped injection.'''
+        self.scope_called = False
+        
+        class MyScope(self.scope_class):
+            testcase = self
+            def scope(self, provider):
+                self.testcase.scope_called = True
+                return provider
+        myscope = MyScope()
+        
+        param = myscope.inject_param('attr', dict) #@UnusedVariable
+        self.assertTrue(self.scope_called)
+        
+        del self.scope_called
+    
+    def testInvoker(self):
+        '''Scope invoker() should create a scoped invoker.'''
+        self.scope_called = False
+        
+        class MyScope(self.scope_class):
+            testcase = self
+            def scope(self, provider):
+                self.testcase.scope_called = True
+                return provider
+        myscope = MyScope()
+        
+        class A(object):
+            def method(self): pass
+        
+        invoker = myscope.invoker(A.method)
+        self.assertTrue(isinstance(invoker, MyScope.invoker_class))
+        self.assertTrue(self.scope_called)
+        
+        del self.scope_called
 
 if sys.version_info[0] == 2 and sys.version_info[1] >= 6:
     from test_scopes26 import testClassDecorator

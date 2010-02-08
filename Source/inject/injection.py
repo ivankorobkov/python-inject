@@ -23,7 +23,7 @@ class Injection(object):
     
     injector = None    
     key_class = Key
-    provider_class = None  # Set below.
+    provider_class = None  # Set below to prevent circular imports.
     
     def __init__(self, type, annotation=None, bindto=None, scope=None):
         self.key = self.key_class(type, annotation)
@@ -60,5 +60,5 @@ class Injection(object):
         return provider()
 
 
-from inject import providers
-Injection.provider_class = providers.Factory
+from inject.providers import Factory
+Injection.provider_class = Factory

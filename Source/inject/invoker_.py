@@ -1,3 +1,4 @@
+from inject.injection import Injection
 
 
 class Invoker(object):
@@ -46,7 +47,7 @@ class Invoker(object):
     
     __slots__ = ('method', 'injection', '_hash')
     
-    injection_class = None  # Set below.
+    injection_class = Injection
     
     def __new__(cls, func, scope=None):
         '''If func is an unbound method, create an invoker and return it,
@@ -82,7 +83,3 @@ class Invoker(object):
     
     def __ne__(self, other):
         return self.method != other
-
-
-from inject.injection import Injection
-Invoker.injection_class = Injection

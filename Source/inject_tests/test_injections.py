@@ -5,10 +5,10 @@ from inject import injections, errors
 
 class AttrTestCase(unittest.TestCase):
     
-    attr_class = injections.attr
+    attr_class = injections.Attr
     
     def test(self):
-        '''Attribute injection should create an instance and set an attr.'''
+        '''Attribute injection should create an instance and set an Attr.'''
         class A(object): pass
         class B(object):
             a = self.attr_class('a', A)
@@ -32,7 +32,7 @@ class AttrTestCase(unittest.TestCase):
 
 class ParamTestCase(unittest.TestCase):
     
-    param_class = injections.param
+    param_class = injections.Param
     
     def testInjection(self):
         '''Param injection should inject non-existing params into a func.'''
@@ -51,7 +51,7 @@ class ParamTestCase(unittest.TestCase):
         self.assertEqual(b, 'b')
     
     def testMultipleInjection(self):
-        '''Multiple param injections should be combined into one.'''
+        '''Multiple Param injections should be combined into one.'''
         class A(object): pass
         class B(object): pass
         
@@ -85,7 +85,7 @@ class ParamTestCase(unittest.TestCase):
         self.assertEqual(wrapper.injections['arg'], 'inj')
     
     def testAddInjectionNoParamError(self):
-        '''Add injection() should raise NoParamError when no such a param.'''
+        '''Add injection() should raise NoParamError when no such a Param.'''
         # NoParamError.
         def func(): pass
         wrapper = self.param_class.create_wrapper(func)

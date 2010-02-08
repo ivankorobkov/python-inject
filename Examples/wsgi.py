@@ -18,7 +18,7 @@ except ImportError:
     import os
     import sys
     cwd = os.getcwd()
-    parent = os.path.normpath(os.path.join(cwd, os.pardir)) 
+    parent = os.path.normpath(os.path.join(cwd, os.pardir, 'Source'))
     sys.path.append(parent)
     import inject
 

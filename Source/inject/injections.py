@@ -3,13 +3,13 @@ from inject.injection import Injection
 
 
 '''
-@var super_param: empty object which is used to specify that a param 
+@var super_param: empty object which is used to specify that a Param 
     is injected in a super class.
 '''
 super_param = object()
 
 
-class attr(object):
+class Attr(object):
     
     '''Attribute injection is a descriptor, which injects an instance into
     a specified class attribute.
@@ -18,13 +18,14 @@ class attr(object):
         
         class A(object): pass
         class B(object):
-            a = attr('a', A)
+            a = Attr('a', A)
     
     '''
     
     injection_class = Injection
     
     def __init__(self, attr, type, annotation=None, bindto=None, scope=None):
+        '''Create an injection from an attribute.'''
         self.attr = attr
         self.injection = self.injection_class(type, annotation, bindto=bindto,
                                               scope=scope) 
@@ -39,7 +40,7 @@ class attr(object):
         return obj
 
 
-class param(object):
+class Param(object):
     
     '''Param injector is a function decorator, which injects the required
     non-given params directly into a function, passing them as keyword args.
@@ -51,12 +52,12 @@ class param(object):
         
         class A(object): pass
         class B(object):
-            @param('a', A)
+            @Param('a', A)
             def __init__(self, a):
                 self.a = a
         
         class C(B):
-            @param('a2', A):
+            @Param('a2', A):
             def __init__(self, a2, a=super_param):
                 super(C, self).__init__(a)
                 self.a2 = a2
@@ -66,6 +67,7 @@ class param(object):
     injection_class = Injection
     
     def __new__(cls, name, type, annotation=None, bindto=None, scope=None):
+        '''Create an injection for a Param.'''
         injection = cls.injection_class(type, annotation, scope=scope,
                                         bindto=bindto)
         
@@ -119,7 +121,7 @@ class param(object):
             varnames = func_code.co_varnames
             if name not in varnames:
                 raise errors.NoParamError(
-                    '%s does not accept an injected param "%s".' %
+                    '%s does not accept an injected Param "%s".' %
                     (func, name))
         
         wrapper.injections[name] = injection

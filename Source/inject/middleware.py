@@ -5,6 +5,10 @@ class WsgiInjectMiddleware(object):
     
     '''WSGI inject middleware registers a request scope for each request,
     and unregisters it after returning the response.
+    
+    @warning: WSGI inject middleware requires Python2.5+ because the later
+        versions do not support yield inside a try...finally statement.
+    
     '''
     
     def __init__(self, app, reqscope=scopes.req):

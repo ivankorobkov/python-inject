@@ -1,6 +1,6 @@
 '''Providers instantiate objects.'''
-from inject import errors, scopes
-from inject.invoker import Invoker
+from inject import errors
+from inject.invoker_ import Invoker
 
 
 class Instance(object):
@@ -37,7 +37,9 @@ class Factory(object):
         
         Otherwise, return a [scoped] bindto.
         '''
-        if scope is None and hasattr(bindto, scopes.SCOPE_ATTR):
+        from inject.scopes import no as noscope, SCOPE_ATTR
+        
+        if scope is None and hasattr(bindto, SCOPE_ATTR):
             scope = bindto._inject_scope
         
         if callable(bindto):
@@ -49,14 +51,14 @@ class Factory(object):
                 provider = bindto
             
             # Create a scoped provider, if scope is given.
-            if scope is not None and scope is not scopes.no:
+            if scope is not None and scope is not noscope:
                 provider = scope.scope(provider)
         else:
             # Not a callable, create an instance provider.
             provider = cls.instance_class(bindto)
             # It's ok when scope is "noscope" or None,
             # otherwise raise an error.
-            if scope is not None and scope is not scopes.no:
+            if scope is not None and scope is not noscope:
                 raise errors.CantBeScopedError(bindto)
         
         return provider
