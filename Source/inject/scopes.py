@@ -39,13 +39,19 @@ class Abstract(Interface):
         setattr(obj, SCOPE_ATTR, self)
         return obj
     
-    def inject_attr(self, attr, type, annotation=None, bindto=None):
-        '''Create a scoped injection descriptor for an attribute.'''
+    def inject_attr(self, attr, type=None, annotation=None, bindto=None):
+        '''Create a scoped injection descriptor for an attribute.
+        
+        If type is not given (None), type = attr.
+        '''
         return self.attr_class(attr=attr, type=type, annotation=annotation,
                                bindto=bindto, scope=self)
     
-    def inject_param(self, name, type, annotation=None, bindto=None):
-        '''Create a scoped injection for a param.'''
+    def inject_param(self, name, type=None, annotation=None, bindto=None):
+        '''Create a scoped injection for a param.
+        
+        If type is not given (None), type = name.
+        '''
         return self.param_class(name=name, type=type, annotation=annotation,
                                 bindto=bindto, scope=self)
     

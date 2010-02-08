@@ -25,7 +25,12 @@ class Key(object):
     
     __slots__ = ('type', 'annotation', '_hash')
     
-    def __init__(self, type, annotation):
+    def __new__(cls, type, annotation=None):
+        if annotation is None:
+            return type
+        return type.__new__(cls)
+    
+    def __init__(self, type, annotation=None):
         self.type = type
         self.annotation = annotation
         self._hash = None

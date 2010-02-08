@@ -24,11 +24,17 @@ class Attr(object):
     
     injection_class = Injection
     
-    def __init__(self, attr, type, annotation=None, bindto=None, scope=None):
-        '''Create an injection from an attribute.'''
+    def __init__(self, attr, type=None, annotation=None, bindto=None,
+                 scope=None):
+        '''Create an injection for an attribute.
+        
+        If type is not given (None), type = attr.
+        '''
+        if type is None:
+            type = attr
         self.attr = attr
         self.injection = self.injection_class(type, annotation, bindto=bindto,
-                                              scope=scope) 
+                                              scope=scope)
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -66,8 +72,15 @@ class Param(object):
     
     injection_class = Injection
     
-    def __new__(cls, name, type, annotation=None, bindto=None, scope=None):
-        '''Create an injection for a Param.'''
+    def __new__(cls, name, type=None, annotation=None, bindto=None,
+                scope=None):
+        '''Create an injection for a param.
+        
+        If type is not given (None), type = name.
+        '''
+        if type is None:
+            type = name
+        
         injection = cls.injection_class(type, annotation, scope=scope,
                                         bindto=bindto)
         

@@ -28,6 +28,15 @@ class AttrTestCase(unittest.TestCase):
         a2 = c.a
         self.assertTrue(isinstance(a, A))
         self.assertTrue(a is a2)
+    
+    def testNoType(self):
+        '''Attribute injection should use attr as type if type is not given.'''
+        class A(object):
+            attr = self.attr_class('attr')
+        
+        a = A()
+        self.assertEqual(A.attr.injection.key, 'attr')
+        self.assertRaises(errors.NoProviderError, getattr, a, 'attr')
 
 
 class ParamTestCase(unittest.TestCase):
@@ -65,6 +74,15 @@ class ParamTestCase(unittest.TestCase):
         c = C()
         self.assertTrue(isinstance(c.a, A))
         self.assertTrue(isinstance(c.b, B))
+    
+    def testNoType(self):
+        '''Param injection should use name as type if type is not given.'''
+        @self.param_class('a')
+        def func(a):
+            pass
+        
+        self.assertEqual(func.injections['a'].key, 'a')
+        self.assertRaises(errors.NoProviderError, func)
     
     def testCreateWrapper(self):
         '''Create wrapper() should return a func with set attrs.'''
