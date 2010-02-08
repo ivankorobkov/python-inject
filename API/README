@@ -1,0 +1,8 @@
+Epydoc is required to generate the API. See http://epydoc.sourceforge.net/.
+
+On Windows run:
+	generate.bat
+On unix platforms run:
+	./generate.sh
+
+API is generated in the html folder. Use the index.html to open the API.

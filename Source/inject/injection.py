@@ -10,10 +10,10 @@ class Injection(object):
     Resolving flow:
         
         1. If an injector is registered, try to get an instance from it.
-            a. If an annotation exists, try to get an instance for
-               Key(type, annotation).
-            b. If no instance is returned, try to get an instance for type.
-            c. Return an instance, or continue.
+            - If an annotation exists, try to get an instance for Key(type, 
+              annotation).
+            - If no instance is returned, try to get an instance for type.
+            - Return an instance, or continue.
         2. If the injection has a provider (either from a callable type,
            or from a bindto argument), use it to get an instance and return it.
         3. Otherwise, raise NoProviderError.

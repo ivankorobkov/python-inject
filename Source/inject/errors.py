@@ -36,4 +36,5 @@ class NoRequestRegisteredError(Exception):
     
     '''NoRequestError is raised when a request scoped provider is accessed but 
     no request is registered.
-    '''    
+    '''
+    

@@ -97,6 +97,9 @@ class Application(dict, Abstract):
         
         return scopedprovider
     
+    def __repr__(self):
+        return '<%s at %s>' % (self.__class__.__name__, hex(id(self)))
+    
 
 class Request(threading.local, Abstract):
     
