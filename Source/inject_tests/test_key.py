@@ -13,6 +13,7 @@ class KeyTestCase(unittest.TestCase):
         key = self.key_class(obj, 'annotation')
         key2 = self.key_class(obj, 'annotation')
         
+        self.assertTrue(isinstance(key, self.key_class))
         self.assertTrue(key is not key2)
         self.assertEqual(hash(key), hash(key2))
         

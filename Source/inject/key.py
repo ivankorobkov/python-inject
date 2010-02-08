@@ -28,7 +28,7 @@ class Key(object):
     def __new__(cls, type, annotation=None):
         if annotation is None:
             return type
-        return type.__new__(cls)
+        return super(Key, cls).__new__(cls)
     
     def __init__(self, type, annotation=None):
         self.type = type
