@@ -1,3 +1,4 @@
+'''Injection serves injection requests, it provides the core functionality.'''
 from inject import errors
 from inject.key import Key
 

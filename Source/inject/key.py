@@ -1,3 +1,6 @@
+'''Key combines a type and an annotation into one hashable object. If two keys 
+are constructed from the same objects, their hashes are equal.
+'''
 
 
 class Key(object):

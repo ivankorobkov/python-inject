@@ -1,3 +1,15 @@
+'''Injector stores configuration for bindings. It is optional and should be
+used only when advanced configuratio is required.
+
+Tutorial
+========
+
+Create an injector, B{register it}, and add bindings to it.
+    >>> injector = Injector()
+    >>> register(injector)
+    >>> injector.bind(cls, annotation='text', to=MyClass, scope=appscope)
+
+'''
 import warnings
 
 from inject import errors, providers
@@ -46,6 +58,8 @@ class IInjector(object):
 
 
 class Injector(IInjector):
+    
+    '''Injector stores configuration for bindings.'''
     
     key_class = Key
     provider_class = providers.Factory

@@ -1,4 +1,4 @@
-'''Inject errors.'''
+'''Injection errors.'''
 
 
 class NoProviderError(Exception):

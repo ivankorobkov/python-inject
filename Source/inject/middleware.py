@@ -1,3 +1,8 @@
+'''Request scope middleware for WSGI and Django applications. It registers
+and unregisters a thread-local storage for each request. 
+
+@warning: Requires Python2.5+, because it uses yield inside try...finally.
+'''
 from inject import scopes
 
 

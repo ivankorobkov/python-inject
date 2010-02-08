@@ -1,4 +1,11 @@
-'''Providers instantiate objects.'''
+'''Providers are callable objects which return instances. So all normal 
+callables can be used as providers.
+
+The module has only two providers: an instance provider, which is a callable
+wrapper around any instance, and a factory. The factory creates and returns 
+a specific provider, or an invoker depending on the passed arguments. It also
+scopes it if a scope is given.
+'''
 from inject import errors
 from inject.invoker_ import Invoker
 

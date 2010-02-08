@@ -1,3 +1,6 @@
+'''Invoker can invoke an unbound method. If not an unbound method is passed
+to it, it is returned untouched.
+'''
 from inject.injection import Injection
 
 

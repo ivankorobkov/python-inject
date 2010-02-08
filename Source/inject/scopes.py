@@ -1,3 +1,13 @@
+'''Scopes configure how objects are instantiated and reused.
+
+By default, a new instance is injected every time. Application scope creates
+only one instance of a class (a provider) for the whole application. Request 
+scope creates unique instances for each HTTP request. Request scope stores
+values in a thread-local request-local manner.
+
+C{noscope} can be used to explicitly specify creating new instances for every
+injection request.
+'''
 import threading
 
 from inject import errors

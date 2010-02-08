@@ -1,3 +1,6 @@
+'''Injections are real dependency injection methods: an attribute descriptor,
+and a function decorator.
+'''
 from inject import errors
 from inject.injection import Injection
 
