@@ -3,6 +3,28 @@ import unittest
 from inject import injections, errors
 
 
+class UpdateWrapperTestCase(unittest.TestCase):
+    
+    update_wrapper = staticmethod(injections.update_wrapper)
+    
+    def test(self):
+        '''Update_wrapper() should set wrapper's name, doc, module and dict.'''
+        def func():
+            '''Docstring.'''
+            pass
+        func.attr = 'value'
+        
+        def wrapper():
+            pass
+        
+        self.update_wrapper(wrapper, func)
+        
+        self.assertEqual(wrapper.__name__, 'func')
+        self.assertEqual(wrapper.__doc__, 'Docstring.')
+        self.assertTrue(wrapper.__module__, func.__module__)
+        self.assertEqual(wrapper.attr, 'value')
+
+
 class AttrTestCase(unittest.TestCase):
     
     attr_class = injections.Attr

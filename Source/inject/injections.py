@@ -1,6 +1,18 @@
 from inject import errors
 from inject.injection import Injection
 
+try:
+    from functools import update_wrapper
+except ImportError:
+    # Python2.5-
+    def update_wrapper(wrapper, wrapped):
+        '''Set wrappers's name, module, doc and update its dict.'''
+        wrapper.__name__ = wrapped.__name__
+        wrapper.__module__ = wrapped.__module__
+        wrapper.__doc__ = wrapped.__doc__        
+        wrapper.__dict__.update(wrapped.__dict__)
+        return wrapper
+
 
 '''
 @var super_param: empty object which is used to specify that a Param 
@@ -119,6 +131,7 @@ class Param(object):
         injection_wrapper.func = func
         injection_wrapper.injections = injections
         injection_wrapper.injection_wrapper = True
+        update_wrapper(injection_wrapper, func)
         
         return injection_wrapper
     
