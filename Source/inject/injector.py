@@ -74,6 +74,12 @@ class Injector(IInjector):
         else:
             key = type
         
+        if to is None:
+            if callable(type):
+                to = type
+            else:
+                raise errors.NoProviderError(key)
+        
         provider = self.provider_class(to, scope=scope)
         
         if key in self.bindings:

@@ -45,6 +45,7 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector should bind type [,annotation] to a provider.'''
         class A(object): pass
         class B(object): pass
+        class C(object): pass
         injector = self.injector_class()
         
         # Use type as a key.
@@ -55,6 +56,11 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind(A, annotation='test', to=B)
         key = self.key_class(A, 'test')
         self.assertTrue(injector.bindings[key] is B)
+        
+        # Bind to the type.
+        injector.bind(C, annotation='test')
+        key = self.key_class(C, 'test')
+        self.assertTrue(injector.bindings[key] is C)
     
     def testProvider(self):
         '''Injector should create an [inst, scoped] provider for a binding.'''
