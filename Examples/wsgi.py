@@ -1,7 +1,7 @@
 '''WSGI inject middleware example.
 
-You don't have to install anything (even the inject package)
-to run the examples.
+You don't have to install the inject package to run the example.
+
 Run:
     python wsgi.py
 Then open http://127.0.0.1:8000/ in a browser.

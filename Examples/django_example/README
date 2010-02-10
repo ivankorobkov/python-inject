@@ -1,7 +1,6 @@
 Run the example
 ===============
-You don't have to install anything (even the inject package)
-except for Django.
+You don't have to install the inject package to run the example.
 
 Run:
 	manager.py runserver
