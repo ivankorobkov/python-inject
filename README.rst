@@ -18,6 +18,10 @@ Python 2.4+, and Python2.5+ for request middleware. Python 3+ is not supported.
 - User's Guide: http://code.google.com/p/python-inject/wiki/UsersGuide
 - Source code: http://github.com/ivan-korobkov/python-inject
 
+**Install::**
+
+    easy_install inject
+
 Example
 =======
 ::
