@@ -1,0 +1,10 @@
+Installation
+============
+Requirements:
+    Python 2.4+, and Python2.5+ for request middleware. 
+    Python 3+ is not supported.
+
+Run:
+    python setup.py install
+Or install directly from PyPi using setuptools:
+    easy_install inject

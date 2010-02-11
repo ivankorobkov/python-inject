@@ -1,8 +1,7 @@
 try:
     import inject #@UnusedImport
 except ImportError:
-    # Must be running as an example without 
-    # installing the inject package.
+    # Must be running without installing the inject package.
     import os
     import sys
     cwd = os.getcwd()

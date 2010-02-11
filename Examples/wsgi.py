@@ -9,8 +9,7 @@ Then open http://127.0.0.1:8000/ in a browser.
 try:
     import inject
 except ImportError:
-    # Must be running as an example without 
-    # installing the inject package.
+    # Must be running without installing the inject package.
     import os
     import sys
     cwd = os.getcwd()
