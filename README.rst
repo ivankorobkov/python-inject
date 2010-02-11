@@ -1,28 +1,28 @@
-Overview
-========
-``Inject`` is a python dependency injection tool. It is created specifically 
-for Python and tries to utilize its advantages. ``Inject`` aims at:
+``Inject`` is a fast python dependency injection tool. It uses decorators and 
+descriptors to reference external dependencies, and scopes (Guice-inspired) to 
+specify how to reuse objects. Dependencies can be referenced by types and 
+optional annotations. No configuration is required, but advanced in-code 
+configuration is possible.
 
-- Simplifying complex projects development.
-- Providing loose-coupling for components.
-- Instantiating and reusing objects according to their scopes.
-- Testability.
-- Advanced in-code configuration.
+Most other python dependency injection tools, such as PyContainer or Spring 
+Python, are ports from other languages (Java). So they are based on dependency 
+injection ways specific for statically typed languages, described by Martin 
+Fowler.
 
-**Requirements:**
-Python 2.4+, and Python2.5+ for request middleware. Python 3+ is not supported.
+Python is not Java. Patterns and programming techniques, which seem proper and 
+usable in one language, can be awkward in another. `Inject` has been created to 
+provide a _pythonic_ way of dependency injection, utilizing specific Python 
+functionality. Terminology used in `inject` has been intentionally made similar
+to Guice, however the internal architecture is different.
 
-**Links:**
 
+Links
+=====
 - Project's site: http://code.google.com/p/python-inject
-- User's Guide: http://code.google.com/p/python-inject/wiki/UsersGuide
-- Source code: http://github.com/ivan-korobkov/python-inject
-
-**Installation**
-Run
-    setup.py install
-Or, if you have setuptools, you can install it directly from PyPi:
-    easy_install inject
+- User's Guide:   http://code.google.com/p/python-inject/wiki/UsersGuide
+- Tutorial:       http://code.google.com/p/python-inject/wiki/Tutorial
+- API:            http://api.python-inject.googlecode.com/hg/html/index.html
+- Source code:    http://github.com/ivan-korobkov/python-inject
 
 Example
 =======
@@ -30,11 +30,14 @@ Example
 
     import inject
     
+    @inject.appscope
+    class Config(object): pass
     class A(object): pass
     class B(object): pass
     
     class C(object):
-    
+        
+        config = inject.attr('config', Config)
         a = inject.attr('a', A)
     
         @inject.param('b', B):
@@ -45,9 +48,10 @@ Example
 
 Key features
 ============
-- Fast, comparable to direct object instantiation.
+- Fast, only 2-3 times slower that direct instantiation.
 - Normal way of instantiating objects, ``Class(*args, **kwargs)``.
 - Injecting arguments into functions and methods.
+- Referencing dependencies by types and optional annotations.
 - Binding to callables, instances and unbound methods (see [nvokers).
 - Request scope middleware for WSGI and Django applications (requires 
   Python2.5+).
