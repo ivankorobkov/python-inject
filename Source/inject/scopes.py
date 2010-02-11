@@ -121,11 +121,11 @@ class Request(threading.local, Abstract):
     
     cache = None
     
-    def register(self, environ):
+    def register(self):
         '''Register a request using a wsgi environment.'''
         self.cache = {}
     
-    def unregister(self, environ=None):
+    def unregister(self):
         '''Unregister a request.'''
         del self.cache
     

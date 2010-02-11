@@ -1,28 +1,27 @@
-'''C{inject} is a python dependency injection tool. It is created specifically
-for Python and tries to utilize its advantages. C{inject} aims at:
+'''C{inject} is a fast python dependency injection tool. It uses decorators and 
+descriptors to reference external dependencies, and scopes (Guice-inspired) to 
+specify how to reuse objects. Dependencies can be referenced by types and 
+optional annotations. No configuration is required, but advanced in-code 
+configuration is possible.
 
-    - Simplifying complex projects development.
-    - Providing loose-coupling for components.
-    - Instantiating and reusing objects according to their scopes.
-    - Testability.
-    - Advanced in-code configuration.
+Most other python dependency injection tools, such as PyContainer or Spring 
+Python, are ports from other languages (Java). So they are based on dependency 
+injection ways specific for statically typed languages, described by Martin 
+Fowler.
 
-B{Requirements:}
-Python 2.4+, and Python2.5+ for WSGI and Django middleware. Python 3+ is not 
-supported.
+Python is not Java. Patterns and programming techniques, which seem proper and 
+usable in one language, can be awkward in another. `Inject` has been created to 
+provide a _pythonic_ way of dependency injection, utilizing specific Python 
+functionality. Terminology used in `inject` has been intentionally made similar
+to Guice, however the internal architecture is different.
 
 B{Links:}
 
     - Project's site: http://code.google.com/p/python-inject
     - User's Guide: http://code.google.com/p/python-inject/wiki/UsersGuide
+    - Tutorial: http://code.google.com/p/python-inject/wiki/Tutorial
+    - API: http://api.python-inject.googlecode.com/hg/html/index.html
     - Source code: http://github.com/ivan-korobkov/python-inject
-
-B{Installation}
-
-Run::
-    setup.py install
-Or, if you have setuptools, you can install it directly from PyPi::
-    easy_install inject
 
 Short Tutorial
 ==============
@@ -101,14 +100,13 @@ Always pass the super injected params as keyword arguments.::
 
 Request scope (L{scopes.Request}) is a thread-local request-local scope. 
 It allows to instantiate classes only once per request. To use it in a WSGI 
-application, wrap your application with L{WsgiInjectMiddleware}
+application, wrap your application with L{WsgiInjectMiddleware}.
 
 To use it with Django, insert L{DjangoInjectMiddleware} into the middleware
 tuple in C{settings.py}. It is recommended to insert it as the first item.
 
-See the documented code in the I{Examples} folder for a web tutorial.
-
 '''
+__version__ = '1.0'
 
 
 from inject.injections import Attr as attr, \

@@ -22,14 +22,14 @@ class WsgiInjectMiddleware(object):
     
     def __call__(self, environ, start_response):
         try:
-            self.reqscope.register(environ)
+            self.reqscope.register()
             # We have to manually iterate over the response,
             # so that all its parts have been generated before
             # the request is unregistered.
             for s in iter(self.app(environ, start_response)):
                 yield s
         finally:
-            self.reqscope.unregister(environ)
+            self.reqscope.unregister()
 
 
 class DjangoInjectMiddleware(object):
@@ -47,9 +47,9 @@ class DjangoInjectMiddleware(object):
     
     def process_request(self, request):
         '''Register a request scope for a request.'''
-        self.scope.register(request.META)
+        self.scope.register()
     
     def process_response(self, request, response):
         '''Unregister a request scope.'''
-        self.scope.unregister(request.META)
+        self.scope.unregister()
         return response

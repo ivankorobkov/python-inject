@@ -110,7 +110,7 @@ class RequesTestCase(AbstractTestCase):
         scopedprovider = scope.scope(A)
         
         
-        scope.register({})
+        scope.register()
         a = scopedprovider()
         a2 = scopedprovider()
         
@@ -118,7 +118,7 @@ class RequesTestCase(AbstractTestCase):
         self.assertTrue(a is a2)
         
         
-        scope.register({})
+        scope.register()
         a3 = scopedprovider()
         
         self.assertTrue(a is a2)
@@ -132,11 +132,11 @@ class RequesTestCase(AbstractTestCase):
         
         scopedprovider = scope.scope(A)
         
-        scope.register({})
+        scope.register()
         a = scopedprovider()
         
         def run():
-            scope.register({})
+            scope.register()
             a2 = scopedprovider()
             self.assertTrue(a is not a2)
         
@@ -161,7 +161,7 @@ class RequesTestCase(AbstractTestCase):
         def run():
             self.assertRaises(errors.NoRequestRegisteredError, scopedprovider)
         
-        scope.register({})
+        scope.register()
         thread = threading.Thread(target=run)
         thread.start()
         thread.join()
@@ -172,7 +172,7 @@ class RequesTestCase(AbstractTestCase):
         class A(object): pass
         scopedprovider = scope.scope(A)
         
-        scope.register({})
+        scope.register()
         a = weakref.ref(scopedprovider())
         
         self.assertTrue(isinstance(a(), A))
