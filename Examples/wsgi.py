@@ -1,4 +1,4 @@
-'''WSGI inject middleware  example.
+'''WSGI inject middleware  example, requires Python 2.5+.
 
 You don't have to install the inject package to run the example.
 
@@ -21,20 +21,25 @@ from inject.middleware import WsgiInjectMiddleware
 from wsgiref.simple_server import make_server
 
 
-@inject.appscope            # The configuration will be instantiated
-class Config(object):       # only once, when injected.
+class Config(object):       
     def __init__(self):
         # Just to demostrate application scope.
         self.title = 'my web app'
         self.version = '0.1'
+# The configuration will be instantiated
+# only once, when injected.
+Config = inject.appscope(Config)
 
 
-@inject.reqscope            # The controller will be instantiated only
-class Controller(object):   # once per request, when injected.
+            
+class Controller(object):
     
     @inject.param('config', Config)
     def body(self, config):
         return 'This is %s, v.%s.' % (config.title, config.version)
+# The controller will be instantiated only
+# once per request, when injected.
+Controller = inject.reqscope(Controller)
 
 
 class Controller2(Controller):  # Inherits the default scope.

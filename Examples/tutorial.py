@@ -1,4 +1,4 @@
-'''Tutorial code, requires Python2.6.'''
+'''Tutorial code, requires Python2.6 (because of class decorators).'''
 try:
     import inject
 except ImportError:
