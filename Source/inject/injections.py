@@ -3,18 +3,7 @@ and a function decorator.
 '''
 from inject import errors
 from inject.injection import Injection
-
-try:
-    from functools import update_wrapper
-except ImportError:
-    # Python2.5-
-    def update_wrapper(wrapper, wrapped):
-        '''Set wrappers's name, module, doc and update its dict.'''
-        wrapper.__name__ = wrapped.__name__
-        wrapper.__module__ = wrapped.__module__
-        wrapper.__doc__ = wrapped.__doc__        
-        wrapper.__dict__.update(wrapped.__dict__)
-        return wrapper
+from inject.functional import update_wrapper
 
 
 '''
