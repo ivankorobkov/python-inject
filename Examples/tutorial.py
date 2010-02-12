@@ -2,7 +2,7 @@
 try:
     import inject
 except ImportError:
-    # Must be running installing the inject package.
+    # Must be running without installing the inject package.
     import os
     import sys
     cwd = os.getcwd()
