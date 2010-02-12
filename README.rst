@@ -15,6 +15,9 @@ provide a _pythonic_ way of dependency injection, utilizing specific Python
 functionality. Terminology used in `inject` has been intentionally made similar
 to Guice, however the internal architecture is different.
 
+License
+=======
+MIT License, see LICENSE.
 
 Links
 =====
