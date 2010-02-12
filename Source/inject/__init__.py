@@ -18,11 +18,11 @@ to Guice, however the internal architecture is different.
 Links
 =====
 
-    - Project's site: http://code.google.com/p/python-inject
-    - User's Guide: http://code.google.com/p/python-inject/wiki/UsersGuide
-    - Tutorial: http://code.google.com/p/python-inject/wiki/Tutorial
-    - API: http://api.python-inject.googlecode.com/hg/html/index.html
-    - Source code: http://github.com/ivan-korobkov/python-inject
+    - Project's site: U{http://code.google.com/p/python-inject}
+    - User's Guide: U{http://code.google.com/p/python-inject/wiki/UsersGuide}
+    - Tutorial: U{http://code.google.com/p/python-inject/wiki/Tutorial}
+    - API: U{http://api.python-inject.googlecode.com/hg/html/index.html}
+    - Source code: U{http://github.com/ivan-korobkov/python-inject}
 
 
 Short Tutorial
