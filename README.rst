@@ -1,4 +1,4 @@
-``Inject`` is a fast python dependency injection tool. It uses decorators and 
+``inject`` is a fast python dependency injection tool. It uses decorators and 
 descriptors to reference external dependencies, and scopes (Guice-inspired) to 
 specify how to reuse objects. Dependencies can be referenced by types and 
 optional annotations. No configuration is required, but advanced in-code 
@@ -10,8 +10,8 @@ injection ways specific for statically typed languages, described by Martin
 Fowler.
 
 Python is not Java. Patterns and programming techniques, which seem proper and 
-usable in one language, can be awkward in another. `Inject` has been created to 
-provide a _pythonic_ way of dependency injection, utilizing specific Python 
+usable in one language, can be awkward in another. Inject has been created to 
+provide a `pythonic` way of dependency injection, utilizing specific Python 
 functionality. Terminology used in `inject` has been intentionally made similar
 to Guice, however the internal architecture is different.
 
