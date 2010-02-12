@@ -7,7 +7,7 @@ from inject.functional import update_wrapper
 
 
 '''
-@var super_param: empty object which is used to specify that a Param 
+@var super_param: empty object which is used to specify that a param 
     is injected in a super class.
 '''
 super_param = object()
@@ -52,7 +52,7 @@ class Attr(object):
 
 class Param(object):
     
-    '''Param injector is a function decorator, which injects the required
+    '''Param injection is a function decorator, which injects the required
     non-given params directly into a function, passing them as keyword args.
     
     Set an argument to C{super_param} to indicate that it is injected in
