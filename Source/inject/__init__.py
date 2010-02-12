@@ -15,13 +15,15 @@ provide a _pythonic_ way of dependency injection, utilizing specific Python
 functionality. Terminology used in `inject` has been intentionally made similar
 to Guice, however the internal architecture is different.
 
-B{Links:}
+Links
+=====
 
     - Project's site: http://code.google.com/p/python-inject
     - User's Guide: http://code.google.com/p/python-inject/wiki/UsersGuide
     - Tutorial: http://code.google.com/p/python-inject/wiki/Tutorial
     - API: http://api.python-inject.googlecode.com/hg/html/index.html
     - Source code: http://github.com/ivan-korobkov/python-inject
+
 
 Short Tutorial
 ==============
@@ -105,6 +107,11 @@ application, wrap your application with L{WsgiInjectMiddleware}.
 To use it with Django, insert L{DjangoInjectMiddleware} into the middleware
 tuple in C{settings.py}. It is recommended to insert it as the first item.
 
+
+@author: Ivan Korobkov <ivan.korobkov@gmail.com>
+@copyright: 2010 Ivan Korobkov
+@license: MIT License, see LICENSE
+@version: 1.0
 '''
 __version__ = '1.0'
 
