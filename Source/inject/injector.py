@@ -86,25 +86,6 @@ class Injector(IInjector):
             warnings.warn('Overriding an exising binding for %s.' % key)
         self.bindings[key] = provider
     
-    def get_key(self, type, annotation=None):
-        '''Return a key.
-        
-        If annotation is None return type, otherwise combine type
-        and annotation into a single key.
-        '''
-        if annotation is not None:
-            key = self.key_class(type, annotation)
-        else:
-            key = type
-        return key
-    
-    def get_provider(self, key):
-        '''Return a provider for a key, or raise NoProviderError.'''
-        try:
-            return self.bindings[key]
-        except KeyError:
-            raise errors.NoProviderError(key)
-    
     def get_instance(self, type, annotation=None):
         '''Return an instance for a type and an optional annotation, using
         the injector bindings, or raise NoProviderError.
@@ -113,16 +94,12 @@ class Injector(IInjector):
         Key(type, annotation), then for a type alone.
         '''
         bindings = self.bindings
-        
-        if annotation is not None:
-            key = self.get_key(type, annotation)
-            if key in bindings:
-                return bindings[key]()
-            key = type
-        else:
-            key = type
+        key = self.key_class(type, annotation)
         
         if key in bindings:
+            return bindings[key]()
+        
+        if type in bindings:
             return bindings[type]()
         
         raise errors.NoProviderError(key)

@@ -93,31 +93,6 @@ class InjectorTestCase(unittest.TestCase):
         a2 = injector.bindings[A]()
         self.assertEqual(a, 'My a')
         self.assertEqual(a2, 'My a')
-    
-    def testGetKey(self):
-        '''Injector get_key() should return type, or Key(type, annotation).'''
-        class A(object): pass
-        injector = self.injector_class()
-        
-        # Use type as key.
-        key = injector.get_key(A)
-        self.assertTrue(key is A)
-        
-        # Combine type and annotation into a key.
-        key = injector.get_key(A, annotation='test')
-        key2 = self.key_class(A, 'test')
-        self.assertEqual(key, key2)
-    
-    def testGetProvider(self):
-        '''Injector get_provider() should return a provider, or an error.'''
-        class A(object): pass
-        injector = self.injector_class()
-        
-        self.assertRaises(errors.NoProviderError, injector.get_provider, A)
-        
-        injector.bindings[A] = A
-        provider = injector.get_provider(A)
-        self.assertTrue(provider is A)
         
     def testGetInstance(self):
         '''Injector get_instance() should return an obj, or raise an error.'''
