@@ -1,0 +1,226 @@
+#summary Reusing instances
+
+Scopes allow to reuse existing instances instead of creating new ones.
+There are three built-in scopes: `noscope`, `appscope`, and `reqscope`.
+Scopes only affect the way objects are injected, not instantiated. In other
+words, a class decorated with `@appscope` can be instantiated many times,
+even though the injections will use only one instance.
+
+Contents:
+<wiki:toc max_depth="2" />
+
+=Using scopes=
+*Scope is specified for and used by a provider, not a component.*
+
+The first and the easiest way to specify a scope is to use it as a class
+decorator (Python 2.6+).
+{{{
+@appscope
+class Config(object):
+    pass
+
+
+class App(object):
+    config = inject.attr('config', Config)
+
+class App2(object);
+    config = inject.attr('config', Config)
+
+app = App()
+app2 = App()
+
+print app.config is app2.config  # True
+}}}
+
+Subclasses inherit scopes.
+{{{
+@reqscope
+class Controller(object):
+    pass
+
+class Controller2(Controller):  # Controller2 is also request-scoped.
+    pass
+}}}
+
+The second way is to explicitly set a scope when injecting a component.
+The scope, set in such a way, affects only an injection.
+{{{
+class A(object): pass
+class B(object):
+    a = inject.attr('a', A, scope=appscope)
+
+class C(object):
+    a = inject.attr('a', A)
+
+b = B()
+b2 = B()
+
+print b.a is b.a2  # True
+
+c = C()
+print b.a is c.a  # False
+}}}
+
+The third way is to set a scope when binding a component in an injector.
+{{{
+class A(object): pass
+class A2(object): pass
+
+class B(object):
+    a = inject.attr('a', A)
+
+class C(object):
+    a = inject.attr('a', A)
+
+
+injector.bind(A, to=A2, scope=appscope)
+
+b = B()
+c = C()
+
+print b.a is c.a  # True
+}}}
+
+= How scopes are resolved =
+
+If an injection or a binding has been given a scope, use it. Otherwise,
+try to get a default scope from a *provider*. Example:
+{{{
+@appscope
+class A(object): pass
+class B(object): pass
+
+class C(object):
+    attr = inject.attr('attr', A)
+
+class C2(object):
+    attr = inject.attr('attr', A, scope=reqscope)
+
+class C3(object):
+    attr = inject.attr('attr', A, bindto=B)
+}}}
+`C.attr` scope is `appscope` because the provider, `A`, has it as
+the default scope.
+
+`C2.attr` scope is `reqscope` because it is given explicitly.
+
+`C3.attr` has no scope, because no scope is given, and the provider, `B`,
+has no default scope.
+
+= Utility methods =
+All scopes have three utility methods: `inject_attr`, `inject_param`, and `invoker`.
+They are equivalents to `inject.attr`, `inject.param` and `inject.invoker` but
+with the predefined scope.
+{{{
+class A(object): pass
+class B(object):
+    a = reqscope.inject_attr('a', A)
+}}}
+
+=Built-in Scopes=
+
+==No scope==
+It is the default scope for all injections. It means that every time an object
+is required a new instance is created. It can be given explicitly to override
+a scope set by a class decorator. For example:
+{{{
+@appscope
+class A(object): pass
+
+class B(object):
+    a = inject.attr('a', scope=noscope)
+
+b = B()
+b2 = B()
+
+print b.a is b2.a  # False
+}}}
+
+==Application scope==
+It is a scope which means "create only one instance for an application
+(actually, for a process)". It caches all instances, which are strongly
+referenced, i.e. they will exist as long as an application exists.
+
+In other frameworks it is usually called Singleton. However, Singleton means
+that an object can be instantiated only once. So, `appscope` is better.
+
+Usually, the application scope will be used instead of global module variables,
+which are hard-coded. Some of them are `settings`, `config`, `database`, etc.
+
+==Request scope==
+It is a scope which means "create only one instance per request". It is a 
+subclass of `threading.local`. The request can be any request, not only
+an HTTP request.
+
+If no request is registered, but a request-scoped provider is accessed,
+`NoRequestRegisteredError` is raised.
+
+Usually, you will use existing `WsgiInjectMiddleware` and 
+`DjangoInjectMiddleware` which will register/unregister requests properly.
+Wrap an existing WSGI application with the middleware:
+{{{
+def my_wsgi_app(environ, start_response):
+    pass
+
+scoped_add = WsgiInjectMiddleware(my_wsgi_app)
+}}}
+Add the middleware to Django's `settings.py`. It is recommended to put it as 
+the first item:
+{{{
+# settings.py
+MIDDLEWARE_CLASSES = (
+    'inject.middleware.DjangoInjectMiddleware',
+    
+    'django.middleware.common.CommonMiddleware',
+    ...
+)
+}}}
+
+If you cannot or do not want to use the existing middleware, you need to call
+`reqscope.register` before processing a request, and `reqscope.unregister`, 
+after the result is returned. Usually you will use `try...finally`.
+
+Example manual registering/unregistering request scope in a WSGI application:
+{{{
+def app(self, environ, start_response):
+    try:
+        reqscope.register()
+        # do something
+    finally:
+        reqscope.unregister()
+}}}
+
+= Implementing other scopes =
+A scope can be any object which implements a `scope(provider)` method. The method 
+must return a callable (a scoped provider). Usually, it will be done using closures. 
+For example:
+{{{
+class MyScope(object):
+    def scope(self, provider):
+        def scoped_provider():
+            # Get a cached instance
+            ...
+            # or call a provider
+            instance = provider()
+        
+        return scoped_provider
+
+myscope = MyScope()
+}}}
+
+If you want to your scope to be a decorator and to have [Scopes#Utility_methods utility methods], 
+subclass `AbstractScope`.
+{{{
+class MyScope(AbstractScope):
+    # code here
+    pass
+myscope = MyScope()
+
+@myscope
+class A(object): pass
+class B(object): pass
+
+class C(object):
+    a = inject.attr('a', A)
+    b = myscope.inject_attr('b', B)
+}}}

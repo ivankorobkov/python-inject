@@ -1,0 +1,89 @@
+#summary Configuring injections
+
+By default, no configuration is needed. For example: 
+{{{
+class A(object): pass
+class B(object):
+    a = inject.attr('a', A)
+
+b = B()
+print isinstance(b.a, A)  # True
+}}}
+
+If you need advanced configuration, then you need to use `Injector`. Other 
+frameworks also call it a container, and usually, it provides their core 
+functionality. In `inject` it is absolutely optional.
+
+Create an injector, and *register* it with `inject.register(injector)`. You 
+need to register it, so that the injections get to know about it, and actually 
+use it. Only one injector can be registered at the same time. You can 
+unregister an injector any time with `inject.unregister`. Without any arguments 
+the function unregisters any registered injector, with a given injector, it 
+unregisters the injector only if it is registered. 
+
+Use `injector.bind` to attach providers to components. It takes almost the same
+arguments as injections, except for not having `attr`/`param` and using `to` 
+instead of `bindto`:
+{{{
+inject.attr(attr, type=None, annotation=None, bindto=None, scope=None)
+injector.bind(type, annotation=None, to=None, scope=None)
+}}}
+
+See [Injections#bindto injections] for more information about binding. 
+Simple example:
+{{{
+class A(object): pass
+class A2(object): pass
+class B(object):
+    a = inject.attr('a', A)
+
+injector = inject.Injector()
+injector.bind(A, to=A2)
+inject.register(injector)     # Registering an injector
+
+b = B()
+print isinstance(b.a, A2)  # True
+}}}
+
+There is no difference whether you first create bindings, then register
+an injector or vice versa.
+
+It is possible to get instances directly from an injector with 
+`get_instance(type, annotation=None)`, but it uses only injector's bindings.
+{{{
+class A(object): pass
+class B(object): pass
+class B2(object): pass
+class C(object): pass
+class D(object):
+    c = inject.attr('c', C)
+
+injector.bind(A)
+injector.bind(B, annotation='test', to=B2)
+a = injector.get_instance(A)
+b2 = injector.get_instance(B, annotation='test')
+injector.get_instance(C) # NoProviderError
+}}}
+
+If you want to imitate Guice's configuration modules, you can use simple
+functions (or whatever).
+{{{
+def config1(injector):
+    injector.bind(A, to=A2)
+    injector.bind(B, to=B2, scope=appscope)
+    injector.bind(C, to=C2, scope=noscope)
+    injector.bind(D, annotation='user', to=D2)
+
+class Config(object):
+    def __call__(self, injector):
+        injector.bind('my_var', to='My value')
+
+config2 = Config()
+
+
+injector = inject.Injector()
+inject.register(injector)
+
+config1(injector)
+config2(injector)
+}}}

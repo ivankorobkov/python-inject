@@ -1,0 +1,161 @@
+#summary Introduction to dependency injection.
+
+Dependency injection is a technique for supplying external dependencies to a 
+component. Why do we need it?
+
+== Dependencies ==
+Imagine, we have a {{{Car}}} class which has an engine, a body, and wheels.
+{{{
+class Car(object):
+
+    def __init__(self):
+        self.engine = Engine()
+        self.body = Body()
+        self.wheels = Wheels() 
+}}}
+
+Even though there is no problem with the class above, it is difficult to test 
+or extend it, because all its dependencies are _hard-coded_. A better way is 
+to explicitly specify its dependencies, so that they can be overridden.
+{{{
+class Car(object):
+
+    engine_class = Engine
+    body_class = Body
+    wheels_class = Wheels
+    
+    def __init__(self):
+        self.engine = self.engine_class()
+        self.body = self.body_class()
+        self.wheels = self.wheels_class()
+}}}
+
+Now it is possible to test the class using fake objects:
+{{{
+class TestCar(Car):
+
+    engine_class = FakeEngine
+    body_class = FakeBody
+    wheels_class = FakeWheels
+}}}
+
+Or to extend it with another parts:
+{{{
+class SuperCar(Car):
+
+    engine_class = FastEngine
+
+
+class Truck(Car):
+
+    body_class = BigBody
+}}}
+
+*Do not hard-code dependenies.*
+
+== Reusing objects ==
+There is still one problem with the code above, though it is not evident from 
+the {{{Car}}} class. It is the problem of instantiating and reusing objects.
+Imagine we are building a web application (MVC). In it some classes need to be
+instantiated once for each request, others -- once for the whole application.
+
+The application requires one database pool, reused across all its thread.
+It can be implemented as a thread-safe singleton and accessed directly.
+{{{
+dbpool = DatabasePool()
+
+class Model(object):
+    
+    dbpool = dbpool
+}}}
+It is possible to test {{{Model}}}, but it is impossible to supply a new pool
+for the whole application without overriding the {{{dbpool}}} attribute
+in every model. It is possible to create a factory, which will return a pool,
+but the factory instance will still be hard-coded in each model.
+
+
+One model in the application requires a session, a logger, and an emailer,
+and all these objects have to be request-local (one instance per request).
+For example, they are user-specific. The usual way to supply these requirements
+is to store them in the request object, and then pass them to the model via 
+a controller.
+{{{
+class Model(object):
+
+    @classmethod
+    def do_something(cls, session, logger, emailer):
+        pass
+
+class Controller(object):
+
+    def show_page(self, request):
+        session = request.session
+        logger = request.logger
+        emailer = request.emailer
+        
+        data = self.model.do_something(session, logger, emailer)
+}}}
+_But this is a functional way of doing things!_ {{{Controller}}} has no 
+business logic now; it serves as a dependencies resolver for a model. Every 
+time model's requirements change, the controller has to be changed too.
+
+*A better way of reusing objects is required.*
+
+== Introducing dependency injection ==
+Dependency injection tackles all the specified problem.
+
+{{{Model}}} has a dependency for a database pool. So {{{dbpool}}} is injected
+into it.
+{{{
+class Model(object):
+    
+    # Descriptor (property), injected for each instance.
+    dbpool = inject.attr('dbpool', DatabasePool)
+}}}
+
+Then an injector is configured to supply one {{{DatabasePool}}} instance for 
+the whole application.
+{{{
+injector.bind(DatabasePool, scope=appscope)
+}}}
+
+It is possible to supply another class, for example:
+{{{
+injector.bind(DatabasePool, to=MyCoolDatabasePool, scope=appscope)
+}}}
+
+{{{Session}}}, {{{Logger}}}, and {{{Emailer}}} are injected directly into
+model's function, and are instantiated with the request scope.
+{{{
+class Model(object):
+    
+    @inject.param('session', Session)
+    @inject.param('logger', Logger)
+    @inject.param('emailer', Emailer)
+    @classmethod
+    def do_something(cls, session, logger, emailer):
+        pass
+
+class Controller(object):
+
+    model = Model
+
+    def show_page(self, request):
+        data = self.model.do_something()
+
+
+injector.bind(Session, scope=requestscope)
+injector.bind(Logger, scope=requestcope)
+injector.bind(Emailer, scope=requestscope)
+}}}
+
+Also, it would be better to get rid of model's class methods, move them into
+{{{ModelRepository}}} class and inject it into the controller.
+
+== Summary ==
+Dependency injection provides:
+
+    * Loose-coupling for components.
+    * Instantiating and reusing objects according to their scopes.
+    * Testability.
+    * Flexible configuration.

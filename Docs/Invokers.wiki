@@ -1,0 +1,95 @@
+#summary Calling unbound methods
+
+Invokers allow to call unbound methods. They create an instance of method's
+class, and pass it as the first argument to the method. It is possible to
+specify an explicit scope for a class. Invokers are very useful as listeners, 
+or in aspect-oriented programming.
+
+Contents:
+<wiki:toc max_depth="2" />
+
+=Using invokers=
+
+To create an invoker pass it any callable. If the callable is an unbound 
+method, a new invoker is returned, otherwise, the callable is returned
+untouched.
+{{{
+class A(object):
+    def method(self):
+        return 'value'
+
+def func():
+    pass
+
+invoker = inject.invoker(A.method)
+func2 = inject.invoker(func)
+
+print invoker is A.method  # False
+print func2 is func  # True
+}}}
+
+This simplifies the development, imagine we have an observer, which uses 
+invokers inside its `attach` method:
+{{{
+class A(object):
+    def method(self):
+        pass
+a = A()
+def func(): pass
+
+observer = Observer()
+observer.attach('event', A.method)
+observer.attach('event', func)
+observer.attach('event', a.method)
+}}}
+
+If you inject an unbound method, it is automatically converted to an invoker
+without any scope (the default scope will be used if present, otherwise
+no scope). These are equivalent:
+{{{
+@appscope
+class A(object):
+    def method(self):
+        return 'value'
+
+class C(object):
+    attr = inject.attr('attr', A.method)
+
+class B(object):
+    attr = inject.attr('attr', invoker(A.method))
+
+class D(object):
+    attr = inject.attr('attr', invoker(A.method, scope=appscope))
+}}}
+
+=Scope=
+As mentioned above, invokers can use scope to get an instance of a class.
+Internally, they use injections, so the default scope also workds.
+{{{
+@reqscope
+class Controller(object):
+    def do_something(self):
+        pass
+
+invoker = inject.invoker(Controller.do_something)  # reqscope will be used.
+invoker2 = inject.invoker(Controller.do_something, scope=noscope)
+}}}
+
+=Hash=
+Invoker is a transparent wrapper around an unbound method, i.e. it has the same
+hash and redirects all equality requests to the method. This allows to use
+them as keys in dictionaries.
+{{{
+class A(object):
+    def method(self):
+        pass
+
+invoker = inject.invoker(A.method)
+
+print invoker == A.method  # True
+d = {}
+d[A.method] = 'value'
+print d[invoker]  # 'value'
+
+print invoker is A.method  # False
+}}}

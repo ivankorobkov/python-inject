@@ -1,0 +1,14 @@
+#summary User's Guide
+#labels Featured
+
+[Introduction] to dependency injection.
+
+[Tutorial]: a step-by-step guide how to start using dependency injection.
+
+[Injections] reference.
+
+[Scopes] reference.
+
+[Invokers] reference.
+
+[Configuration] reference.
