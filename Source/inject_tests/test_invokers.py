@@ -1,7 +1,7 @@
 from inject import scopes
 import unittest
 
-from inject.invoker_ import Invoker
+from inject.invokers import Invoker
 
 
 class InvokerTestCase(unittest.TestCase):

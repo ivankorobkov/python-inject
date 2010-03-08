@@ -12,7 +12,7 @@ import threading
 
 from inject import errors
 from inject.injections import Attr, Param
-from inject.invoker_ import Invoker
+from inject.invokers import Invoker
 
 '''
 @var SCOPE_ATTR: Constant, an attribute name which is used to store a scope 

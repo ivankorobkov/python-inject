@@ -7,7 +7,7 @@ a specific provider, or an invoker depending on the passed arguments. It also
 scopes it if a scope is given.
 '''
 from inject import errors
-from inject.invoker_ import Invoker
+from inject.invokers import Invoker
 
 
 class Instance(object):
