@@ -1,5 +1,6 @@
 import unittest
 
+import inject
 from inject.key import Key
 from inject import errors, scopes
 from inject.injectors import Injector, register, unregister
@@ -13,6 +14,9 @@ class RegisteringTestCase(unittest.TestCase):
     
     register_injector = staticmethod(register)
     unregister_injector = staticmethod(unregister)
+    
+    def tearDown(self):
+        inject.unregister()
     
     def testRegisterUnregister(self):
         '''Register/unregister should set injections injector.'''
@@ -40,6 +44,9 @@ class InjectorTestCase(unittest.TestCase):
     
     key_class = Key
     injector_class = Injector
+    
+    def tearDown(self):
+        inject.unregister()
     
     def testBind(self):
         '''Injector should bind type [,annotation] to a provider.'''
@@ -115,3 +122,54 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind(A, 'test', to=B)
         a = injector.get_instance(A, 'test')
         self.assertTrue(isinstance(a, B))
+    
+    def testAttr(self):
+        '''Injector.attr should create an injector-specific injection.'''
+        inj = self.injector_class()
+        
+        class A(object): pass
+        class B(object):
+            a = inj.attr('a', A)
+        
+        b = B()
+        self.assertTrue(B.a.injection.injector is inj)
+        self.assertTrue(isinstance(b.a, A))
+    
+    def testInvoker(self):
+        '''Injector.invoker should create an injector-specific invoker.'''
+        inj = self.injector_class()
+        
+        class A(object):
+            def method(self):
+                return 'method'
+        
+        invoker = inj.invoker(A.method)
+        
+        self.assertTrue(invoker.injection.injector is inj)
+        self.assertEqual(invoker(), 'method')
+    
+    def testMultipleInjectors(self):
+        '''Multiple injectors should not interfere with each other.'''
+        inj = self.injector_class()
+        inj2 = self.injector_class()
+        register(inj2)
+        
+        class A(object): pass
+        class A2(object): pass
+        class B(object):
+            @inj.param('a', A)
+            def __init__(self, a):
+                self.a = a
+        
+        class B2(object):
+            @inject.param('a', A)
+            def __init__(self, a):
+                self.a = a
+        
+        inj2.bind(A, to=A2)
+        
+        b = B()
+        b2 = B2()
+        
+        self.assertTrue(isinstance(b.a, A))
+        self.assertTrue(isinstance(b2.a, A2))

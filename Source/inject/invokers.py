@@ -52,17 +52,17 @@ class Invoker(object):
     
     injection_class = Injection
     
-    def __new__(cls, func, scope=None):
-        '''If func is an unbound method, create an invoker and return it,
-        otherwise return untouched func.
+    def __new__(cls, method, scope=None):
+        '''If method is an unbound method, create an invoker and return it,
+        otherwise return the untouched method.
         '''
-        if hasattr(func, 'im_class') and \
-           hasattr(func, 'im_self') and \
-           hasattr(func, 'im_self') and \
-           func.im_self is None:
+        if hasattr(method, 'im_class') and \
+           hasattr(method, 'im_self') and \
+           hasattr(method, 'im_self') and \
+           method.im_self is None:
             return super(Invoker, cls).__new__(cls)
         
-        return func
+        return method
     
     def __init__(self, method, scope=None):
         self.method = method
