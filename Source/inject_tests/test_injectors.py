@@ -2,7 +2,7 @@ import unittest
 
 from inject.key import Key
 from inject import errors, scopes
-from inject.injector import Injector, register, unregister
+from inject.injectors import Injector, register, unregister
 from inject.injection import Injection
 
 

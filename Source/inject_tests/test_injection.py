@@ -1,7 +1,7 @@
 import unittest
 
 from inject import scopes, errors
-from inject.injector import Injector
+from inject.injectors import Injector
 from inject.injection import Injection
 
 
