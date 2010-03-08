@@ -69,6 +69,18 @@ class InjectorTestCase(unittest.TestCase):
         key = self.key_class(C, 'test')
         self.assertTrue(injector.bindings[key] is C)
     
+    def testConfigure(self):
+        '''Injector should be configurable using callables.'''
+        class A(object): pass
+        class A2(object): pass
+        def config(injector):
+            injector.bind(A, to=A2)
+        
+        injector = self.injector_class()
+        injector.configure(config)
+        
+        self.assertTrue(A in injector.bindings)
+    
     def testProvider(self):
         '''Injector should create an [inst, scoped] provider for a binding.'''
         class A(object): pass

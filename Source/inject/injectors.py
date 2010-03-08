@@ -1,26 +1,47 @@
-'''Injector stores configuration for bindings. It is optional and should be
-used only when advanced configuratio is required.
+'''Injectors store bindings configuration. They allow to use advanced 
+configuration, but are optional. It is possible to create multiple injectors,
+one of which can be registered as the main injector. Other injectors can
+be used directly to create specific injections (C{injector.attr(...)}, etc.)
+
+If you want to use C{inject} in a project which will be used by other projects
+(for example, a library, a framework, etc.) B{always create an explicit
+injector}, and use its C{attr}, C{param}, and C{invoker} methods to create
+injections.
 
 Tutorial
 ========
 
 Create an injector, and add bindings to it.
+
     >>> injector = Injector()
-    >>> injector.bind(cls, annotation='text', to=MyClass, scope=appscope)
+    >>> injector.bind(Class1, annotation='text', to=Class2, scope=appscope)
 
-Then 1) B{register it} as the main injector which will be used by all 
-injections, or 2) use it to create injector-specific injections.
+Or use callables which take the injector as an argument to configure it.
 
+    >>> def config(inj):
+    ...     inj.bind(A, to=A2)
+    >>> class Config(object):
+    ...     def __init__(self, inj):
+    ...         inj.bind(B, to=B2)
+    >>>
+    >>> injector.configure(config, Config)
+
+Then 1) B{register it as the main injector} which will be used by
+the injections, 2) B{or create injector-specific injections}.
+
+    >>> # Register the main injector.
     >>> class A(object): pass
+    >>> class A2(object): pass
     >>> class B(object):
     ...     a = inject.attr('a', A)
+    >>> injector.bind(A, to=A2)
     >>> register(injector)
     
-    >>> # or
+    >>> # Or create injector-specific injections. 
     >>> class A(object): pass
     >>> class B(object):
     ...     a = injector.attr('a', A)
-    >>>
+    >>> injector.bind(A, to=A2)
 
 '''
 import new
@@ -99,6 +120,13 @@ class Injector(object):
         if key in self.bindings:
             warnings.warn('Overriding an exising binding for %s.' % key)
         self.bindings[key] = provider
+    
+    def configure(self, *configs):
+        '''Configure the injector using the provided callable configs;
+        call them with the injector as an argument.
+        '''
+        for config in configs:
+            config(self)
     
     def get_instance(self, type, annotation=None):
         '''Return an instance for a type and an optional annotation, using
