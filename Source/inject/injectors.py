@@ -55,7 +55,10 @@ from inject.injections import Attr, Param
 
 
 def register(injector):
-    '''Register an injector as a main injector.'''
+    '''Register an injector as the main injector.'''
+    if Injection.injector is not None:
+        warnings.warn('Overriding an already registered main injector %s '
+                      'with %s.' % (Injection.injector, injector))
     Injection.injector = injector
 
 
@@ -63,7 +66,7 @@ def unregister(injector=None):
     '''Unregister an injector.
     
     If an injector is given, unregister it only if it is registered.
-    If an injector is None, unregister any registered injector.
+    If None, unregister any registered injector.
     '''
     if Injection.injector is injector or injector is None:
         Injection.injector = None
@@ -71,20 +74,11 @@ def unregister(injector=None):
 
 class Injector(object):
     
-    '''Injector stores configuration for bindings.
-    
-    @ivar attr_class: Attribute injection which uses this injector.
-    @ivar param_class: Param injection which uses this injector.
-    @ivar invoker_class: Invoker which uses this injector.
-    '''
+    '''Injector stores configuration for bindings.'''
     
     key_class = Key
     provider_class = providers.Factory
     injection_class = None
-    
-    attr = None
-    param = None
-    invoker = None
     
     def __init__(self, attr_class=Attr, param_class=Param,
                  invoker_class=Invoker, injection_class=Injection):
@@ -146,6 +140,10 @@ class Injector(object):
         
         raise errors.NoProviderError(key)
     
+    #==========================================================================
+    # Creating injector-specific injections
+    #==========================================================================
+    
     def attr(self, attr, type=None, annotation=None, bindto=None, scope=None):
         '''Create an injector-specific attribute injection.'''
         return self.attr_class(attr=attr, type=type, annotation=annotation, 
@@ -159,3 +157,15 @@ class Injector(object):
     def invoker(self, method, scope=None):
         '''Create an injector-specific invoker.'''
         return self.invoker_class(method=method, scope=scope)
+    
+    #==========================================================================
+    # Registering/unregistering
+    #==========================================================================
+    
+    def register(self):
+        '''Register the injector as the main injector.'''
+        return register(self)
+    
+    def unregister(self):
+        '''Unregister the injector if it is registered.'''
+        return unregister(self)
