@@ -125,3 +125,10 @@ from inject.scopes import \
     no as noscope, \
     app as appscope, \
     req as reqscope
+
+
+'''
+@var injector: The default injector.
+'''
+injector = Injector()
+injector.register()
