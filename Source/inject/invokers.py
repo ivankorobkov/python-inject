@@ -52,7 +52,7 @@ class Invoker(object):
     
     injection_class = Injection
     
-    def __new__(cls, method, scope=None):
+    def __new__(cls, method):
         '''If method is an unbound method, create an invoker and return it,
         otherwise return the untouched method.
         '''
@@ -64,9 +64,9 @@ class Invoker(object):
         
         return method
     
-    def __init__(self, method, scope=None):
+    def __init__(self, method):
         self.method = method
-        self.injection = self.injection_class(method.im_class, scope=scope)
+        self.injection = self.injection_class(method.im_class)
         self._hash = None
     
     def __call__(self, *args, **kwargs):

@@ -82,7 +82,7 @@ class Injector(object):
     
     def __init__(self, attr_class=Attr, param_class=Param,
                  invoker_class=Invoker, injection_class=Injection):
-        self.injection_class = new.classobj(attr_class.__name__, 
+        self.injection_class = new.classobj(attr_class.__name__,
             (injection_class,), {'injector': self})
         
         self.attr_class = new.classobj(attr_class.__name__, (attr_class,),
@@ -92,7 +92,7 @@ class Injector(object):
             {'injection_class': self.injection_class})
         
         self.invoker_class = new.classobj(invoker_class.__name__,
-            (invoker_class,),   {'injection_class': self.injection_class})
+            (invoker_class,), {'injection_class': self.injection_class})
         
         self.bindings = {}
     
@@ -144,19 +144,17 @@ class Injector(object):
     # Creating injector-specific injections
     #==========================================================================
     
-    def attr(self, attr, type=None, annotation=None, bindto=None, scope=None):
+    def attr(self, attr, type=None, annotation=None):
         '''Create an injector-specific attribute injection.'''
-        return self.attr_class(attr=attr, type=type, annotation=annotation, 
-                               bindto=bindto, scope=scope)
+        return self.attr_class(attr=attr, type=type, annotation=annotation)
     
-    def param(self, name, type=None, annotation=None, bindto=None, scope=None):
+    def param(self, name, type=None, annotation=None):
         '''Create an injector-specific param injection.'''
-        return self.param_class(name=name, type=type, annotation=annotation, 
-                                bindto=bindto, scope=scope)
+        return self.param_class(name=name, type=type, annotation=annotation)
     
-    def invoker(self, method, scope=None):
+    def invoker(self, method):
         '''Create an injector-specific invoker.'''
-        return self.invoker_class(method=method, scope=scope)
+        return self.invoker_class(method=method)
     
     #==========================================================================
     # Registering/unregistering

@@ -12,7 +12,6 @@ import threading
 
 from inject import errors
 from inject.injections import Attr, Param
-from inject.invokers import Invoker
 
 '''
 @var SCOPE_ATTR: Constant, an attribute name which is used to store a scope 
@@ -42,32 +41,11 @@ class Abstract(Interface):
     
     attr_class = Attr 
     param_class = Param
-    invoker_class = Invoker
     
     def __call__(self, obj):
         '''Decorate an object so that it is instantiated inside the scope.'''
         setattr(obj, SCOPE_ATTR, self)
         return obj
-    
-    def inject_attr(self, attr, type=None, annotation=None, bindto=None):
-        '''Create a scoped injection descriptor for an attribute.
-        
-        If type is not given (None), type = attr.
-        '''
-        return self.attr_class(attr=attr, type=type, annotation=annotation,
-                               bindto=bindto, scope=self)
-    
-    def inject_param(self, name, type=None, annotation=None, bindto=None):
-        '''Create a scoped injection for a param.
-        
-        If type is not given (None), type = name.
-        '''
-        return self.param_class(name=name, type=type, annotation=annotation,
-                                bindto=bindto, scope=self)
-    
-    def invoker(self, func):
-        '''Create a scoped invoker.'''
-        return self.invoker_class(func, scope=self)
 
 
 class No(Abstract):
