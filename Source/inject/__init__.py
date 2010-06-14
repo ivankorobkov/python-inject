@@ -116,7 +116,7 @@ tuple in C{settings.py}. It is recommended to insert it as the first item.
 __version__ = '1.0'
 
 
-from inject.injections import Attr as attr, \
+from inject.injections import AttributeInjection as attr, \
     Param as param, \
     super_param as super
 from inject.injectors import Injector, register, unregister

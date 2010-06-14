@@ -1,7 +1,6 @@
 import unittest
 
 import inject
-from inject.key import Key
 from inject import errors, scopes
 from inject.injectors import Injector, register, unregister
 from inject.injection import Injection
@@ -42,14 +41,13 @@ class RegisteringTestCase(unittest.TestCase):
 
 class InjectorTestCase(unittest.TestCase):
     
-    key_class = Key
     injector_class = Injector
     
     def tearDown(self):
         inject.unregister()
     
     def testBind(self):
-        '''Injector should bind type [,annotation] to a provider.'''
+        '''Injector should bind type to a provider.'''
         class A(object): pass
         class B(object): pass
         class C(object): pass
@@ -59,14 +57,9 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind(A, to=B)
         self.assertTrue(injector.bindings[A] is B)
         
-        # Combine type and annotation into a key.
-        injector.bind(A, annotation='test', to=B)
-        key = self.key_class(A, 'test')
-        self.assertTrue(injector.bindings[key] is B)
-        
         # Bind to the type.
-        injector.bind(C, annotation='test')
-        key = self.key_class(C, 'test')
+        injector.bind(C)
+        key = (C)
         self.assertTrue(injector.bindings[key] is C)
     
     def testConfigure(self):
@@ -121,19 +114,9 @@ class InjectorTestCase(unittest.TestCase):
         
         self.assertRaises(errors.NoProviderError, injector.get_instance, A)
         
-        # Get an instance by type.
         injector.bind(A, to=A)
         a = injector.get_instance(A)
         self.assertTrue(isinstance(a, A))
-        
-        # Get an instance by type, because there is no for Key(type, ann).
-        a = injector.get_instance(A, 'test')
-        self.assertTrue(isinstance(a, A))
-        
-        # Get an instance for Key(type, annotation). 
-        injector.bind(A, 'test', to=B)
-        a = injector.get_instance(A, 'test')
-        self.assertTrue(isinstance(a, B))
     
     def testAttr(self):
         '''Injector.attr should create an injector-specific injection.'''

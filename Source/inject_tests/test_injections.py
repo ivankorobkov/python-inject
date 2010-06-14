@@ -1,14 +1,19 @@
 import unittest
+from mock import Mock
 
 from inject import injections, errors
 
 
 class AttrTestCase(unittest.TestCase):
     
-    attr_class = injections.Attr
+    @property
+    def attr_class(self):
+        class DummyAttrClass(injections.AttributeInjection):
+            injection = Mock()
+        return DummyAttrClass
     
     def test(self):
-        '''Attribute injection should create an instance and set an Attr.'''
+        '''Attribute injection should create an instance and set an attr.'''
         class A(object): pass
         class B(object):
             a = self.attr_class('a', A)

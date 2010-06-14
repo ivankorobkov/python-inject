@@ -11,7 +11,7 @@ injection request.
 import threading
 
 from inject import errors
-from inject.injections import Attr, Param
+from inject.injections import AttributeInjection, Param
 
 '''
 @var SCOPE_ATTR: Constant, an attribute name which is used to store a scope 
@@ -39,7 +39,7 @@ class Abstract(Interface):
     and scoped injections.
     '''
     
-    attr_class = Attr 
+    attr_class = AttributeInjection 
     param_class = Param
     
     def __call__(self, obj):

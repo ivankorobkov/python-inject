@@ -13,22 +13,22 @@ from inject.functional import update_wrapper
 super_param = object()
 
 
-class Attr(object):
+class AttributeInjection(object):
     
-    '''Attribute injection is a descriptor, which injects an inNNstance into
+    '''AttributeInjection is a descriptor, which injects an instance into
     a specified class attribute.
     
     Example::
         
         class A(object): pass
         class B(object):
-            a = Attr('a', A)
+            a = AttributeInjection('a', A)
     
     '''
     
     injection_class = Injection
     
-    def __init__(self, attr, type=None, annotation=None):
+    def __init__(self, attr, type=None):
         '''Create an injection for an attribute.
         
         If type is not given (None), type = attr.
@@ -36,7 +36,7 @@ class Attr(object):
         if type is None:
             type = attr
         self.attr = attr
-        self.injection = self.injection_class(type, annotation)
+        self.injection = self.injection_class(type)
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -74,15 +74,12 @@ class Param(object):
     
     injection_class = Injection
     
-    def __new__(cls, name, type=None, annotation=None):
+    def __new__(cls, name, type):
         '''Create an injection for a param.
         
         If type is not given (None), type = name.
         '''
-        if type is None:
-            type = name
-        
-        injection = cls.injection_class(type, annotation)
+        injection = cls.injection_class(type)
         
         def decorator(func):
             if getattr(func, 'injection_wrapper', False):
@@ -135,7 +132,7 @@ class Param(object):
             varnames = func_code.co_varnames
             if name not in varnames:
                 raise errors.NoParamError(
-                    '%s does not accept an injected Param "%s".' % 
+                    '%s does not accept an injected param "%s".' % 
                     (func, name))
         
         wrapper.injections[name] = injection

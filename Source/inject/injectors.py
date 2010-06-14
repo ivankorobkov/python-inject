@@ -14,7 +14,7 @@ Tutorial
 Create an injector, and add bindings to it.
 
     >>> injector = Injector()
-    >>> injector.bind(Class1, annotation='text', to=Class2, scope=appscope)
+    >>> injector.bind(Class1, to=Class2, scope=appscope)
 
 Or use callables which take the injector as an argument to configure it.
 
@@ -38,6 +38,7 @@ the injections, 2) B{or create injector-specific injections}.
     >>> register(injector)
     
     >>> # Or create injector-specific injections. 
+    
     >>> class A(object): pass
     >>> class B(object):
     ...     a = injector.attr('a', A)
@@ -48,10 +49,9 @@ import new
 import warnings
 
 from inject import errors, providers
-from inject.key import Key
 from inject.invokers import Invoker
 from inject.injection import Injection
-from inject.injections import Attr, Param
+from inject.injections import AttributeInjection, Param
 
 
 def register(injector):
@@ -76,11 +76,10 @@ class Injector(object):
     
     '''Injector stores configuration for bindings.'''
     
-    key_class = Key
     provider_class = providers.Factory
     injection_class = None
     
-    def __init__(self, attr_class=Attr, param_class=Param,
+    def __init__(self, attr_class=AttributeInjection, param_class=Param,
                  invoker_class=Invoker, injection_class=Injection):
         self.injection_class = new.classobj(attr_class.__name__,
             (injection_class,), {'injector': self})
@@ -96,24 +95,19 @@ class Injector(object):
         
         self.bindings = {}
     
-    def bind(self, type, annotation=None, to=None, scope=None):
-        '''Specify a binding for a type and an optional annotation.'''
-        if annotation is not None:
-            key = self.key_class(type, annotation)
-        else:
-            key = type
-        
+    def bind(self, type, to=None, scope=None):
+        '''Specify a binding for a type.'''
         if to is None:
             if callable(type):
                 to = type
             else:
-                raise errors.NoProviderError(key)
+                raise errors.NoProviderError(type)
         
         provider = self.provider_class(to, scope=scope)
         
-        if key in self.bindings:
-            warnings.warn('Overriding an exising binding for %s.' % key)
-        self.bindings[key] = provider
+        if type in self.bindings:
+            warnings.warn('Overriding an exising binding for %s.' % type)
+        self.bindings[type] = provider
     
     def configure(self, *configs):
         '''Configure the injector using the provided callable configs;
@@ -122,35 +116,27 @@ class Injector(object):
         for config in configs:
             config(self)
     
-    def get_instance(self, type, annotation=None):
-        '''Return an instance for a type and an optional annotation, using
-        the injector bindings, or raise NoProviderError.
-        
-        If an annotation is given, first, try to get an instance for 
-        Key(type, annotation), then for a type alone.
+    def get_instance(self, type):
+        '''Return an instance for a type, using the injector bindings, 
+        or raise NoProviderError.
         '''
         bindings = self.bindings
-        key = self.key_class(type, annotation)
-        
-        if key in bindings:
-            return bindings[key]()
-        
         if type in bindings:
             return bindings[type]()
         
-        raise errors.NoProviderError(key)
+        raise errors.NoProviderError(type)
     
     #==========================================================================
     # Creating injector-specific injections
     #==========================================================================
     
-    def attr(self, attr, type=None, annotation=None):
+    def attr(self, attr, type=None):
         '''Create an injector-specific attribute injection.'''
-        return self.attr_class(attr=attr, type=type, annotation=annotation)
+        return self.attr_class(attr=attr, type=type)
     
-    def param(self, name, type=None, annotation=None):
+    def param(self, name, type=None):
         '''Create an injector-specific param injection.'''
-        return self.param_class(name=name, type=type, annotation=annotation)
+        return self.param_class(name=name, type=type)
     
     def invoker(self, method):
         '''Create an injector-specific invoker.'''
