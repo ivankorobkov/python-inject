@@ -28,13 +28,8 @@ class AttributeInjection(object):
     
     injection_class = Injection
     
-    def __init__(self, attr, type=None):
-        '''Create an injection for an attribute.
-        
-        If type is not given (None), type = attr.
-        '''
-        if type is None:
-            type = attr
+    def __init__(self, attr, type):
+        '''Create an injection for an attribute.'''
         self.attr = attr
         self.injection = self.injection_class(type)
     
@@ -48,9 +43,9 @@ class AttributeInjection(object):
         return obj
 
 
-class Param(object):
+class ParamInjection(object):
     
-    '''Param injection is a function decorator, which injects the required
+    '''ParamInjection is a function decorator, which injects the required
     non-given params directly into a function, passing them as keyword args.
     
     Set an argument to C{super_param} to indicate that it is injected in
@@ -60,12 +55,12 @@ class Param(object):
         
         class A(object): pass
         class B(object):
-            @Param('a', A)
+            @ParamInjection('a', A)
             def __init__(self, a):
                 self.a = a
         
         class C(B):
-            @Param('a2', A):
+            @ParamInjection('a2', A):
             def __init__(self, a2, a=super_param):
                 super(C, self).__init__(a)
                 self.a2 = a2
@@ -75,10 +70,7 @@ class Param(object):
     injection_class = Injection
     
     def __new__(cls, name, type):
-        '''Create an injection for a param.
-        
-        If type is not given (None), type = name.
-        '''
+        '''Create a decorator injection for a param.'''
         injection = cls.injection_class(type)
         
         def decorator(func):

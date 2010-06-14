@@ -11,7 +11,7 @@ injection request.
 import threading
 
 from inject import errors
-from inject.injections import AttributeInjection, Param
+from inject.injections import AttributeInjection, ParamInjection
 
 '''
 @var SCOPE_ATTR: Constant, an attribute name which is used to store a scope 
@@ -40,7 +40,7 @@ class Abstract(Interface):
     '''
     
     attr_class = AttributeInjection 
-    param_class = Param
+    param_class = ParamInjection
     
     def __call__(self, obj):
         '''Decorate an object so that it is instantiated inside the scope.'''

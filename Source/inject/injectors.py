@@ -51,7 +51,7 @@ import warnings
 from inject import errors, providers
 from inject.invokers import Invoker
 from inject.injection import Injection
-from inject.injections import AttributeInjection, Param
+from inject.injections import AttributeInjection, ParamInjection
 
 
 def register(injector):
@@ -79,7 +79,7 @@ class Injector(object):
     provider_class = providers.Factory
     injection_class = None
     
-    def __init__(self, attr_class=AttributeInjection, param_class=Param,
+    def __init__(self, attr_class=AttributeInjection, param_class=ParamInjection,
                  invoker_class=Invoker, injection_class=Injection):
         self.injection_class = new.classobj(attr_class.__name__,
             (injection_class,), {'injector': self})
