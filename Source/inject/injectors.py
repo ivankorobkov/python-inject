@@ -79,20 +79,7 @@ class Injector(object):
     provider_class = providers.Factory
     injection_class = None
     
-    def __init__(self, attr_class=AttributeInjection, param_class=ParamInjection,
-                 invoker_class=Invoker, injection_class=Injection):
-        self.injection_class = new.classobj(attr_class.__name__,
-            (injection_class,), {'injector': self})
-        
-        self.attr_class = new.classobj(attr_class.__name__, (attr_class,),
-            {'injection_class': self.injection_class})
-        
-        self.param_class = new.classobj(attr_class.__name__, (param_class,),
-            {'injection_class': self.injection_class})
-        
-        self.invoker_class = new.classobj(invoker_class.__name__,
-            (invoker_class,), {'injection_class': self.injection_class})
-        
+    def __init__(self):
         self.bindings = {}
     
     def bind(self, type, to=None, scope=None):
@@ -125,22 +112,6 @@ class Injector(object):
             return bindings[type]()
         
         raise errors.NoProviderError(type)
-    
-    #==========================================================================
-    # Creating injector-specific injections
-    #==========================================================================
-    
-    def attr(self, attr, type=None):
-        '''Create an injector-specific attribute injection.'''
-        return self.attr_class(attr=attr, type=type)
-    
-    def param(self, name, type=None):
-        '''Create an injector-specific param injection.'''
-        return self.param_class(name=name, type=type)
-    
-    def invoker(self, method):
-        '''Create an injector-specific invoker.'''
-        return self.invoker_class(method=method)
     
     #==========================================================================
     # Registering/unregistering
