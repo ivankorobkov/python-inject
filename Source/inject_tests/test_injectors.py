@@ -1,13 +1,15 @@
 import unittest
+from mock import Mock
 
 import inject
 from inject import scopes
-from inject.injectors import Injector, register, unregister, is_registered
 from inject.injection import Injection
-from inject.errors import NoProviderError
+from inject.errors import NoProviderError, NoInjectorRegistered
+from inject.injectors import Injector, register, unregister, is_registered, \
+    get_instance
 
 
-class RegisteringTestCase(unittest.TestCase):
+class ModuleFunctionsTestCase(unittest.TestCase):
     
     injector_class = Injector
     injection_class = Injection
@@ -15,6 +17,7 @@ class RegisteringTestCase(unittest.TestCase):
     register_injector = staticmethod(register)
     unregister_injector = staticmethod(unregister)
     is_registered = staticmethod(is_registered)
+    get_instance = staticmethod(get_instance)
     
     def tearDown(self):
         inject.unregister()
@@ -51,6 +54,20 @@ class RegisteringTestCase(unittest.TestCase):
         self.register_injector(injector)
         self.assertTrue(self.is_registered(injector))
         self.assertFalse(self.is_registered(injector2))
+    
+    def testGetInstance(self):
+        '''Get_instrance should return an instance, or raise an error.'''
+        class A(object): pass
+        
+        self.unregister_injector()
+        self.assertRaises(NoInjectorRegistered, self.get_instance, A)
+        
+        a = A()
+        injector = Mock()
+        injector.get_instance.return_value = a
+        
+        self.register_injector(injector)
+        self.assertTrue(self.get_instance(A) is a)
 
 
 class InjectorTestCase(unittest.TestCase):

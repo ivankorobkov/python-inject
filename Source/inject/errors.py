@@ -1,6 +1,13 @@
 '''Injection errors.'''
 
 
+class NoInjectorRegistered(Exception):
+    
+    '''NoInjectorRegistered is raised when there is no injector registered,
+    and the injections try to use it.
+    '''
+
+
 class NoProviderError(Exception):
     
     '''NoProviderError is raised when there is no provider bound to a key.'''
@@ -37,4 +44,3 @@ class NoRequestRegisteredError(Exception):
     '''NoRequestError is raised when a request scoped provider is accessed but 
     no request is registered.
     '''
-    

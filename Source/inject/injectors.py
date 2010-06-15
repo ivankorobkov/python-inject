@@ -49,6 +49,7 @@ import warnings
 
 from inject import errors, providers
 from inject.injection import Injection
+from inject.errors import NoInjectorRegistered
 
 
 def register(injector):
@@ -72,6 +73,19 @@ def unregister(injector=None):
 def is_registered(injector):
     '''Return whether an injector is registered.'''
     return Injection.injector is injector
+
+
+def get_instance(type):
+    '''Return an instance from the registered injector.
+    
+    @raise NoInjectorRegistered.
+    @raise NoProviderError.
+    '''
+    injector = Injection.injector
+    if injector is None:
+        raise NoInjectorRegistered()
+    
+    return injector.get_instance(type)
 
 
 class Injector(object):
@@ -111,6 +125,8 @@ class Injector(object):
         
         If default_providers flag is True, and no binding exist for a type,
         and the type is callable, return it.
+        
+        @raise NoProviderError.
         '''
         bindings = self.bindings
         if type in bindings:
@@ -122,8 +138,9 @@ class Injector(object):
         raise errors.NoProviderError(type)
     
     def get_instance(self, type):
-        '''Return an instance for a type, using the injector bindings, 
-        or raise NoProviderError.
+        '''Return an instance for a type using the injector bindings.
+        
+        @raise NoProviderError.
         '''
         return self.get_provider(type)()
     
