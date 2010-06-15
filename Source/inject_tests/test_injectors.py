@@ -1,8 +1,8 @@
 import unittest
 
 import inject
-from inject import errors, scopes
-from inject.injectors import Injector, register, unregister
+from inject import scopes
+from inject.injectors import Injector, register, unregister, is_registered
 from inject.injection import Injection
 from inject.errors import NoProviderError
 
@@ -14,6 +14,7 @@ class RegisteringTestCase(unittest.TestCase):
     
     register_injector = staticmethod(register)
     unregister_injector = staticmethod(unregister)
+    is_registered = staticmethod(is_registered)
     
     def tearDown(self):
         inject.unregister()
@@ -38,6 +39,18 @@ class RegisteringTestCase(unittest.TestCase):
         self.register_injector(injector)
         self.unregister_injector()
         self.assertTrue(inj.injector is None)
+    
+    def testIsRegistered(self):
+        '''Is_registered should return whether an injector is registered.'''
+        injector = self.injector_class()
+        injector2 = self.injector_class()
+        
+        self.assertFalse(self.is_registered(injector))
+        self.assertFalse(self.is_registered(injector2))
+        
+        self.register_injector(injector)
+        self.assertTrue(self.is_registered(injector))
+        self.assertFalse(self.is_registered(injector2))
 
 
 class InjectorTestCase(unittest.TestCase):

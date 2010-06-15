@@ -45,13 +45,10 @@ the injections, 2) B{or create injector-specific injections}.
     >>> injector.bind(A, to=A2)
 
 '''
-import new
 import warnings
 
 from inject import errors, providers
-from inject.invokers import Invoker
 from inject.injection import Injection
-from inject.injections import AttributeInjection, ParamInjection
 
 
 def register(injector):
@@ -70,6 +67,11 @@ def unregister(injector=None):
     '''
     if Injection.injector is injector or injector is None:
         Injection.injector = None
+
+
+def is_registered(injector):
+    '''Return whether an injector is registered.'''
+    return Injection.injector is injector
 
 
 class Injector(object):
@@ -128,3 +130,7 @@ class Injector(object):
     def unregister(self):
         '''Unregister the injector if it is registered.'''
         return unregister(self)
+    
+    def is_registered(self):
+        '''Return whether the injector is registered.'''
+        return is_registered(self)
