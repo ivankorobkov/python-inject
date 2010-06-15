@@ -105,19 +105,27 @@ class Injector(object):
         '''
         for config in configs:
             config(self)
+
+    def get_provider(self, type):
+        '''Return a provider, or raise NoProviderError.
+        
+        If default_providers flag is True, and no binding exist for a type,
+        and the type is callable, return it.
+        '''
+        bindings = self.bindings
+        if type in bindings:
+            return bindings[type]
+        
+        if self.default_providers and callable(type):
+            return type
+        
+        raise errors.NoProviderError(type)
     
     def get_instance(self, type):
         '''Return an instance for a type, using the injector bindings, 
         or raise NoProviderError.
         '''
-        bindings = self.bindings
-        if type in bindings:
-            return bindings[type]()
-        
-        if self.default_providers and callable(type):
-            return type()
-        
-        raise errors.NoProviderError(type)
+        return self.get_provider(type)()
     
     #==========================================================================
     # Registering/unregistering

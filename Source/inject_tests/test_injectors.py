@@ -119,6 +119,38 @@ class InjectorTestCase(unittest.TestCase):
         a2 = injector.bindings[A]()
         self.assertEqual(a, 'My a')
         self.assertEqual(a2, 'My a')
+    
+    def testGetProvider(self):
+        '''Injector get_provider should return a provider.'''
+        class A(object): pass
+        
+        injector = self.injector_class()
+        injector.bind(A, to=A)
+        
+        self.assertTrue(injector.get_provider(A) is A)
+    
+    def testDefaultProviders(self):
+        '''Injector should call type when default_providers is True.'''
+        class A(object): pass
+        
+        injector = self.injector_class(default_providers=True)
+        provider = injector.get_provider(A)
+        
+        self.assertTrue(provider is A)
+    
+    def testDefaultProvidersNotCallable(self):
+        '''Injector should raise an error when type is not callable.'''
+        A = 'A'
+        
+        injector = self.injector_class()
+        self.assertRaises(NoProviderError, injector.get_provider, A)
+    
+    def testDefaultProvidersFalse(self):
+        '''Injector should raise an error when default_providers is False.'''
+        class A(object): pass
+        
+        injector = self.injector_class(default_providers=False)
+        self.assertRaises(NoProviderError, injector.get_provider, A)
         
     def testGetInstance(self):
         '''Injector get_instance should return an instance.'''
@@ -129,26 +161,3 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind(A, to=A)
         a = injector.get_instance(A)
         self.assertTrue(isinstance(a, A))
-    
-    def testDefaultProviders(self):
-        '''Injector should call type when default_providers is True.'''
-        class A(object): pass
-        
-        injector = self.injector_class(default_providers=True)
-        a = injector.get_instance(A)
-        
-        self.assertTrue(isinstance(a, A))
-    
-    def testDefaultProvidersNotCallable(self):
-        '''Injector should raise an error when type is not callable.'''
-        A = 'A'
-        
-        injector = self.injector_class()
-        self.assertRaises(NoProviderError, injector.get_instance, A)
-    
-    def testDefaultProvidersFalse(self):
-        '''Injector should raise an error when default_providers is False.'''
-        class A(object): pass
-        
-        injector = self.injector_class(default_providers=False)
-        self.assertRaises(NoProviderError, injector.get_instance, A)
