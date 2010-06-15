@@ -4,6 +4,7 @@ import inject
 from inject import errors, scopes
 from inject.injectors import Injector, register, unregister
 from inject.injection import Injection
+from inject.errors import NoProviderError
 
 
 class RegisteringTestCase(unittest.TestCase):
@@ -107,13 +108,34 @@ class InjectorTestCase(unittest.TestCase):
         self.assertEqual(a2, 'My a')
         
     def testGetInstance(self):
-        '''Injector get_instance() should return an obj, or raise an error.'''
+        '''Injector get_instance should return an instance.'''
         class A(object): pass
         class B(object): pass
         injector = self.injector_class()
         
-        self.assertRaises(errors.NoProviderError, injector.get_instance, A)
-        
         injector.bind(A, to=A)
         a = injector.get_instance(A)
         self.assertTrue(isinstance(a, A))
+    
+    def testDefaultProviders(self):
+        '''Injector should call type when default_providers is True.'''
+        class A(object): pass
+        
+        injector = self.injector_class(default_providers=True)
+        a = injector.get_instance(A)
+        
+        self.assertTrue(isinstance(a, A))
+    
+    def testDefaultProvidersNotCallable(self):
+        '''Injector should raise an error when type is not callable.'''
+        A = 'A'
+        
+        injector = self.injector_class()
+        self.assertRaises(NoProviderError, injector.get_instance, A)
+    
+    def testDefaultProvidersFalse(self):
+        '''Injector should raise an error when default_providers is False.'''
+        class A(object): pass
+        
+        injector = self.injector_class(default_providers=False)
+        self.assertRaises(NoProviderError, injector.get_instance, A)

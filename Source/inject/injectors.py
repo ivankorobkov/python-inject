@@ -79,8 +79,9 @@ class Injector(object):
     provider_class = providers.Factory
     injection_class = None
     
-    def __init__(self):
+    def __init__(self, default_providers=True):
         self.bindings = {}
+        self.default_providers = default_providers
     
     def bind(self, type, to=None, scope=None):
         '''Specify a binding for a type.'''
@@ -110,6 +111,9 @@ class Injector(object):
         bindings = self.bindings
         if type in bindings:
             return bindings[type]()
+        
+        if self.default_providers and callable(type):
+            return type()
         
         raise errors.NoProviderError(type)
     
