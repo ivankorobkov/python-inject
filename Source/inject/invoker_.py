@@ -58,7 +58,7 @@ class Invoker(object):
         '''
         if hasattr(func, 'im_class') and \
            hasattr(func, 'im_self') and \
-           hasattr(func, 'im_self') and \
+           hasattr(func, 'im_func') and \
            func.im_self is None:
             return super(Invoker, cls).__new__(cls)
         
