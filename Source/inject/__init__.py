@@ -111,9 +111,9 @@ tuple in C{settings.py}. It is recommended to insert it as the first item.
 @author: Ivan Korobkov <ivan.korobkov@gmail.com>
 @copyright: 2010 Ivan Korobkov
 @license: MIT License, see LICENSE
-@version: 1.0
+@version: 1.0.1
 '''
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 
 from inject.injections import Attr as attr, \
