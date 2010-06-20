@@ -1,4 +1,4 @@
-'''Injectors store bindings configuration. They allow to use advanced 
+'''Injectors store bindings configurvation. They allow to use advanced 
 configuration, but are optional. It is possible to create multiple injectors,
 one of which can be registered as the main injector. Other injectors can
 be used directly to create specific injections (C{injector.attr(...)}, etc.)
@@ -47,9 +47,9 @@ the injections, 2) B{or create injector-specific injections}.
 '''
 import warnings
 
-from inject import errors, providers
+from inject import providers
 from inject.injection import Injection
-from inject.errors import NoInjectorRegistered
+from inject.errors import NoInjectorRegistered, NoProviderError
 
 
 def register(injector):
@@ -97,21 +97,8 @@ class Injector(object):
     
     def __init__(self, default_providers=True):
         self.bindings = {}
+        
         self.default_providers = default_providers
-    
-    def bind(self, type, to=None, scope=None):
-        '''Specify a binding for a type.'''
-        if to is None:
-            if callable(type):
-                to = type
-            else:
-                raise errors.NoProviderError(type)
-        
-        provider = self.provider_class(type, to=to, scope=scope)
-        
-        if type in self.bindings:
-            warnings.warn('Overriding an exising binding for %s.' % type)
-        self.bindings[type] = provider
     
     def configure(self, *configs):
         '''Configure the injector using the provided callable configs;
@@ -119,7 +106,15 @@ class Injector(object):
         '''
         for config in configs:
             config(self)
-
+    
+    def bind(self, type, to=None, scope=None):
+        '''Specify a binding for a type.
+        
+        @raise CantCreateProviderError.
+        '''
+        provider = self._create_provider(type, to=to, scope=scope)
+        self._add_provider(type, provider)
+    
     def get_provider(self, type):
         '''Return a provider, or raise NoProviderError.
         
@@ -127,22 +122,48 @@ class Injector(object):
         and the type is callable, return it.
         
         @raise NoProviderError.
+        @raise CantCreateProviderError.
         '''
         bindings = self.bindings
-        if type in bindings:
-            return bindings[type]
         
-        if self.default_providers and callable(type):
-            return type
+        if type not in bindings:
+            if not self.default_providers:
+                raise NoProviderError(type)
+            else:
+                self._create_add_default_provider(type)
         
-        raise errors.NoProviderError(type)
+        return bindings[type]
     
     def get_instance(self, type):
         '''Return an instance for a type using the injector bindings.
         
         @raise NoProviderError.
+        @raise CantCreateProviderError.
         '''
         return self.get_provider(type)()
+    
+    #==========================================================================
+    # Private methods
+    #==========================================================================
+    
+    def _add_provider(self, type, provider):
+        '''Add a provider for a type.'''
+        if type in self.bindings:
+            warnings.warn('Overriding an existing binding for %s.' % type)
+        self.bindings[type] = provider
+    
+    def _create_provider(self, type, to=None, scope=None):
+        '''Create a new provider for a type and return it.
+        If to is None, and type is callable, use it as a provider.
+        
+        @raise CantCreateProviderError.
+        '''
+        return self.provider_class(type, to=to, scope=scope)
+    
+    def _create_add_default_provider(self, type):
+        '''Create and store a default provider for a type.'''
+        provider = self._create_provider(type, to=None, scope=None)
+        self._add_provider(type, provider)
     
     #==========================================================================
     # Registering/unregistering

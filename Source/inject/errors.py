@@ -5,7 +5,7 @@ class NoInjectorRegistered(Exception):
     
     '''NoInjectorRegistered is raised when there is no injector registered,
     and the injections try to use it.
-    '''
+    '''    
 
 
 class NoProviderError(Exception):
