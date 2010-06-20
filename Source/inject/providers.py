@@ -6,8 +6,8 @@ wrapper around any instance, and a factory. The factory creates and returns
 a specific provider, or an invoker depending on the passed arguments. It also
 scopes it if a scope is given.
 '''
-from inject import errors
 from inject.invokers import Invoker
+from inject.errors import CantBeScopedError, CantCreateProviderError
 
 
 class Instance(object):
@@ -34,38 +34,81 @@ class Factory(object):
     instance_class = Instance
     invoker_class = Invoker
     
-    def __new__(cls, bindto, scope=None):
-        '''Return a provider for a bindto object, optionally scope it.
+    def __new__(cls, type, to=None, scope=None):
+        '''Create provider for a C{type}, optionally scope it.
         
-        If C{bindto} is an instance, return an instance provider. It cannot
-        be scoped, so if scope is given CantBeScopedError is raised.
+        If C{to} is None, and C{type} is callable use C{type} as a provider,
+        otherwise raise L{CantCreateProviderError}.
         
-        If C{bindto} is an unbound method, return a [scoped] invoker.
+        If C{to} is an instance, return an L{Instance} provider. It cannot
+        be scoped, so if C{scope} is given raise L{CantBeScopedError}.
         
-        Otherwise, return a [scoped] bindto.
+        If C{to} is an unbound method, return an L{Invoker}. It cannot
+        be scoped, so if C{scope} is given raise L{CantBeScopedError}.
+        
+        Otherwise, return a [scoped] C{to}.
+        
+        @raise CantCreateProviderError.
+        @raise CantBeScopedError.
         '''
-        from inject.scopes import no as noscope, SCOPE_ATTR
+        to = cls._get_to(type, to=to)
+        scope = cls._get_scope(to, scope=scope)
         
-        if scope is None and hasattr(bindto, SCOPE_ATTR):
-            scope = bindto._inject_scope
+        if callable(to):
+            provider = cls._create_callable_provider(to, scope=scope)
+        else:
+            provider = cls._create_instance_provider(to, scope=scope)
         
-        if callable(bindto):
-            if hasattr(bindto, 'im_self') and bindto.im_self is None:
-                # Unbound method.
-                provider = cls.invoker_class(bindto)
+        return provider
+    
+    @classmethod
+    def _get_to(cls, type, to=None):
+        if to is None:
+            if callable(type):
+                to = type
             else:
-                # Simple callable.
-                provider = bindto
+                raise CantCreateProviderError(type)
+        
+        return to
+    
+    @classmethod
+    def _get_scope(cls, to, scope=None):
+        from inject.scopes import SCOPE_ATTR
+        
+        if scope is None and hasattr(to, SCOPE_ATTR):
+            scope = to._inject_scope
+        
+        return scope
+    
+    @classmethod
+    def _create_callable_provider(cls, to, scope=None):
+        from inject.scopes import no as noscope
+        
+        if hasattr(to, 'im_self') and to.im_self is None:
+            # Unbound method.
+            provider = cls.invoker_class(to)
+            if scope is not None and scope is not noscope:
+                raise CantBeScopedError(to)
+        
+        else:
+            # Simple callable.
+            provider = to
             
             # Create a scoped provider, if scope is given.
             if scope is not None and scope is not noscope:
                 provider = scope.scope(provider)
-        else:
-            # Not a callable, create an instance provider.
-            provider = cls.instance_class(bindto)
-            # It's ok when scope is "noscope" or None,
-            # otherwise raise an error.
-            if scope is not None and scope is not noscope:
-                raise errors.CantBeScopedError(bindto)
+        
+        return provider
+    
+    @classmethod
+    def _create_instance_provider(cls, to, scope=None):
+        from inject.scopes import no as noscope
+        
+        # Not a callable, create an instance provider.
+        provider = cls.instance_class(to)
+        # It's ok when scope is "noscope" or None,
+        # otherwise raise an error.
+        if scope is not None and scope is not noscope:
+            raise CantBeScopedError(to)
         
         return provider

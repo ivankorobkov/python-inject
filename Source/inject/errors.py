@@ -13,7 +13,6 @@ class NoProviderError(Exception):
     '''NoProviderError is raised when there is no provider bound to a key.'''
     
     def __init__(self, key):
-        self.key = key
         msg = 'There is no provider for %s.' % str(key)
         Exception.__init__(self, msg)
 
@@ -30,6 +29,17 @@ class NoParamError(Exception):
             pass
     
     '''
+
+
+class CantCreateProviderError(Exception):
+    
+    '''CantCreateProviderError is raised when to is not given and type is
+    not callable.
+    '''
+    
+    def __init__(self, type):
+        msg = 'Can\'t create a provider for %r.' % type
+        Exception.__init__(self, msg)
 
 
 class CantBeScopedError(Exception):

@@ -107,7 +107,7 @@ class Injector(object):
             else:
                 raise errors.NoProviderError(type)
         
-        provider = self.provider_class(to, scope=scope)
+        provider = self.provider_class(type, to=to, scope=scope)
         
         if type in self.bindings:
             warnings.warn('Overriding an exising binding for %s.' % type)
