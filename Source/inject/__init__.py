@@ -123,9 +123,3 @@ from inject.injectors import Injector, get_instance, register, unregister, \
     is_registered
 from inject.invokers import Invoker
 from inject.scopes import noscope, appscope, reqscope
-
-'''
-@var injector: The default injector.
-'''
-injector = Injector()
-injector.register()
