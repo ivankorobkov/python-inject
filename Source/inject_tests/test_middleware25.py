@@ -1,8 +1,8 @@
 import unittest
 
 import inject
-from inject import errors
 from inject.middleware import WsgiInjectMiddleware, DjangoInjectMiddleware
+from inject.scopes import NoRequestStartedError
 
 
 class WsgiTestCase(unittest.TestCase):
@@ -98,4 +98,4 @@ class DjangoTestCase(unittest.TestCase):
         response2 = m.process_response(request, response)
         self.assertTrue(response2 is response)
         
-        self.assertRaises(errors.NoRequestRegisteredError, request.do3)
+        self.assertRaises(NoRequestStartedError, request.do3)

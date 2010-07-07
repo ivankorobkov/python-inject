@@ -1,7 +1,6 @@
 '''Injections are real dependency injection methods: an attribute descriptor,
 and a function decorator.
 '''
-from inject import errors
 from inject.injection import Injection
 from inject.functional import update_wrapper
 
@@ -11,6 +10,20 @@ from inject.functional import update_wrapper
     is injected in a super class.
 '''
 super_param = object()
+
+
+class NoParamError(Exception):
+    
+    '''NoParamError is raised when you inject a param into a func,
+    but the function does not accept such a param.
+    
+    For example::
+        
+        @inject.param('key', dict) # No param "key".
+        def func(arg):
+            pass
+    
+    '''
 
 
 class AttributeInjection(object):
@@ -123,7 +136,7 @@ class ParamInjection(object):
             # 0x08 func uses kwargs
             varnames = func_code.co_varnames
             if name not in varnames:
-                raise errors.NoParamError(
+                raise NoParamError(
                     '%s does not accept an injected param "%s".' % 
                     (func, name))
         

@@ -1,8 +1,7 @@
 import unittest
 from mock import Mock
 
-from inject import errors
-from inject.injections import AttributeInjection, ParamInjection
+from inject.injections import AttributeInjection, ParamInjection, NoParamError
 
 
 class AttributeInjectionTestCase(unittest.TestCase):
@@ -140,22 +139,22 @@ class ParamTestCase(unittest.TestCase):
         def func(arg): pass
         wrapper = self.injection_class.create_wrapper(func)
         
-        # Noraml injection.
         self.injection_class.add_injection(wrapper, 'arg', 'inj')
         self.assertEqual(wrapper.injections['arg'], 'inj')
     
     def testAddInjectionNoParamError(self):
         '''Add injection should raise NoParamError when no such a param.'''
-        # NoParamError.
         def func(): pass
+        
         wrapper = self.injection_class.create_wrapper(func)
-        self.assertRaises(errors.NoParamError,
+        self.assertRaises(NoParamError,
                           self.injection_class.add_injection,
                           wrapper, 'arg2', 'inj')
     
     def testAddInjectionArgs(self):
         '''Add injection should not raise NoParamError, when *args given.'''
         def func2(*args): pass
+        
         wrapper = self.injection_class.create_wrapper(func2)
         self.injection_class.add_injection(wrapper, 'arg', 'inj')
         self.assertEqual(wrapper.injections['arg'], 'inj')
@@ -163,6 +162,7 @@ class ParamTestCase(unittest.TestCase):
     def testAddInjectionKwargs(self):
         '''Add injection should not raise NoParamError, when **kwargs.'''
         def func3(**kwargs): pass
+        
         wrapper = self.injection_class.create_wrapper(func3)
         self.injection_class.add_injection(wrapper, 'kwarg', 'inj')
         self.assertEqual(wrapper.injections['kwarg'], 'inj')

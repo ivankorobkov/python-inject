@@ -1,4 +1,4 @@
-'''Injectors store bindings configurvation. They allow to use advanced 
+'''Injectors store providers configurvation. They allow to use advanced 
 configuration, but are optional. It is possible to create multiple injectors,
 one of which can be registered as the main injector. Other injectors can
 be used directly to create specific injections (C{injector.attr(...)}, etc.)
@@ -11,7 +11,7 @@ injections.
 Tutorial
 ========
 
-Create an injector, and add bindings to it.
+Create an injector, and add providers to it.
 
     >>> injector = Injector()
     >>> injector.bind(Class1, to=Class2, scope=appscope)
@@ -48,57 +48,50 @@ the injections, 2) B{or create injector-specific injections}.
 import warnings
 
 from inject import providers
-from inject.injection import Injection
-from inject.errors import NoInjectorRegistered, NoProviderError
 
 
-def register(injector):
-    '''Register an injector as the main injector.'''
-    if Injection.injector is not None:
-        warnings.warn('Overriding an already registered main injector %s '
-                      'with %s.' % (Injection.injector, injector))
-    Injection.injector = injector
-
-
-def unregister(injector=None):
-    '''Unregister an injector.
+class NoInjectorRegistered(Exception):
     
-    If an injector is given, unregister it only if it is registered.
-    If None, unregister any registered injector.
+    '''NoInjectorRegistered is raised when there is no injector registered,
+    and the injections try to use it.
     '''
-    if Injection.injector is injector or injector is None:
-        Injection.injector = None
 
 
-def is_registered(injector):
-    '''Return whether an injector is registered.'''
-    return Injection.injector is injector
-
-
-def get_instance(type):
-    '''Return an instance from the registered injector.
+class NoProviderError(Exception):
     
-    @raise NoInjectorRegistered.
-    @raise NoProviderError.
+    '''NoProviderError is raised when there is no provider bound to a key.'''
+    
+    def __init__(self, key):
+        msg = 'There is no provider for %s.' % str(key)
+        Exception.__init__(self, msg)
+
+
+class ScopeNotBoundError(Exception):
+    
+    '''ScopeNotBound is raised when a scope is used, but it is not bound
+    in the injector.
     '''
-    injector = Injection.injector
-    if injector is None:
-        raise NoInjectorRegistered()
     
-    return injector.get_instance(type)
+    def __init__(self, scope_class):
+        msg = 'The scope %r is not bound in the injector.' % scope_class
+        Exception.__init__(self, msg)
 
 
 class Injector(object):
     
-    '''Injector stores configuration for bindings.'''
+    '''Injector stores configuration for providers.
     
-    provider_class = providers.Factory
-    injection_class = None
+    @ivar providers: Types to providers mapping.
+    @ivar scopes: Scope classes to scope instances mapping.
+    '''
     
-    def __init__(self, default_providers=True):
-        self.bindings = {}
+    provider_class = providers.ProvidersFactory
+    
+    def __init__(self, create_default_providers=True):
+        self.providers = {}
+        self.scopes = {}
         
-        self.default_providers = default_providers
+        self.create_default_providers = create_default_providers
     
     def configure(self, *configs):
         '''Configure the injector using the provided callable configs;
@@ -115,27 +108,32 @@ class Injector(object):
         provider = self._create_provider(type, to=to, scope=scope)
         self._add_provider(type, provider)
     
+    def bind_scope(self, cls, instance):
+        '''Bind a scope class to an instance.'''
+        self.scopes[cls] = instance
+    
     def get_provider(self, type):
         '''Return a provider, or raise NoProviderError.
         
-        If default_providers flag is True, and no binding exist for a type,
-        and the type is callable, return it.
+        If create_default_providers flag is True, and no binding exist for 
+        a type, and the type is callable, return it.
         
         @raise NoProviderError.
         @raise CantCreateProviderError.
         '''
-        bindings = self.bindings
+        bindings = self.providers
         
         if type not in bindings:
-            if not self.default_providers:
-                raise NoProviderError(type)
+            if self.create_default_providers:
+                provider = self._create_default_provider(type)
+                self._add_provider(type, provider)
             else:
-                self._create_add_default_provider(type)
+                raise NoProviderError(type)
         
         return bindings[type]
     
     def get_instance(self, type):
-        '''Return an instance for a type using the injector bindings.
+        '''Return an instance for a type using the injector providers.
         
         @raise NoProviderError.
         @raise CantCreateProviderError.
@@ -148,9 +146,9 @@ class Injector(object):
     
     def _add_provider(self, type, provider):
         '''Add a provider for a type.'''
-        if type in self.bindings:
+        if type in self.providers:
             warnings.warn('Overriding an existing binding for %s.' % type)
-        self.bindings[type] = provider
+        self.providers[type] = provider
     
     def _create_provider(self, type, to=None, scope=None):
         '''Create a new provider for a type and return it.
@@ -158,12 +156,42 @@ class Injector(object):
         
         @raise CantCreateProviderError.
         '''
-        return self.provider_class(type, to=to, scope=scope)
+        provider = self.provider_class(type, to=to)
+        return self._scope_provider(provider, scope=scope)
     
-    def _create_add_default_provider(self, type):
-        '''Create and store a default provider for a type.'''
-        provider = self._create_provider(type, to=None, scope=None)
-        self._add_provider(type, provider)
+    def _create_default_provider(self, type):
+        '''Create a default provider for a type.'''
+        return self._create_provider(type, to=None, scope=None)
+    
+    def _scope_provider(self, provider, scope=None):
+        '''Get a scope for a provider, and if it is not None use it to scope
+        the provider, return the provider.
+        '''
+        scope = self._get_scope(provider, scope=None)
+        if scope is not None:
+            return scope.scope(provider)
+        
+        return provider
+    
+    def _get_scope(self, provider, scope=None):
+        '''Return a scope instance for a provider, or None.
+        
+        @raise ScopeNotBoundError.
+        '''
+        if scope is None:
+            scope = self._get_default_scope(provider)
+        
+        if scope is None:
+            return
+        
+        try:
+            return self.scopes[scope]
+        except KeyError:
+            raise ScopeNotBoundError(scope)
+    
+    def _get_default_scope(self, provider):
+        '''Return the default scope class for a provider or None.'''
+        pass
     
     #==========================================================================
     # Registering/unregistering
@@ -180,3 +208,46 @@ class Injector(object):
     def is_registered(self):
         '''Return whether the injector is registered.'''
         return is_registered(self)
+
+
+def register(injector):
+    '''Register an injector as the main injector.'''
+    from inject.injection import Injection
+    
+    if Injection.injector is not None:
+        warnings.warn('Overriding an already registered main injector %s '
+                      'with %s.' % (Injection.injector, injector))
+    Injection.injector = injector
+
+
+def unregister(injector=None):
+    '''Unregister an injector.
+    
+    If an injector is given, unregister it only if it is registered.
+    If None, unregister any registered injector.
+    '''
+    from inject.injection import Injection
+    
+    if Injection.injector is injector or injector is None:
+        Injection.injector = None
+
+
+def is_registered(injector):
+    '''Return whether an injector is registered.'''
+    from inject.injection import Injection
+    
+    return Injection.injector is injector
+
+
+def get_instance(type):
+    '''Return an instance from the registered injector.
+    
+    @raise NoInjectorRegistered.
+    '''
+    from inject.injection import Injection
+    
+    injector = Injection.injector
+    if injector is None:
+        raise NoInjectorRegistered()
+    
+    return injector.get_instance(type)

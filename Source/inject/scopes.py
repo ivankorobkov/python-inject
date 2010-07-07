@@ -1,8 +1,8 @@
 '''Scopes configure how objects are instantiated and reused.
 
-By default, a new instance is injected every time. Application scope creates
-only one instance of a class (a provider) for the whole application. Request 
-scope creates unique instances for each HTTP request. Request scope stores
+By default, a new instance is injected every time. ApplicationScope scope creates
+only one instance of a class (a provider) for the whole application. RequestScope 
+scope creates unique instances for each HTTP request. RequestScope scope stores
 values in a thread-local request-local manner.
 
 C{noscope} can be used to explicitly specify creating new instances for every
@@ -10,101 +10,133 @@ injection request.
 '''
 import threading
 
-from inject import errors
-from inject.injections import AttributeInjection, ParamInjection
 
 '''
-@var SCOPE_ATTR: Constant, an attribute name which is used to store a scope 
-    in a decorated object.
+@var _default_scopes: Dictionary which stores providers associated with default
+    scopes set by the scope decorators.
 '''
-SCOPE_ATTR = '_inject_scope'
+_default_scopes = {}
 
 
-class Interface(object):
+def get_default_scope(provider):
+    '''Return the default scope class for a provider.'''
+    return _default_scopes.get(provider, None)
+
+
+def set_default_scope(provider, scope_class):
+    '''Set the default scope class for a provider.'''
+    _default_scopes[provider] = scope_class
+
+
+def clear_default_scopes():
+    '''Clear the default scope classes.'''
+    _default_scopes.clear()
+
+
+class ScopeInterface(object):
     
-    '''Scope interface.'''
+    '''ScopeInterface.'''
     
     def scope(self, provider):
         '''Return a scoped provider (a callable).'''
         pass
-    
-    def __call__(self, obj):
-        '''Decorate an object so that it is instantiated inside the scope.'''
-        pass
 
 
-class Abstract(Interface):
+class AbstractScopeDecorator(object):
     
-    '''Abstract scope which implements the __call__ method (decorator)
-    and scoped injections.
-    '''
+    '''AbstractScopeDecorator sets the default scope for a provider.'''
     
-    attr_class = AttributeInjection 
-    param_class = ParamInjection
+    scope_class = None
+    set_default_scope = staticmethod(set_default_scope)
     
-    def __call__(self, obj):
-        '''Decorate an object so that it is instantiated inside the scope.'''
-        setattr(obj, SCOPE_ATTR, self)
-        return obj
+    def __new__(cls, provider):
+        '''Decorate a provider and set its default scope,
+        return the provider.
+        '''
+        cls.set_default_scope(provider, cls.scope_class)
+        return provider
 
 
-class No(Abstract):
+class NoScope(ScopeInterface):
     
-    '''NoScope is a dummy object which exists only to distinguish between
-    None and "No Scope"
-    '''
-    
-    pass
-
-
-class Application(dict, Abstract):
-    
-    '''Application scope caches instances for the whole application,
-    in other injectors it is usually called a singleton.
+    '''NoScope is a dummy scope which exists only to distinguish between
+    None and NoScope.
     '''
     
     def scope(self, provider):
+        return provider
+
+
+class noscope(AbstractScopeDecorator):
+    
+    '''noscope decorator.'''
+    
+    scope_class = NoScope
+
+
+class ApplicationScope(ScopeInterface):
+    
+    '''ApplicationScope scope caches instances for an application (a process).
+    It can be called a singleton scope.
+    '''
+    
+    def __init__(self):
+        self.cache = {}
+    
+    def scope(self, provider):
         '''Return a scoped provider (a callable).'''
+        cache = self.cache
         def scopedprovider():
-            if provider in self:
-                return self[provider]
+            if provider in cache:
+                return cache[provider]
             
             inst = provider()
-            self[provider] = inst
+            cache[provider] = inst
             return inst
         
         return scopedprovider
-    
-    def __repr__(self):
-        return '<%s at %s>' % (self.__class__.__name__, hex(id(self)))
-    
 
-class Request(threading.local, Abstract):
+
+class appscope(AbstractScopeDecorator):
+    
+    '''appscope decorator.'''
+    
+    scope_class = ApplicationScope
+
+
+class NoRequestStartedError(Exception):
+    
+    '''NoRequestStartedError is raised when a request scoped provider is 
+    accessed but no request is present.
+    '''
+
+
+class RequestScope(threading.local, ScopeInterface):
     
     '''RequestScope is a request-local thread-local scope which caches
-    instances for each WSGI request.
+    instances for each request.
     
-    To use it register and unregister the requests, usually using try/finally.
+    To use it start and end the requests, usually using try/finally.
     For example::
     
         def myapp(environ, startresponse):
-            reqscope.register(environ)
+            reqscope.start()
             try:
                 startresponse()
                 return 'Response'
             finally:
-                reqscope.unregister(environ)
+                reqscope.end()
     
     '''
     
     cache = None
     
-    def register(self):
-        '''Register a request using a wsgi environment.'''
+    def start(self):
+        '''Start a new request.'''
         self.cache = {}
     
-    def unregister(self):
-        '''Unregister a request.'''
+    def end(self):
+        '''End a request and clear the instances.'''
         del self.cache
     
     def scope(self, provider):
@@ -112,7 +144,7 @@ class Request(threading.local, Abstract):
         def scopedprovider():
             cache = self.cache
             if cache is None:
-                raise errors.NoRequestRegisteredError()
+                raise NoRequestStartedError()
             
             if provider in cache:
                 return cache[provider]
@@ -124,6 +156,8 @@ class Request(threading.local, Abstract):
         return scopedprovider
 
 
-no = No()
-app = Application()
-req = Request()
+class reqscope(AbstractScopeDecorator):
+    
+    '''reqscope decorator.'''
+    
+    scope_class = RequestScope

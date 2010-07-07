@@ -1,39 +1,77 @@
-import sys
 import weakref
 import unittest
 import threading
 
-from inject import errors, scopes
+from inject.scopes import NoRequestStartedError, AbstractScopeDecorator, \
+    ApplicationScope, RequestScope, get_default_scope, set_default_scope, \
+    clear_default_scopes, appscope, reqscope, NoScope, noscope
 
 
-class AbstractTestCase(unittest.TestCase):
+class DefaultScopesTestCase(unittest.TestCase):
     
-    scope_class = scopes.Abstract
+    def tearDown(self):
+        clear_default_scopes()
+    
+    def test_default_scopes(self):
+        '''Test setting, getting and clearing the default scopes.'''
+        class A(object): pass
+        class Scope(object): pass
+        
+        self.assertTrue(get_default_scope(A) is None)
+        
+        set_default_scope(A, Scope)
+        self.assertTrue(get_default_scope(A) is Scope)
+        
+        clear_default_scopes()
+        self.assertTrue(get_default_scope(A) is None)
+
+
+class AbstractDecoratorTestCase(unittest.TestCase):
+    
+    decorator_class = AbstractScopeDecorator
+    
+    def tearDown(self):
+        clear_default_scopes()
+    
+    def test(self):
+        '''AbstractScopeDecorator should call set_default_scope.'''
+        class Scope(object): pass
+        class MyDecorator(self.decorator_class):
+            scope_class = Scope
+        
+        class A(object): pass
+        A2 = MyDecorator(A)
+        
+        self.assertTrue(A2 is A)
+        self.assertTrue(get_default_scope(A) is Scope)
+
+
+class NoScopeTestCase(unittest.TestCase):
+    
+    scope_class = NoScope
+    decorator_class = noscope
+    
+    def testDecorator(self):
+        '''Noscope scope decorator should set the default scope.'''
+        class A(object): pass
+        A = self.decorator_class(A)
+        
+        self.assertTrue(get_default_scope(A) is self.scope_class)
+
+
+class ApplicationScopeTestCase(unittest.TestCase):
+    
+    scope_class = ApplicationScope
+    decorator_class = appscope
     
     def setUp(self):
         self.scope = self.scope_class()
     
-    def testDecorator(self):
-        '''Scope decorator should set function's STORE_ATTR.'''
-        scope = self.scope
-        
-        @scope
-        def func(): pass
-        
-        self.assertTrue(getattr(func, scopes.SCOPE_ATTR) is scope)
-
-
-if sys.version_info[0] == 2 and sys.version_info[1] >= 6:
-    from test_scopes26 import testClassDecorator
-    AbstractTestCase.testClassDecorator = testClassDecorator
-
-
-class ApplicationTestCase(AbstractTestCase):
-    
-    scope_class = scopes.Application
+    def tearDown(self):
+        clear_default_scopes()
     
     def testScope(self):
-        '''App scope should create a cached scoped provider.'''
+        '''Application scope should create a cached scoped provider.'''
         scope = self.scope
         class A(object): pass
         
@@ -43,21 +81,41 @@ class ApplicationTestCase(AbstractTestCase):
         
         a2 = scopedprovider()
         self.assertTrue(a is a2)
-
-
-class RequestTestCase(AbstractTestCase):
     
-    scope_class = scopes.Request
+    def testDecorator(self):
+        '''Application scope decorator should set the default scope.'''
+        class A(object): pass
+        A = self.decorator_class(A)
+        
+        self.assertTrue(get_default_scope(A) is self.scope_class)
+
+
+class RequestScopTestCase(unittest.TestCase):
+    
+    scope_class = RequestScope
+    decorator_class = reqscope
+    
+    def setUp(self):
+        self.scope = self.scope_class()
+    
+    def tearDown(self):
+        clear_default_scopes()
+
+    def testDecorator(self):
+        '''Request scope decorator should set the default scope.'''
+        class A(object): pass
+        A = self.decorator_class(A)
+        
+        self.assertTrue(get_default_scope(A) is self.scope_class)
     
     def testRequestScope(self):
-        '''Request scope should create a request-local provider.'''
+        '''RequestScope scope should create a request-local provider.'''
         scope = self.scope
         class A(object): pass
         
         scopedprovider = scope.scope(A)
         
-        
-        scope.register()
+        scope.start()
         a = scopedprovider()
         a2 = scopedprovider()
         
@@ -65,7 +123,7 @@ class RequestTestCase(AbstractTestCase):
         self.assertTrue(a is a2)
         
         
-        scope.register()
+        scope.start()
         a3 = scopedprovider()
         
         self.assertTrue(a is a2)
@@ -73,17 +131,17 @@ class RequestTestCase(AbstractTestCase):
         self.assertTrue(isinstance(a3, A))
     
     def testThreadingScope(self):
-        '''Request scope should create a thread-local provider.'''
+        '''RequestScope scope should create a thread-local provider.'''
         scope = self.scope
         class A(object): pass
         
         scopedprovider = scope.scope(A)
         
-        scope.register()
+        scope.start()
         a = scopedprovider()
         
         def run():
-            scope.register()
+            scope.start()
             a2 = scopedprovider()
             self.assertTrue(a is not a2)
         
@@ -92,37 +150,37 @@ class RequestTestCase(AbstractTestCase):
         thread.join()
     
     def testProviderNoRequestRegistered(self):
-        '''Request-scoped provider should raise NoRequestRegisteredError.'''
+        '''RequestScope-scoped provider should raise NoRequestStartedError.'''
         scope = self.scope
         def provider(): pass
         
         scopedprovider = scope.scope(provider)
-        self.assertRaises(errors.NoRequestRegisteredError, scopedprovider)
+        self.assertRaises(NoRequestStartedError, scopedprovider)
     
     def testThreadLocalRequestRegister(self):
-        '''Request register should affect only one thread.'''
+        '''RequestScope start should affect only one thread.'''
         scope = self.scope
         def provider(): pass
         scopedprovider = scope.scope(provider)
         
         def run():
-            self.assertRaises(errors.NoRequestRegisteredError, scopedprovider)
+            self.assertRaises(NoRequestStartedError, scopedprovider)
         
-        scope.register()
+        scope.start()
         thread = threading.Thread(target=run)
         thread.start()
         thread.join()
     
     def testUnregister(self):
-        '''Request unregister should delete the instances cache.'''
+        '''RequestScope end should delete the instances cache.'''
         scope = self.scope
         class A(object): pass
         scopedprovider = scope.scope(A)
         
-        scope.register()
+        scope.start()
         a = weakref.ref(scopedprovider())
         
         self.assertTrue(isinstance(a(), A))
-        scope.unregister()
+        scope.end()
         
         self.assertTrue(a() is None)

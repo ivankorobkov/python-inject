@@ -1,16 +1,16 @@
 import unittest
-from mock import Mock
 
 from inject.invokers import Invoker
+from inject.injectors import Injector
 
 
 class InvokerTestCase(unittest.TestCase):
     
     def setUp(self):
-        class DummyInvoker(Invoker):
-            injection_class = Mock()
+        self.injector = Injector()
+        self.injector.register()
         
-        self.invoker_class = DummyInvoker
+        self.invoker_class = Invoker
     
     def testNew(self):
         '''Invoker should return an instance if an unbound method.'''
@@ -40,13 +40,12 @@ class InvokerTestCase(unittest.TestCase):
             def method(self, arg):
                 return 'arg: %s' % arg
         
-        a = A()
+        self.injector.bind(A, to=A)
         invoker = self.invoker_class(A.method)
-        invoker.injection.get_instance.return_value = a
         
         result = invoker('value')
         self.assertEqual(result, 'arg: value')
-        
+    
     def testHash(self):
         '''Invoker should have the same hash an unbound method.'''
         class A(object):

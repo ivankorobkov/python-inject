@@ -1,7 +1,6 @@
 import unittest
 
 import inject
-from inject import errors, appscope, noscope
 
 
 class A(object): pass

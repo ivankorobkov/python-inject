@@ -119,14 +119,10 @@ __version__ = '1.0'
 from inject.injections import AttributeInjection as attr, \
     ParamInjection as param, \
     super_param as super
-from inject.injectors import Injector, register, unregister, is_registered, \
-    get_instance
-from inject.invokers import Invoker as invoker
-from inject.scopes import \
-    no as noscope, \
-    app as appscope, \
-    req as reqscope
-
+from inject.injectors import Injector, get_instance, register, unregister, \
+    is_registered
+from inject.invokers import Invoker
+from inject.scopes import noscope, appscope, reqscope
 
 '''
 @var injector: The default injector.
