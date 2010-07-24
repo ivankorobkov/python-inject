@@ -119,6 +119,7 @@ __version__ = '1.0'
 from inject.injections import AttributeInjection as attr, \
     ParamInjection as param, \
     super_param as super
+
 from inject.injectors import Injector, get_instance, register, unregister, \
     is_registered
 from inject.invokers import Invoker
