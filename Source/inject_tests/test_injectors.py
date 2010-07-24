@@ -1,11 +1,10 @@
 import unittest
-from mock import Mock
 
 import inject
-from inject.injection import Injection
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance, NoInjectorRegistered, NoProviderError, ScopeNotBoundError, \
     CantCreateProviderError
+from inject.points import InjectionPoint
 from inject.scopes import ScopeInterface, set_default_scope, \
     clear_default_scopes
 
@@ -13,7 +12,7 @@ from inject.scopes import ScopeInterface, set_default_scope, \
 class ModuleFunctionsTestCase(unittest.TestCase):
     
     injector_class = Injector
-    injection_class = Injection
+    point_class = InjectionPoint
     
     register_injector = staticmethod(register)
     unregister_injector = staticmethod(unregister)
@@ -25,7 +24,7 @@ class ModuleFunctionsTestCase(unittest.TestCase):
     
     def testRegisterUnregister(self):
         '''Register/unregister should set injections injector.'''
-        inj = self.injection_class('inj')
+        inj = self.point_class('inj')
         self.assertTrue(inj.injector is None)
         
         injector = self.injector_class()
@@ -57,18 +56,22 @@ class ModuleFunctionsTestCase(unittest.TestCase):
         self.assertFalse(self.is_registered(injector2))
     
     def testGetInstance(self):
-        '''Get_instrance should return an instance, or raise an error.'''
+        '''Get_instrance should return an instance from an injector.'''
         class A(object): pass
         
-        self.unregister_injector()
         self.assertRaises(NoInjectorRegistered, self.get_instance, A)
+    
+    def testGetInstanceNoInjectorRegistered(self):
+        '''Get_instance should raise NoInjectorRegistered.'''
+        class A(object): pass
         
         a = A()
-        injector = Mock()
-        injector.get_instance.return_value = a
-        
+        injector = self.injector_class(create_default_providers=True)
+        injector.bind(A, to=a)
         self.register_injector(injector)
-        self.assertTrue(self.get_instance(A) is a)
+        
+        a2 = self.get_instance(A)
+        self.assertTrue(a2 is a)
 
 
 class InjectorTestCase(unittest.TestCase):

@@ -12,6 +12,9 @@ class InvokerTestCase(unittest.TestCase):
         
         self.invoker_class = Invoker
     
+    def tearDown(self):
+        self.injector.unregister()
+    
     def testNew(self):
         '''Invoker should return an instance if an unbound method.'''
         class A(object):

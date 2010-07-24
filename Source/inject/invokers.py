@@ -1,7 +1,7 @@
 '''Invoker can invoke an unbound method. If not an unbound method is passed
 to it, it is returned untouched.
 '''
-from inject.injection import Injection
+from inject.points import InjectionPoint
 
 
 class Invoker(object):
@@ -50,7 +50,7 @@ class Invoker(object):
     
     __slots__ = ('method', 'injection', '_hash')
     
-    injection_class = Injection
+    point_class = InjectionPoint
     
     def __new__(cls, method):
         '''If method is an unbound method, create an invoker and return it,
@@ -66,7 +66,7 @@ class Invoker(object):
     
     def __init__(self, method):
         self.method = method
-        self.injection = self.injection_class(method.im_class)
+        self.injection = self.point_class(method.im_class)
         self._hash = None
     
     def __call__(self, *args, **kwargs):

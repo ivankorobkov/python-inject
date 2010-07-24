@@ -1,8 +1,8 @@
 '''Injections are real dependency injection methods: an attribute descriptor,
 and a function decorator.
 '''
-from inject.injection import Injection
 from inject.functional import update_wrapper
+from inject.points import InjectionPoint
 
 
 '''
@@ -39,12 +39,12 @@ class AttributeInjection(object):
     
     '''
     
-    injection_class = Injection
+    point_class = InjectionPoint
     
     def __init__(self, attr, type):
         '''Create an injection for an attribute.'''
         self.attr = attr
-        self.injection = self.injection_class(type)
+        self.injection = self.point_class(type)
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -80,11 +80,11 @@ class ParamInjection(object):
         
     '''
     
-    injection_class = Injection
+    point_class = InjectionPoint
     
     def __new__(cls, name, type):
         '''Create a decorator injection for a param.'''
-        injection = cls.injection_class(type)
+        injection = cls.point_class(type)
         
         def decorator(func):
             if getattr(func, 'injection_wrapper', False):
@@ -102,7 +102,7 @@ class ParamInjection(object):
         injections = {}
         
         def injection_wrapper(*args, **kwargs):
-            '''Injection wrapper gets non-existent keyword arguments
+            '''InjectionPoint wrapper gets non-existent keyword arguments
             from injections, combines them with kwargs, and passes to
             the wrapped function.
             '''

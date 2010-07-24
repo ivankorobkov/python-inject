@@ -8,7 +8,7 @@ class AttributeInjectionTestCase(unittest.TestCase):
     
     def setUp(self):
         class DummyAttributeInjection(AttributeInjection):
-            injection_class = Mock()
+            point_class = Mock()
         
         self.injection_class = DummyAttributeInjection
     
@@ -63,7 +63,7 @@ class ParamTestCase(unittest.TestCase):
     
     def setUp(self):
         class DummyParamInjection(ParamInjection):
-            injection_class = Mock()
+            point_class = Mock()
         
         self.injection_class = DummyParamInjection
     

@@ -48,6 +48,7 @@ the injections, 2) B{or create injector-specific injections}.
 import warnings
 
 from inject import providers
+from inject.points import InjectionPoint
 from inject.scopes import get_default_scope
 
 
@@ -222,12 +223,10 @@ class Injector(object):
 
 def register(injector):
     '''Register an injector as the main injector.'''
-    from inject.injection import Injection
-    
-    if Injection.injector is not None:
+    if InjectionPoint.injector is not None:
         warnings.warn('Overriding an already registered main injector %s '
-                      'with %s.' % (Injection.injector, injector))
-    Injection.injector = injector
+                      'with %s.' % (InjectionPoint.injector, injector))
+    InjectionPoint.injector = injector
 
 
 def unregister(injector=None):
@@ -236,17 +235,13 @@ def unregister(injector=None):
     If an injector is given, unregister it only if it is registered.
     If None, unregister any registered injector.
     '''
-    from inject.injection import Injection
-    
-    if Injection.injector is injector or injector is None:
-        Injection.injector = None
+    if InjectionPoint.injector is injector or injector is None:
+        InjectionPoint.injector = None
 
 
 def is_registered(injector):
     '''Return whether an injector is registered.'''
-    from inject.injection import Injection
-    
-    return Injection.injector is injector
+    return InjectionPoint.injector is injector
 
 
 def get_instance(type):
@@ -254,9 +249,7 @@ def get_instance(type):
     
     @raise NoInjectorRegistered.
     '''
-    from inject.injection import Injection
-    
-    injector = Injection.injector
+    injector = InjectionPoint.injector
     if injector is None:
         raise NoInjectorRegistered()
     
