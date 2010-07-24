@@ -56,6 +56,27 @@ class AttributeInjectionTestCase(unittest.TestCase):
         a2 = b.a
         self.assertTrue(isinstance(b.a, A))
         self.assertTrue(a is a2)
+    
+    def testReinjecting(self):
+        '''AttributeInjection should support reinjecting dependencies.'''
+        class A(object):
+            i = 0
+            def __init__(self):
+                self.__class__.i += 1
+                self.i = self.__class__.i
+        
+        class B(object):
+            a = self.injection_class(A, reinject=True)
+        
+        self.injector.bind(A, to=A)
+        
+        b = B()
+        a = b.a
+        a2 = b.a
+        
+        self.assertFalse(a is a2)
+        self.assertEqual(a.i, 1)
+        self.assertEqual(a2.i, 2)
 
 
 class NamedAttributeInjectionTestCase(unittest.TestCase):
@@ -108,6 +129,27 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         a2 = b.a
         self.assertTrue(isinstance(b.a, A))
         self.assertTrue(a is a2)
+
+    def testReinjecting(self):
+        '''NamedAttributeInjection should support reinjecting dependencies.'''
+        class A(object):
+            i = 0
+            def __init__(self):
+                self.__class__.i += 1
+                self.i = self.__class__.i
+        
+        class B(object):
+            a = self.injection_class('a', A, reinject=True)
+        
+        self.injector.bind(A, to=A)
+        
+        b = B()
+        a = b.a
+        a2 = b.a
+        
+        self.assertFalse(a is a2)
+        self.assertEqual(a.i, 1)
+        self.assertEqual(a2.i, 2)
 
 
 class ParamTestCase(unittest.TestCase):

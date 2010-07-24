@@ -42,9 +42,10 @@ class AttributeInjection(object):
     
     point_class = InjectionPoint
     
-    def __init__(self, type):
+    def __init__(self, type, reinject=False):
         '''Create an injection for an attribute.'''
         self.attr = None
+        self.reinject = reinject
         self.injection = self.point_class(type)
     
     def __get__(self, instance, owner):
@@ -57,7 +58,8 @@ class AttributeInjection(object):
         
         obj = self.injection.get_instance()
         
-        setattr(instance, attr, obj)
+        if not self.reinject:
+            setattr(instance, attr, obj)
         return obj
     
     def _get_set_attr(self, owner):
@@ -82,9 +84,10 @@ class NamedAttributeInjection(object):
     
     point_class = InjectionPoint
     
-    def __init__(self, attr, type):
+    def __init__(self, attr, type, reinject=False):
         '''Create an injection for an attribute.'''
         self.attr = attr
+        self.reinject = reinject
         self.injection = self.point_class(type)
     
     def __get__(self, instance, owner):
@@ -94,7 +97,8 @@ class NamedAttributeInjection(object):
         attr = self.attr
         obj = self.injection.get_instance()
         
-        setattr(instance, attr, obj)
+        if not self.reinject:
+            setattr(instance, attr, obj)
         return obj
 
 
