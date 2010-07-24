@@ -1,7 +1,8 @@
 import unittest
 from mock import Mock
 
-from inject.injections import AttributeInjection, ParamInjection, NoParamError
+from inject.injections import AttributeInjection, ParamInjection, NoParamError, \
+    NamedAttributeInjection
 from inject.injectors import Injector
 
 
@@ -16,7 +17,7 @@ class AttributeInjectionTestCase(unittest.TestCase):
         self.injector.unregister()
     
     def testInjection(self):
-        '''Attribute injection should get an instance from an injection.'''
+        '''AttributeInjection should get an instance from an injection.'''
         class A(object): pass
         class B(object):
             a = self.injection_class(A)
@@ -28,7 +29,7 @@ class AttributeInjectionTestCase(unittest.TestCase):
         self.assertTrue(b.a is a)
     
     def testInheritance(self):
-        '''Attribute injection should support inheritance.'''
+        '''AttributeInjection should support inheritance.'''
         class A(object): pass
         class B(object):
             a = self.injection_class(A)
@@ -43,10 +44,62 @@ class AttributeInjectionTestCase(unittest.TestCase):
         self.assertTrue(c.a is a)
     
     def testSettingAttr(self):
-        '''Attribute injection should set an attribute of an object.'''
+        '''AttributeInjection should set an attribute of an object.'''
         class A(object): pass
         class B(object):
             a = self.injection_class(A)
+        
+        self.injector.bind(A, to=A)
+        
+        b = B()
+        a = b.a
+        a2 = b.a
+        self.assertTrue(isinstance(b.a, A))
+        self.assertTrue(a is a2)
+
+
+class NamedAttributeInjectionTestCase(unittest.TestCase):
+    
+    def setUp(self):
+        self.injector = Injector()
+        self.injector.register()
+        self.injection_class = NamedAttributeInjection
+    
+    def tearDown(self):
+        self.injector.unregister()
+    
+    def testInjection(self):
+        '''NamedAttributeInjection should get an instance from an injection.'''
+        class A(object): pass
+        class B(object):
+            a = self.injection_class('a', A)
+        
+        a = A()
+        self.injector.bind(A, to=a)
+        
+        b = B()
+        self.assertTrue(b.a is a)
+    
+    def testInheritance(self):
+        '''NamedAttributeInjection should support inheritance.'''
+        class A(object): pass
+        class B(object):
+            a = self.injection_class('a', A)
+        class C(B): pass
+        
+        a = A()
+        self.injector.bind(A, to=a)
+        
+        b = B()
+        c = C()
+        self.assertTrue(b.a is a)
+        self.assertTrue(c.a is a)
+    
+    def testSettingAttr(self):
+        '''NamedAttributeInjection should set an attribute of an object.'''
+        class A(object): pass
+        class B(object):
+            a = self.injection_class('a', A)
         
         self.injector.bind(A, to=A)
         

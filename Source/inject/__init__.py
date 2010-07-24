@@ -117,6 +117,7 @@ __version__ = '1.0'
 
 
 from inject.injections import AttributeInjection as attr, \
+    NamedAttributeInjection as named_attr, \
     ParamInjection as param, \
     super_param as super
 

@@ -66,6 +66,38 @@ class AttributeInjection(object):
         return attr
 
 
+class NamedAttributeInjection(object):
+    
+    '''NamedAttributeInjection is a descriptor, which injects an instance into
+    a specified class attribute, takes an attribute name, does not get it
+    automatically.
+    
+    Example::
+        
+        class A(object): pass
+        class B(object):
+            a = NamedAttributeInjection('a', A)
+    
+    '''
+    
+    point_class = InjectionPoint
+    
+    def __init__(self, attr, type):
+        '''Create an injection for an attribute.'''
+        self.attr = attr
+        self.injection = self.point_class(type)
+    
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        
+        attr = self.attr
+        obj = self.injection.get_instance()
+        
+        setattr(instance, attr, obj)
+        return obj
+
+
 class ParamInjection(object):
     
     '''ParamInjection is a function decorator, which injects the required
