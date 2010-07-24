@@ -2,61 +2,59 @@ import unittest
 from mock import Mock
 
 from inject.injections import AttributeInjection, ParamInjection, NoParamError
+from inject.injectors import Injector
 
 
 class AttributeInjectionTestCase(unittest.TestCase):
     
     def setUp(self):
-        class DummyAttributeInjection(AttributeInjection):
-            point_class = Mock()
-        
-        self.injection_class = DummyAttributeInjection
+        self.injector = Injector()
+        self.injector.register()
+        self.injection_class = AttributeInjection
+    
+    def tearDown(self):
+        self.injector.unregister()
     
     def testInjection(self):
         '''Attribute injection should get an instance from an injection.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class('a', A)
+            a = self.injection_class(A)
         
         a = A()
-        injection = B.a.injection
-        injection.get_instance.return_value = a
+        self.injector.bind(A, to=a)
         
         b = B()
         self.assertTrue(b.a is a)
-        self.assertTrue(injection.get_instance.called)
     
     def testInheritance(self):
         '''Attribute injection should support inheritance.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class('a', A)
+            a = self.injection_class(A)
         class C(B): pass
         
         a = A()
-        injection = B.a.injection
-        injection.get_instance.return_value = a
+        self.injector.bind(A, to=a)
         
         b = B()
         c = C()
         self.assertTrue(b.a is a)
         self.assertTrue(c.a is a)
-        self.assertEqual(injection.get_instance.call_count, 2)
     
     def testSettingAttr(self):
         '''Attribute injection should set an attribute of an object.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class('a', A)
+            a = self.injection_class(A)
         
-        a = A()
-        injection = B.a.injection
-        injection.get_instance.return_value = a
+        self.injector.bind(A, to=A)
         
         b = B()
-        self.assertTrue(b.a is a)
-        self.assertTrue(b.a is a)
-        self.assertEqual(injection.get_instance.call_count, 1)
+        a = b.a
+        a2 = b.a
+        self.assertTrue(isinstance(b.a, A))
+        self.assertTrue(a is a2)
 
 
 class ParamTestCase(unittest.TestCase):

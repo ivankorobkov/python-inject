@@ -3,6 +3,7 @@ and a function decorator.
 '''
 from inject.functional import update_wrapper
 from inject.points import InjectionPoint
+from inject.utils import get_attrname_by_value
 
 
 '''
@@ -35,25 +36,34 @@ class AttributeInjection(object):
         
         class A(object): pass
         class B(object):
-            a = AttributeInjection('a', A)
+            a = AttributeInjection(A)
     
     '''
     
     point_class = InjectionPoint
     
-    def __init__(self, attr, type):
+    def __init__(self, type):
         '''Create an injection for an attribute.'''
-        self.attr = attr
+        self.attr = None
         self.injection = self.point_class(type)
     
     def __get__(self, instance, owner):
         if instance is None:
             return self
         
+        attr = self.attr
+        if attr is None:
+            attr = self._get_set_attr(owner)
+        
         obj = self.injection.get_instance()
         
-        setattr(instance, self.attr, obj)
+        setattr(instance, attr, obj)
         return obj
+    
+    def _get_set_attr(self, owner):
+        attr = get_attrname_by_value(owner, self)
+        self.attr = attr
+        return attr
 
 
 class ParamInjection(object):
