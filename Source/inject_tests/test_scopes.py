@@ -1,6 +1,6 @@
-import weakref
-import unittest
 import threading
+import unittest
+import weakref
 
 from inject.scopes import NoRequestStartedError, AbstractScopeDecorator, \
     ApplicationScope, RequestScope, get_default_scope, set_default_scope, \
@@ -50,6 +50,14 @@ class NoScopeTestCase(unittest.TestCase):
     
     scope_class = NoScope
     decorator_class = noscope
+    
+    def testScope(self):
+        '''NoScope should return the provider untouched.'''
+        class A(object): pass
+        scope = self.scope_class()
+        
+        A2 = scope.scope(A)
+        self.assertTrue(A is A2)
     
     def testDecorator(self):
         '''Noscope scope decorator should set the default scope.'''

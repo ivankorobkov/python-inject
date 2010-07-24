@@ -104,7 +104,7 @@ class InjectorTestCase(unittest.TestCase):
         injector = self.injector_class()
         injector.bind_scope(Scope, scope)
         
-        self.assertTrue(injector.scopes[Scope] is scope)
+        self.assertTrue(injector.bound_scopes[Scope] is scope)
     
     #==========================================================================
     # get_provider tests

@@ -90,14 +90,14 @@ class Injector(object):
     '''Injector stores configuration for providers.
     
     @ivar providers: Types to providers mapping.
-    @ivar scopes: Scope classes to bound scopes mapping.
+    @ivar bound_scopes: Scopes to bound scopes mapping.
     '''
     
     provider_class = providers.ProvidersFactory
     
     def __init__(self, create_default_providers=True):
         self.providers = {}
-        self.scopes = {}
+        self.bound_scopes = {}
         
         self.create_default_providers = create_default_providers
     
@@ -116,9 +116,9 @@ class Injector(object):
         provider = self._create_provider(type, to=to, scope=scope)
         self._add_provider(type, provider)
     
-    def bind_scope(self, scope_cls, to):
-        '''Bind a scope class to an instance.'''
-        self.scopes[scope_cls] = to
+    def bind_scope(self, scope, to):
+        '''Bind a scope key to an instance.'''
+        self.bound_scopes[scope] = to
     
     def get_provider(self, type):
         '''Return a provider, or raise NoProviderError.
@@ -197,7 +197,7 @@ class Injector(object):
         @raise ScopeNotBoundError.
         '''
         try:
-            return self.scopes[scope]
+            return self.bound_scopes[scope]
         except KeyError:
             raise ScopeNotBoundError(scope)
     

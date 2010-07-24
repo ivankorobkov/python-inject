@@ -13,7 +13,7 @@ import threading
 
 '''
 @var _default_scopes: Dictionary which stores providers associated with default
-    scopes set by the scope decorators.
+    scopes.
 '''
 _default_scopes = {}
 
