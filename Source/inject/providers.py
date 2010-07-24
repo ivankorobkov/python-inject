@@ -9,24 +9,13 @@ scopes it if a scope is given.
 from inject.invokers import Invoker
 
 
-class CantCreateProviderError(Exception):
-    
-    '''CantCreateProviderError is raised when to is not given and type is
-    not callable.
-    '''
-    
-    def __init__(self, type):
-        msg = 'Can\'t create a provider for %r.' % type
-        Exception.__init__(self, msg)
-
-
 class InstanceProvider(object):
     
     '''InstanceProvider returns an instance when called.'''
     
     __slots__ = ('inst',)
     
-    def __init__(self, type, to=None):
+    def __init__(self, to=None):
         self.inst = to
     
     def __call__(self):
@@ -42,38 +31,17 @@ class ProvidersFactory(object):
     instance_class = InstanceProvider
     invoker_class = Invoker
     
-    def __new__(cls, type, to=None):
+    def __new__(cls, to=None):
         '''Create provider for a C{type}.
-        
-        If C{to} is None, and C{type} is a callable use C{type} as a provider,
-        otherwise raise L{CantCreateProviderError}.
-        
-        If C{to} is an instance, return an L{InstanceProvider} provider.
-        
-        If C{to} is an unbound method, return an L{Invoker}.
-        
-        Otherwise, return C{to}.
         
         @raise CantCreateProviderError.
         '''
-        to = cls._get_to(type, to=to)
-        
         if callable(to):
             provider = cls._create_callable_provider(to)
         else:
             provider = cls._create_instance_provider(to)
         
         return provider
-    
-    @classmethod
-    def _get_to(cls, type, to=None):
-        if to is None:
-            if callable(type):
-                to = type
-            else:
-                raise CantCreateProviderError(type)
-        
-        return to
     
     @classmethod
     def _create_callable_provider(cls, to):

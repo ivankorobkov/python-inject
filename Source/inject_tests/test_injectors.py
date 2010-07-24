@@ -4,7 +4,10 @@ from mock import Mock
 import inject
 from inject.injection import Injection
 from inject.injectors import Injector, register, unregister, is_registered, \
-    get_instance, NoInjectorRegistered, NoProviderError
+    get_instance, NoInjectorRegistered, NoProviderError, ScopeNotBoundError, \
+    CantCreateProviderError
+from inject.scopes import ScopeInterface, set_default_scope, \
+    clear_default_scopes
 
 
 class ModuleFunctionsTestCase(unittest.TestCase):
@@ -93,6 +96,16 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind(A, to=B)
         self.assertTrue(injector.providers[A] is B)
     
+    def testBindScope(self):
+        '''Injector.bind_scope should bind a scope class to an instance.'''
+        class Scope(object): pass
+        scope = Scope()
+        
+        injector = self.injector_class()
+        injector.bind_scope(Scope, scope)
+        
+        self.assertTrue(injector.scopes[Scope] is scope)
+    
     #==========================================================================
     # get_provider tests
     #==========================================================================
@@ -103,90 +116,164 @@ class InjectorTestCase(unittest.TestCase):
         class B(object): pass
         
         injector = self.injector_class()
-        injector.providers[A] = B
+        injector.bind(A, to=B)
         
         self.assertTrue(injector.get_provider(A) is B)
     
+    def testGetProviderCreateDefaultProviders(self):
+        '''Injector.get_provider should create a default provider.'''
+        class A(object): pass
+        
+        injector = self.injector_class(create_default_providers=True)
+        provider = injector.get_provider(A)
+        self.assertTrue(provider is A)
+    
     def testGetProviderNoProviderError(self):
-        '''Injector.get_provider should raise NoProviderError.'''
+        '''Injector.get_provider should raise NoProviderError.
+        
+        When create_default_providers is False.
+        '''
         class A(object): pass
         
         injector = self.injector_class(create_default_providers=False)
         self.assertRaises(NoProviderError, injector.get_provider, A)
     
-    def testGetProviderDefaultProvider(self):
-        '''Injector.get_provider should create a default provider.'''
+    def testAddProvider(self):
+        '''Injector._add_provider should add a new provider.'''
+        class A(object): pass
+        class B(object): pass
+        
+        injector = self.injector_class()
+        injector._add_provider(A, B)
+        
+        provider = injector.get_provider(A)
+        self.assertTrue(provider is B)
+    
+    def testCreateProvider(self):
+        '''Injector._create_provider should create a provider.'''
+        class A(object): pass
+        class B(object): pass
+        
+        injector = self.injector_class()
+        provider = injector._create_provider(A, B)
+        
+        self.assertTrue(provider is B)
+    
+    def testCreateProviderToIsNone(self):
+        '''Injector._create_provider should use a callable type, when no to.'''
+        class A(object): pass
+        class B(object): pass
+        
+        injector = self.injector_class()
+        
+        provider = injector._create_provider(A)
+        self.assertTrue(provider is A)
+    
+    def testCreateProviderCantCreateProviderError(self):
+        '''Injector._create_provider should raise CantCreateProviderError.
+        
+        When to is None, and type is not callable.
+        '''
+        injector = self.injector_class()
+        self.assertRaises(CantCreateProviderError, injector._create_provider,
+                          'type')
+
+    def testCreateDefaultProvider(self):
+        '''Inject._create_default_provider should create a default provider.'''
         class A(object): pass
         
-        injector = self.injector_class(create_default_providers=True)
-        self.assertTrue(injector.get_provider(A) is A)
-        self.assertTrue(A in injector.providers)
+        injector = self.injector_class()
+        provider = injector._create_default_provider(A)
+        
+        self.assertTrue(provider is A)
+    
+    def testCreateProviderScope(self):
+        '''Injector._create_provider should scope a provider.
+        
+        When scope is given.
+        '''
+        class A(object): pass
+        class Scope(ScopeInterface):
+            def scope(self, provider):
+                return 'scoped_provider'
+        
+        scope = Scope()
+        
+        injector = self.injector_class()
+        injector.bind_scope(Scope, to=scope)
+        
+        scoped_provider = injector._create_provider(A, scope=Scope)
+        self.assertEqual(scoped_provider, 'scoped_provider')
+    
+    def testScopeProvider(self):
+        '''Inject._scope_provider should return a scoped provider.'''
+        class A(object): pass
+        class Scope(ScopeInterface):
+            def scope(self, provider):
+                return 'scoped_provider'
+        
+        scope = Scope()
+        
+        injector = self.injector_class()
+        injector.bind_scope(Scope, to=scope)
+        
+        scoped_provider = injector._scope_provider(A, scope=Scope)
+        self.assertEqual(scoped_provider, 'scoped_provider')
+    
+    def testScopeProviderNotBound(self):
+        '''Inject._scope_provider should raise ScopeNotBound.'''
+        class A(object): pass
+        class Scope(ScopeInterface): pass
+        
+        injector = self.injector_class()
+        self.assertRaises(ScopeNotBoundError, injector._scope_provider,
+            A, scope=Scope)
+    
+    def testScopeProviderDefaultScope(self):
+        '''Inject._scope_provider should get a default scope.
+        
+        When scope is not given, and the default scope is set.
+        '''
+        class A(object): pass
+        class Scope(ScopeInterface):
+            def scope(self, provider):
+                return 'scoped_provider'
+        
+        scope = Scope()
+        injector = self.injector_class()
+        injector.bind_scope(Scope, to=scope)
+        
+        set_default_scope(A, Scope)
+        try:
+            
+            scoped_provider = injector._scope_provider(A)
+            self.assertEqual(scoped_provider, 'scoped_provider')
+        finally:
+            clear_default_scopes()
     
     #==========================================================================
     # get_instance tests
     #==========================================================================
     
     def testGetInstance(self):
-        '''Injector.get_instance should get a provider and call it.'''
+        '''Injector.get_instance should return an instance.'''
         class A(object): pass
         class B(object): pass
-        class MyInjector(self.injector_class):
-            def get_provider(self, type):
-                return B
         
-        injector = MyInjector()
+        injector = self.injector_class()
+        injector.bind(A, to=B)
         
         a = injector.get_instance(A)
         self.assertTrue(isinstance(a, B))
     
-    #==========================================================================
-    # private methods tests
-    #==========================================================================
-    
-    def testAddProvider(self):
-        '''Injector._add_provider should store a provider in the providers.'''
+    def testGetInstanceCreateDefaultProviders(self):
+        '''Injector.get_instance should use a default provider.
+        
+        When create_default_providers is True.
+        '''
+        class A(object): pass
+        
         injector = self.injector_class()
-        injector._add_provider('a', 'b')
         
-        self.assertTrue('a' in injector.providers)
-        self.assertEqual(injector.providers['a'], 'b')
-    
-    def testCreateProvider(self):
-        '''Injector._create_provider should instantiate a provider_class.'''
-        class A(object): pass
-        class B(object): pass
-        class Provider(object):
-            def __init__(self, type, to):
-                self.type = type
-                self.to = to
-        
-        class MyInjector(self.injector_class):
-            provider_class = Provider
-        
-        injector = MyInjector()
-        
-        p = injector._create_provider(A, to=B, scope='scope')
-        self.assertTrue(p.to is B and p.scope == 'scope')
-        
-        p2 = injector._create_provider(A, to=B)
-        self.assertTrue(p2.to is B and p2.scope is None)
-    
-    def testCreateAddDefaultProvider(self):
-        '''Injector._create_add_default_provider.'''
-        class A(object): pass
-        class Provider(object):
-            def __init__(self, type, to, scope):
-                self.type = type
-                self.to = to
-                self.scope = scope
-        
-        class MyInjector(self.injector_class):
-            provider_class = Provider
-        
-        injector = MyInjector()
-        injector._create_add_default_provider(A)
-        
-        self.assertTrue(A in injector.providers)
-        
-        p = injector.providers[A]
-        self.assertTrue(p.type is A and p.to is None and p.scope is None)
+        a = injector.get_instance(A)
+        self.assertTrue(isinstance(a, A))

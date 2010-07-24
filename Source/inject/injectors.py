@@ -48,6 +48,7 @@ the injections, 2) B{or create injector-specific injections}.
 import warnings
 
 from inject import providers
+from inject.scopes import get_default_scope
 
 
 class NoInjectorRegistered(Exception):
@@ -66,6 +67,13 @@ class NoProviderError(Exception):
         Exception.__init__(self, msg)
 
 
+class CantCreateProviderError(Exception):
+    
+    '''CantCreateProviderError is raised when to is not given and type is
+    not callable.
+    '''
+
+
 class ScopeNotBoundError(Exception):
     
     '''ScopeNotBound is raised when a scope is used, but it is not bound
@@ -82,7 +90,7 @@ class Injector(object):
     '''Injector stores configuration for providers.
     
     @ivar providers: Types to providers mapping.
-    @ivar scopes: Scope classes to scope instances mapping.
+    @ivar scopes: Scope classes to bound scopes mapping.
     '''
     
     provider_class = providers.ProvidersFactory
@@ -108,9 +116,9 @@ class Injector(object):
         provider = self._create_provider(type, to=to, scope=scope)
         self._add_provider(type, provider)
     
-    def bind_scope(self, cls, instance):
+    def bind_scope(self, scope_cls, to):
         '''Bind a scope class to an instance.'''
-        self.scopes[cls] = instance
+        self.scopes[scope_cls] = to
     
     def get_provider(self, type):
         '''Return a provider, or raise NoProviderError.
@@ -156,7 +164,14 @@ class Injector(object):
         
         @raise CantCreateProviderError.
         '''
-        provider = self.provider_class(type, to=to)
+        if to is None:
+            if callable(type):
+                to = type
+            else:
+                raise CantCreateProviderError('To is not give and type %r is '
+                                              'not callable.' % type)
+        
+        provider = self.provider_class(to=to)
         return self._scope_provider(provider, scope=scope)
     
     def _create_default_provider(self, type):
@@ -167,31 +182,26 @@ class Injector(object):
         '''Get a scope for a provider, and if it is not None use it to scope
         the provider, return the provider.
         '''
-        scope = self._get_scope(provider, scope=None)
-        if scope is not None:
-            return scope.scope(provider)
-        
-        return provider
-    
-    def _get_scope(self, provider, scope=None):
-        '''Return a scope instance for a provider, or None.
-        
-        @raise ScopeNotBoundError.
-        '''
         if scope is None:
             scope = self._get_default_scope(provider)
         
-        if scope is None:
-            return
+        if scope is not None:
+            bound_scope = self._get_bound_scope(scope)
+            provider = bound_scope.scope(provider)
         
+        return provider
+    
+    def _get_bound_scope(self, scope=None):
+        '''Return a bound scope or raise ScopeNotBoundError.
+        
+        @raise ScopeNotBoundError.
+        '''
         try:
             return self.scopes[scope]
         except KeyError:
             raise ScopeNotBoundError(scope)
     
-    def _get_default_scope(self, provider):
-        '''Return the default scope class for a provider or None.'''
-        pass
+    _get_default_scope = staticmethod(get_default_scope)
     
     #==========================================================================
     # Registering/unregistering
