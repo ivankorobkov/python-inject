@@ -1,10 +1,9 @@
-'''Providers are callable objects which return instances. So all normal 
-callables can be used as providers.
+'''Providers are callable objects which return instances. Any python callable
+can be used as a provider.
 
 The module has only two providers: an instance provider, which is a callable
-wrapper around any instance, and a factory. The factory creates and returns 
-a specific provider, or an invoker depending on the passed arguments. It also
-scopes it if a scope is given.
+wrapper around any object, and a factory. The factory returns a callable,
+an instance provider, or an invoker.
 '''
 from inject.invokers import Invoker
 
@@ -22,20 +21,20 @@ class InstanceProvider(object):
         return self.inst
 
 
-class ProvidersFactory(object):
+class ProviderFactory(object):
     
-    '''ProvidersFactory creates a specific provider depending on the type,
-    and the binding.
+    '''ProviderFactory creates a specific provider.
+    
+    If C{to} is callable, return it.
+    If C{to} is an unbound method, return an invoker for it.
+    If C{to} is not callable, return an instance provider.
     '''
     
     instance_class = InstanceProvider
     invoker_class = Invoker
     
     def __new__(cls, to=None):
-        '''Create provider for a C{type}.
-        
-        @raise CantCreateProviderError.
-        '''
+        '''Create provider for C{to}.'''
         if callable(to):
             provider = cls._create_callable_provider(to)
         else:

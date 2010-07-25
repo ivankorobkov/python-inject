@@ -94,7 +94,7 @@ class Injector(object):
     @ivar bound_scopes: Scopes to bound scopes mapping.
     '''
     
-    provider_class = providers.ProvidersFactory
+    provider_class = providers.ProviderFactory
     
     def __init__(self, create_default_providers=True):
         self.providers = {}

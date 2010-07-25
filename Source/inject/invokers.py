@@ -50,7 +50,7 @@ class Invoker(object):
     
     __slots__ = ('method', 'injection', '_hash')
     
-    point_class = InjectionPoint
+    injection_point_class = InjectionPoint
     
     def __new__(cls, method):
         '''If method is an unbound method, create an invoker and return it,
@@ -66,7 +66,7 @@ class Invoker(object):
     
     def __init__(self, method):
         self.method = method
-        self.injection = self.point_class(method.im_class)
+        self.injection = self.injection_point_class(method.im_class)
         self._hash = None
     
     def __call__(self, *args, **kwargs):
