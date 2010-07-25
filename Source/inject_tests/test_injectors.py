@@ -109,6 +109,21 @@ class InjectorTestCase(unittest.TestCase):
         
         self.assertTrue(injector.bound_scopes[Scope] is scope)
     
+    def testIsBound(self):
+        '''Injector.is_bound should return True.'''
+        class A(object): pass
+        
+        injector = self.injector_class()
+        injector.bind(A, to=A)
+        self.assertTrue(injector.is_bound(A))
+    
+    def testIsBoundFalse(self):
+        '''Injector.is_bound should return False.'''
+        class A(object): pass
+        
+        injector = self.injector_class()
+        self.assertFalse(injector.is_bound(A))
+    
     #==========================================================================
     # get_provider tests
     #==========================================================================

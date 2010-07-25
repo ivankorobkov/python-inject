@@ -121,6 +121,10 @@ class Injector(object):
         '''Bind a scope key to an instance.'''
         self.bound_scopes[scope] = to
     
+    def is_bound(self, type):
+        '''Return True if type is bound, else return False.'''
+        return type in self.providers
+    
     def get_provider(self, type):
         '''Return a provider, or raise NoProviderError.
         
