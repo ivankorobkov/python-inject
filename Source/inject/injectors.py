@@ -117,6 +117,17 @@ class Injector(object):
         provider = self._create_provider(type, to=to, scope=scope)
         self._add_provider(type, provider)
     
+    def bind_to_none(self, type):
+        '''Bind type to None.
+        
+        The method exists because it is not possible to pass to=None.
+        It binds type to a function, which returns None.
+        '''
+        def none():
+            return None
+        
+        self.bind(type, to=none)
+    
     def bind_scope(self, scope, to):
         '''Bind a scope key to an instance.'''
         self.bound_scopes[scope] = to

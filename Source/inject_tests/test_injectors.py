@@ -94,10 +94,18 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector.bind should create a provider for a type and save it.'''
         class A(object): pass
         class B(object): pass
-        injector = self.injector_class()
         
+        injector = self.injector_class()
         injector.bind(A, to=B)
         self.assertTrue(injector.providers[A] is B)
+    
+    def testBindToNone(self):
+        '''Injector.bind_to_none should create a provider which returns None.'''
+        class A(object): pass
+        
+        injector = self.injector_class()
+        injector.bind_to_none(A)
+        self.assertTrue(injector.get_instance(A) is None)
     
     def testBindScope(self):
         '''Injector.bind_scope should bind a scope class to an instance.'''
