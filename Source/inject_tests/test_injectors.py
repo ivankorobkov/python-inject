@@ -88,7 +88,19 @@ class InjectorTestCase(unittest.TestCase):
         injector = self.injector_class()
         injector.configure(config)
         
-        self.assertTrue(A in injector.providers)
+        self.assertTrue(A in injector._bindings)
+    
+    def testClear(self):
+        '''Injector.clear should clear its bindings.'''
+        class A(object): pass
+        class B(object): pass
+        
+        injector = self.injector_class()
+        injector.bind(A, to=B)
+        self.assertTrue(injector._bindings)
+        
+        injector.clear()
+        self.assertFalse(injector._bindings)
     
     def testBind(self):
         '''Injector.bind should create a provider for a type and save it.'''
@@ -97,7 +109,7 @@ class InjectorTestCase(unittest.TestCase):
         
         injector = self.injector_class()
         injector.bind(A, to=B)
-        self.assertTrue(injector.providers[A] is B)
+        self.assertTrue(injector._bindings[A] is B)
     
     def testBindToNone(self):
         '''Injector.bind_to_none should create a provider which returns None.'''

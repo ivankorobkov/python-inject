@@ -90,14 +90,14 @@ class Injector(object):
     
     '''Injector stores configuration for providers.
     
-    @ivar providers: Types to providers mapping.
+    @ivar _bindings: Types to providers mapping.
     @ivar bound_scopes: Scopes to bound scopes mapping.
     '''
     
     provider_class = providers.ProviderFactory
     
     def __init__(self, create_default_providers=True):
-        self.providers = {}
+        self._bindings = {}
         self.bound_scopes = {}
         
         self.create_default_providers = create_default_providers
@@ -108,6 +108,10 @@ class Injector(object):
         '''
         for config in configs:
             config(self)
+    
+    def clear(self):
+        '''Remove all bindings.'''
+        self._bindings.clear()
     
     def bind(self, type, to=None, scope=None):
         '''Specify a binding for a type.
@@ -134,7 +138,7 @@ class Injector(object):
     
     def is_bound(self, type):
         '''Return True if type is bound, else return False.'''
-        return type in self.providers
+        return type in self._bindings
     
     def get_provider(self, type):
         '''Return a provider, or raise NoProviderError.
@@ -145,7 +149,7 @@ class Injector(object):
         @raise NoProviderError.
         @raise CantCreateProviderError.
         '''
-        bindings = self.providers
+        bindings = self._bindings
         
         if type not in bindings:
             if self.create_default_providers:
@@ -157,7 +161,7 @@ class Injector(object):
         return bindings[type]
     
     def get_instance(self, type):
-        '''Return an instance for a type using the injector providers.
+        '''Return an instance for a type.
         
         @raise NoProviderError.
         @raise CantCreateProviderError.
@@ -170,9 +174,9 @@ class Injector(object):
     
     def _add_provider(self, type, provider):
         '''Add a provider for a type.'''
-        if type in self.providers:
+        if type in self._bindings:
             warnings.warn('Overriding an existing binding for %s.' % type)
-        self.providers[type] = provider
+        self._bindings[type] = provider
     
     def _create_provider(self, type, to=None, scope=None):
         '''Create a new provider for a type and return it.
