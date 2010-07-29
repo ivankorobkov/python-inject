@@ -47,9 +47,10 @@ the injections, 2) B{or create injector-specific injections}.
 '''
 import warnings
 
-from inject import providers
+from inject.config import default_config
 from inject.points import InjectionPoint
-from inject.scopes import get_default_scope
+from inject.providers import ProviderFactory
+from inject.scopes import get_default_scope, appscope
 
 
 class NoInjectorRegistered(Exception):
@@ -90,6 +91,7 @@ class ScopeNotBoundError(KeyError):
         KeyError.__init__(self, msg)
 
 
+@appscope
 class Injector(object):
     
     '''Injector stores configuration for providers.
@@ -98,13 +100,17 @@ class Injector(object):
     @ivar _bound_scopes: Scopes to bound scopes mapping.
     '''
     
-    provider_class = providers.ProviderFactory
+    provider_class = ProviderFactory
     
-    def __init__(self, create_default_providers=True):
+    def __init__(self, create_default_providers=True,
+                 default_config=default_config):
         self._bindings = {}
         self._bound_scopes = {}
         
         self.create_default_providers = create_default_providers
+        
+        if default_config:
+            self.configure(default_config)
     
     def configure(self, *configs):
         '''Configure the injector using the provided callable configs;

@@ -115,13 +115,15 @@ tuple in C{settings.py}. It is recommended to insert it as the first item.
 '''
 __version__ = '2.0-alpha'
 
-__all__ = ('attr', 'named_attr', 'param', 'super', 'NoParamError',
+__all__ = ['default_config',
+           'attr', 'named_attr', 'param', 'super', 'NoParamError',
            'Injector', 'get_instance', 'register', 'unregister',
            'is_registered', 'NoInjectorRegistered', 'NotBoundError',
            'CantCreateProviderError', 'ScopeNotBoundError',
            'Invoker',
-           'noscope', 'appscope', 'reqscope', 'NoRequestStartedError')
+           'noscope', 'appscope', 'reqscope', 'NoRequestStartedError']
 
+from inject.config import default_config
 
 from inject.injections import AttributeInjection as attr, \
     NamedAttributeInjection as named_attr, \
