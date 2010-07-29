@@ -59,13 +59,15 @@ class NoInjectorRegistered(Exception):
     '''
 
 
-class NoProviderError(Exception):
+class NotBoundError(KeyError):
     
-    '''NoProviderError is raised when there is no provider bound to a key.'''
+    '''NotBoundError extends KeyError, is raised when there is no bound
+    provider.
+    '''
     
     def __init__(self, key):
-        msg = 'There is no provider for %s.' % str(key)
-        Exception.__init__(self, msg)
+        msg = 'No bound provider for %s.' % str(key)
+        KeyError.__init__(self, msg)
 
 
 class CantCreateProviderError(Exception):
@@ -91,14 +93,14 @@ class Injector(object):
     '''Injector stores configuration for providers.
     
     @ivar _bindings: Types to providers mapping.
-    @ivar bound_scopes: Scopes to bound scopes mapping.
+    @ivar _bound_scopes: Scopes to bound scopes mapping.
     '''
     
     provider_class = providers.ProviderFactory
     
     def __init__(self, create_default_providers=True):
         self._bindings = {}
-        self.bound_scopes = {}
+        self._bound_scopes = {}
         
         self.create_default_providers = create_default_providers
     
@@ -134,19 +136,29 @@ class Injector(object):
     
     def bind_scope(self, scope, to):
         '''Bind a scope key to an instance.'''
-        self.bound_scopes[scope] = to
+        self._bound_scopes[scope] = to
     
     def is_bound(self, type):
         '''Return True if type is bound, else return False.'''
         return type in self._bindings
     
+    def unbind(self, type):
+        '''unbind type, if it is bound, else raise NotBoundError.
+        
+        @raise NotBoundError.
+        '''
+        try:
+            del self._bindings[type]
+        except KeyError:
+            raise NotBoundError(type)
+    
     def get_provider(self, type):
-        '''Return a provider, or raise NoProviderError.
+        '''Return a provider, or raise NotBoundError.
         
         If create_default_providers flag is True, and no binding exist for 
         a type, and the type is callable, return it.
         
-        @raise NoProviderError.
+        @raise NotBoundError.
         @raise CantCreateProviderError.
         '''
         bindings = self._bindings
@@ -156,14 +168,14 @@ class Injector(object):
                 provider = self._create_default_provider(type)
                 self._add_provider(type, provider)
             else:
-                raise NoProviderError(type)
+                raise NotBoundError(type)
         
         return bindings[type]
     
     def get_instance(self, type):
         '''Return an instance for a type.
         
-        @raise NoProviderError.
+        @raise NotBoundError.
         @raise CantCreateProviderError.
         '''
         return self.get_provider(type)()
@@ -217,7 +229,7 @@ class Injector(object):
         @raise ScopeNotBoundError.
         '''
         try:
-            return self.bound_scopes[scope]
+            return self._bound_scopes[scope]
         except KeyError:
             raise ScopeNotBoundError(scope)
     

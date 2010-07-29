@@ -2,7 +2,7 @@ import unittest
 
 import inject
 from inject.injectors import Injector, register, unregister, is_registered, \
-    get_instance, NoInjectorRegistered, NoProviderError, ScopeNotBoundError, \
+    get_instance, NoInjectorRegistered, NotBoundError, ScopeNotBoundError, \
     CantCreateProviderError
 from inject.points import InjectionPoint
 from inject.scopes import ScopeInterface, set_default_scope, \
@@ -127,7 +127,7 @@ class InjectorTestCase(unittest.TestCase):
         injector = self.injector_class()
         injector.bind_scope(Scope, scope)
         
-        self.assertTrue(injector.bound_scopes[Scope] is scope)
+        self.assertTrue(injector._bound_scopes[Scope] is scope)
     
     def testIsBound(self):
         '''Injector.is_bound should return True.'''
@@ -143,6 +143,24 @@ class InjectorTestCase(unittest.TestCase):
         
         injector = self.injector_class()
         self.assertFalse(injector.is_bound(A))
+    
+    def testUnbind(self):
+        '''Injector.unbind should remove a binding.'''
+        class A(object): pass
+        
+        injector = self.injector_class()
+        injector.bind(A, to=A)
+        self.assertTrue(injector.is_bound(A))
+        
+        injector.unbind(A)
+        self.assertFalse(injector.is_bound(A))
+    
+    def testUnbindNotBoundError(self):
+        '''Injector.unbind should raise NotBoundError.'''
+        class A(object): pass
+        
+        injector = self.injector_class()
+        self.assertRaises(NotBoundError, injector.unbind, A)
     
     #==========================================================================
     # get_provider tests
@@ -167,14 +185,14 @@ class InjectorTestCase(unittest.TestCase):
         self.assertTrue(provider is A)
     
     def testGetProviderNoProviderError(self):
-        '''Injector.get_provider should raise NoProviderError.
+        '''Injector.get_provider should raise NotBoundError.
         
         When create_default_providers is False.
         '''
         class A(object): pass
         
         injector = self.injector_class(create_default_providers=False)
-        self.assertRaises(NoProviderError, injector.get_provider, A)
+        self.assertRaises(NotBoundError, injector.get_provider, A)
     
     def testAddProvider(self):
         '''Injector._add_provider should add a new provider.'''
