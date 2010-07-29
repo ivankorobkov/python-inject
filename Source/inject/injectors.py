@@ -45,8 +45,6 @@ the injections, 2) B{or create injector-specific injections}.
     >>> injector.bind(A, to=A2)
 
 '''
-import warnings
-
 from inject.config import default_config
 from inject.points import InjectionPoint
 from inject.providers import ProviderFactory
@@ -194,8 +192,8 @@ class Injector(object):
     
     def _add_provider(self, type, provider):
         '''Add a provider for a type.'''
-        if type in self._bindings:
-            warnings.warn('Overriding an existing binding for %s.' % type)
+#        if type in self._bindings:
+#            warnings.warn('Overriding an existing binding for %s.' % type)
         self._bindings[type] = provider
     
     def _create_provider(self, type, to=None, scope=None):
@@ -262,9 +260,9 @@ class Injector(object):
 
 def register(injector):
     '''Register an injector as the main injector.'''
-    if InjectionPoint.injector is not None:
-        warnings.warn('Overriding an already registered main injector %s '
-                      'with %s.' % (InjectionPoint.injector, injector))
+#    if InjectionPoint.injector is not None:
+#        warnings.warn('Overriding an already registered main injector %s '
+#                      'with %s.' % (InjectionPoint.injector, injector))
     InjectionPoint.injector = injector
 
 
