@@ -66,7 +66,8 @@ class NotBoundError(KeyError):
     '''
     
     def __init__(self, key):
-        msg = 'No bound provider for %s.' % str(key)
+        msg = 'No bound provider for %s, use injector.bind to bind it.' \
+            % str(key)
         KeyError.__init__(self, msg)
 
 
@@ -77,15 +78,16 @@ class CantCreateProviderError(Exception):
     '''
 
 
-class ScopeNotBoundError(Exception):
+class ScopeNotBoundError(KeyError):
     
-    '''ScopeNotBound is raised when a scope is used, but it is not bound
-    in the injector.
+    '''ScopeNotBound extends KeyError, is raised when a scope is used,
+    but it is not bound in the injector.
     '''
     
     def __init__(self, scope_class):
-        msg = 'The scope %r is not bound in the injector.' % scope_class
-        Exception.__init__(self, msg)
+        msg = 'Scope %r is not bound, use injector.bind_scope to bind it.' \
+            % scope_class
+        KeyError.__init__(self, msg)
 
 
 class Injector(object):
