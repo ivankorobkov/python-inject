@@ -206,7 +206,7 @@ class Injector(object):
             if callable(type):
                 to = type
             else:
-                raise CantCreateProviderError('To is not give and type %r is '
+                raise CantCreateProviderError('To is not given and type %r is '
                                               'not callable.' % type)
         
         provider = self.provider_class(to=to)
