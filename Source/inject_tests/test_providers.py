@@ -13,6 +13,27 @@ class InstanceProviderTestCase(unittest.TestCase):
         provider = self.provider_class(obj)
         self.assertTrue(provider() is obj)
         self.assertTrue(provider() is obj)
+    
+    def testHash(self):
+        '''InstanceProvider.__hash__ should be a delegate to instance's hash.'''
+        class A(object): pass
+        a = A()
+        provider = self.provider_class(a)
+        self.assertEqual(hash(a), hash(provider))
+        
+        d = {}
+        d[a] = True
+        self.assertTrue(provider in d)
+    
+    def testEq(self):
+        '''InstanceProvider.__eq__ should be a delegate for instance's eq.'''
+        provider = self.provider_class(123)
+        self.assertEqual(provider, 123)
+    
+    def testNe(self):
+        '''InstanceProivder.__ne__ should be a delegate for instance's ne.'''
+        provider = self.provider_class(123)
+        self.assertNotEqual(provider, 321)
 
 
 class ProvidersFactoryTestCase(unittest.TestCase):

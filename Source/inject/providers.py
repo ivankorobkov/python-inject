@@ -12,13 +12,28 @@ class InstanceProvider(object):
     
     '''InstanceProvider returns an instance when called.'''
     
-    __slots__ = ('inst',)
+    __slots__ = ('_instance', '_hash')
     
-    def __init__(self, to=None):
-        self.inst = to
+    def __init__(self, instance=None):
+        self._instance = instance
+        self._hash = None
     
     def __call__(self):
-        return self.inst
+        return self._instance
+    
+    def __hash__(self):
+        _hash = self._hash
+        if _hash is None:
+            _hash = hash(self._instance)
+            self._hash = _hash
+        
+        return _hash
+    
+    def __eq__(self, other):
+        return self._instance == other
+    
+    def __ne__(self, other):
+        return self._instance != other
 
 
 class ProviderFactory(object):
