@@ -45,6 +45,10 @@ class AttributeInjection(object):
     def __init__(self, type, reinject=False):
         '''Create an injection for an attribute.'''
         self.attr = None
+        if not isinstance(reinject, bool):
+            raise TypeError(
+                'The reinject argument must be True or False, got %s. '
+                'To pass an attr name use named_attr(name, type).' % reinject)
         self.reinject = reinject
         self.injection = self.point_class(type)
     
