@@ -117,10 +117,10 @@ __version__ = '2.0-alpha'
 
 __all__ = ['default_config',
            'attr', 'named_attr', 'param', 'super', 'NoParamError',
-           'Injector', 'get_instance', 'register', 'unregister',
-           'is_registered', 'NoInjectorRegistered', 'NotBoundError',
-           'CantCreateProviderError', 'ScopeNotBoundError',
+           'Injector', 'register', 'unregister', 'is_registered',
+           'NotBoundError', 'CantCreateProviderError', 'ScopeNotBoundError',
            'Invoker',
+           'NoInjectorRegistered',
            'noscope', 'appscope', 'reqscope', 'NoRequestStartedError']
 
 from inject.config import default_config
@@ -131,10 +131,8 @@ from inject.injections import AttributeInjection as attr, \
     super_param as super, \
     NoParamError
 
-from inject.injectors import Injector, get_instance, register, unregister, \
-    is_registered, \
-    NoInjectorRegistered, NotBoundError, CantCreateProviderError, \
-    ScopeNotBoundError
-
+from inject.injectors import Injector, register, unregister, is_registered, \
+    NotBoundError, CantCreateProviderError, ScopeNotBoundError
 from inject.invokers import Invoker
+from inject.points import NoInjectorRegistered
 from inject.scopes import noscope, appscope, reqscope, NoRequestStartedError

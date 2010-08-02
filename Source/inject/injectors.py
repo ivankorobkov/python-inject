@@ -51,13 +51,6 @@ from inject.providers import ProviderFactory
 from inject.scopes import get_default_scope, appscope
 
 
-class NoInjectorRegistered(Exception):
-    
-    '''NoInjectorRegistered is raised when there is no injector registered,
-    and the injections try to use it.
-    '''
-
-
 class NotBoundError(KeyError):
     
     '''NotBoundError extends KeyError, is raised when there is no bound
@@ -279,15 +272,3 @@ def unregister(injector=None):
 def is_registered(injector):
     '''Return whether an injector is registered.'''
     return InjectionPoint.injector is injector
-
-
-def get_instance(type):
-    '''Return an instance from the registered injector.
-    
-    @raise NoInjectorRegistered.
-    '''
-    injector = InjectionPoint.injector
-    if injector is None:
-        raise NoInjectorRegistered()
-    
-    return injector.get_instance(type)
