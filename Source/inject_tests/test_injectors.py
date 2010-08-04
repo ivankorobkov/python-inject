@@ -2,8 +2,8 @@ import unittest
 
 import inject
 from inject.injectors import Injector, register, unregister, is_registered, \
-    NotBoundError, ScopeNotBoundError, CantCreateProviderError
-from inject.points import InjectionPoint
+    get_instance, NotBoundError, ScopeNotBoundError, CantCreateProviderError
+from inject.points import InjectionPoint, NoInjectorRegistered
 from inject.scopes import ScopeInterface, set_default_scope, \
     clear_default_scopes
 
@@ -16,6 +16,7 @@ class ModuleFunctionsTestCase(unittest.TestCase):
     register_injector = staticmethod(register)
     unregister_injector = staticmethod(unregister)
     is_registered = staticmethod(is_registered)
+    get_instance = staticmethod(get_instance)
     
     def tearDown(self):
         inject.unregister()
@@ -52,6 +53,24 @@ class ModuleFunctionsTestCase(unittest.TestCase):
         self.register_injector(injector)
         self.assertTrue(self.is_registered(injector))
         self.assertFalse(self.is_registered(injector2))
+
+    def testGetInstance(self):
+        '''Get_instance should return an instance from an injector.'''
+        class A(object): pass
+        
+        self.assertRaises(NoInjectorRegistered, self.get_instance, A)
+    
+    def testGetInstanceNoInjectorRegistered(self):
+        '''Get_instance should raise NoInjectorRegistered.'''
+        class A(object): pass
+        
+        a = A()
+        injector = self.injector_class(create_default_providers=True)
+        injector.bind(A, to=a)
+        self.register_injector(injector)
+        
+        a2 = self.get_instance(A)
+        self.assertTrue(a2 is a)
 
 
 class InjectorTestCase(unittest.TestCase):
