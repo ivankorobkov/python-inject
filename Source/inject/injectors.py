@@ -101,14 +101,7 @@ class Injector(object):
         self.create_default_providers = create_default_providers
         
         if default_config:
-            self.configure(default_config)
-    
-    def configure(self, *configs):
-        '''Configure the injector using the provided callable configs;
-        call them with the injector as an argument.
-        '''
-        for config in configs:
-            config(self)
+            default_config(self)
     
     def clear(self):
         '''Remove all bindings.'''

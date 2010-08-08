@@ -78,14 +78,14 @@ class InjectorTestCase(unittest.TestCase):
     injector_class = Injector
 
     def testConfigure(self):
-        '''Injector should be configurable using callables.'''
+        '''Injector should be configurable.'''
         class A(object): pass
         class A2(object): pass
         def config(injector):
             injector.bind(A, to=A2)
         
         injector = self.injector_class()
-        injector.configure(config)
+        config(injector)
         
         self.assertTrue(A in injector._bindings)
     
