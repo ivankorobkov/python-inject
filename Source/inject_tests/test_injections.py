@@ -183,6 +183,24 @@ class ParamTestCase(unittest.TestCase):
         
         self.assertTrue(func() is a)
     
+    def testInjectionNoType(self):
+        '''ParamInjection should use name as type when type is not given.'''
+        class A(object): pass
+        a = A()
+        injector = Injector()
+        injector.register()
+        try:
+            injector.bind('a', to=a)
+            
+            @ParamInjection('a')
+            def func(a):
+                return a
+            
+            a2 = func()
+            self.assertTrue(a2 is a)
+        finally:
+            injector.unregister()
+    
     def testMultipleInjection(self):
         '''Multiple ParamInjection injections should be combined into one.'''
         class A(object): pass

@@ -132,8 +132,11 @@ class ParamInjection(object):
     
     point_class = InjectionPoint
     
-    def __new__(cls, name, type):
+    def __new__(cls, name, type=None):
         '''Create a decorator injection for a param.'''
+        if type is None:
+            type = name
+        
         injection = cls.point_class(type)
         
         def decorator(func):
