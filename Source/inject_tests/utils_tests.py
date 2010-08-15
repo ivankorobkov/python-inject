@@ -1,6 +1,6 @@
 '''Utility function tests.'''
 import unittest
-from inject.utils import get_attrname_by_value
+from inject.utils import get_attrname_by_value, MultipleAttrsFound, NoAttrFound
 
 
 class GetAttrnameByValueTestCase(unittest.TestCase):
@@ -25,9 +25,34 @@ class GetAttrnameByValueTestCase(unittest.TestCase):
         name = get_attrname_by_value(B, B.a)
         self.assertEqual(name, 'a')
     
+    def test_inheritance(self):
+        '''Get attribute name when attr is defined in a super class.'''
+        class A(object): pass
+        a = A()
+        
+        class B(object):
+            mya = a
+        
+        class C(B): pass
+        c = C()
+        
+        name = get_attrname_by_value(c, a)
+        self.assertEqual(name, 'mya')
+    
+    def test_multiple_attrs(self):
+        '''Raise MultipleAttrsFound when multiple attrs with for a value.'''
+        class A(object): pass
+        a = A()
+        
+        class B(object):
+            a1 = a
+            a2 = a
+        
+        self.assertRaises(MultipleAttrsFound, get_attrname_by_value, B, a)
+    
     def test_value_error(self):
-        '''Raise ValueError when can't find an attribute by its value.'''
+        '''Raise NoAttrFound when can't find an attribute by its value.'''
         class A(object): pass
         class B(object): pass
         
-        self.assertRaises(ValueError, get_attrname_by_value, B, A)
+        self.assertRaises(NoAttrFound, get_attrname_by_value, B, A)
