@@ -76,7 +76,7 @@ class ModuleFunctionsTestCase(unittest.TestCase):
 class InjectorTestCase(unittest.TestCase):
     
     injector_class = Injector
-
+    
     def testConfigure(self):
         '''Injector should be configurable.'''
         class A(object): pass
@@ -169,6 +169,7 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector.get_provider should return a provider.'''
         class A(object): pass
         class B(object): pass
+        class C(object): pass
         
         injector = self.injector_class()
         injector.bind(A, to=B)

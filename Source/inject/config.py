@@ -1,4 +1,5 @@
 '''Default injector configuration, which binds scopes, and the injector.'''
+from inject.log import logger
 from inject.scopes import ApplicationScope, appscope, \
     NoScope, noscope, \
     RequestScope, reqscope
@@ -20,3 +21,6 @@ def default_config(injector):
     
     injector.bind_scope(RequestScope, to=reqscope_instance)
     injector.bind_scope(reqscope, to=reqscope_instance)
+    
+    logger.debug('Configured injector %r using the default config.',
+                 injector)
