@@ -19,12 +19,18 @@ _default_scopes = {}
 
 
 def get_default_scope(provider):
-    '''Return the default scope class for a provider.'''
-    return _default_scopes.get(provider, None)
+    '''Return the default scope class for a provider, or None.'''
+    try:
+        return _default_scopes.get(provider, None)
+    except TypeError:
+        # Nonhashable type.
+        return
 
 
 def set_default_scope(provider, scope_class):
     '''Set the default scope class for a provider.'''
+    # It's OK to propagate TypeError: nonhashable type,
+    # So no checks.
     _default_scopes[provider] = scope_class
 
 

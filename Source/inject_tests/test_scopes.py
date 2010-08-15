@@ -7,12 +7,12 @@ from inject.scopes import NoRequestStartedError, AbstractScopeDecorator, \
     clear_default_scopes, appscope, reqscope, NoScope, noscope
 
 
-class DefaultScopesTestCase(unittest.TestCase):
+class DefaultScopeTestCase(unittest.TestCase):
     
     def tearDown(self):
         clear_default_scopes()
     
-    def test_default_scopes(self):
+    def test_default_scope(self):
         '''Test setting, getting and clearing the default scopes.'''
         class A(object): pass
         class Scope(object): pass
@@ -24,6 +24,15 @@ class DefaultScopesTestCase(unittest.TestCase):
         
         clear_default_scopes()
         self.assertTrue(get_default_scope(A) is None)
+    
+    def test_nonhashable_objects(self):
+        '''Test getting and setting default scopes for nonhashable objects.'''
+        s = [1, 2, 3]
+        
+        # No error
+        get_default_scope(s)
+        
+        self.assertRaises(TypeError, set_default_scope, s, None)
 
 
 class AbstractDecoratorTestCase(unittest.TestCase):
