@@ -135,4 +135,5 @@ from inject.injections import AttributeInjection as attr, \
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance, NotBoundError, CantCreateProviderError, ScopeNotBoundError
 from inject.invokers import Invoker 
-from inject.scopes import noscope, appscope, reqscope, NoRequestStartedError
+from inject.scopes import noscope, appscope, reqscope, NoRequestStartedError, \
+    RequestScope, ApplicationScope

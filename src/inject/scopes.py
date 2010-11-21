@@ -161,6 +161,8 @@ class RequestScope(threading.local, ScopeInterface):
         
         return scopedprovider
 
+RequestScope = appscope(RequestScope)
+
 
 class reqscope(AbstractScopeDecorator):
     

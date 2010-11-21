@@ -9,6 +9,13 @@ class WsgiTestCase(unittest.TestCase):
     
     middleware_class = WsgiInjectMiddleware
     
+    def setUp(self):
+        self.injector = inject.Injector()
+        self.injector.register()
+    
+    def tearDown(self):
+        self.injector.unregister()
+    
     def test(self):
         '''Test WSGI middleware.'''
         class Counter(object):
@@ -20,10 +27,12 @@ class WsgiTestCase(unittest.TestCase):
             def __str__(self):
                 return str(self.i)
         
+        Counter = inject.reqscope(Counter)
+        
         
         class Response(object):
             
-            @inject.param('counter', Counter, scope=inject.reqscope)
+            @inject.param('counter', Counter)
             def __init__(self, counter):
                 self.counter = counter
             
@@ -35,7 +44,7 @@ class WsgiTestCase(unittest.TestCase):
         
         class Application(object):
             
-            @inject.param('counter', Counter, scope=inject.reqscope)
+            @inject.param('counter', Counter)
             def __init__(self, environ, start_response, counter):
                 self.counter = counter
             
@@ -56,6 +65,13 @@ class DjangoTestCase(unittest.TestCase):
     
     middleware_class = DjangoInjectMiddleware
     
+    def setUp(self):
+        self.injector = inject.Injector()
+        self.injector.register()
+    
+    def tearDown(self):
+        self.injector.unregister()
+    
     def test(self):
         '''Test Django middleware.'''
         class Counter(object):
@@ -67,19 +83,21 @@ class DjangoTestCase(unittest.TestCase):
             def __str__(self):
                 return str(self.i)
         
+        Country = inject.reqscope(Counter)
+        
         class Request(object):
             def __init__(self):
                 self.META = {}
             
-            @inject.param('counter', Counter, scope=inject.reqscope)
+            @inject.param('counter', Counter)
             def do(self, counter):
                 return str(counter)
             
-            @inject.param('counter', Counter, scope=inject.reqscope)
+            @inject.param('counter', Counter)
             def do2(self, counter):
                 return str(counter)
             
-            @inject.param('counter', Counter, scope=inject.reqscope)
+            @inject.param('counter', Counter)
             def do3(self, counter):
                 return str(counter)
             

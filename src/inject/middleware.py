@@ -3,7 +3,7 @@ and unregisters a thread-local storage for each request.
 
 @warning: Requires Python2.5+, because it uses yield inside try...finally.
 '''
-from inject import scopes
+import inject
 
 
 class WsgiInjectMiddleware(object):
@@ -16,20 +16,21 @@ class WsgiInjectMiddleware(object):
     
     '''
     
-    def __init__(self, app, reqscope=scopes.req):
+    scope = inject.attr(inject.RequestScope)
+    
+    def __init__(self, app):
         self.app = app
-        self.reqscope = reqscope
     
     def __call__(self, environ, start_response):
         try:
-            self.reqscope.start()
+            self.scope.start()
             # We have to manually iterate over the response,
             # so that all its parts have been generated before
             # the request is unregistered.
             for s in iter(self.app(environ, start_response)):
                 yield s
         finally:
-            self.reqscope.end()
+            self.scope.end()
 
 
 class DjangoInjectMiddleware(object):
@@ -43,7 +44,7 @@ class DjangoInjectMiddleware(object):
     is raised.
     '''
     
-    scope = scopes.req
+    scope = inject.attr(inject.RequestScope)
     
     def process_request(self, request):
         '''Register a request scope for a request.'''

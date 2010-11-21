@@ -1,9 +1,9 @@
 import unittest
 
 import inject
+from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance, NotBoundError, ScopeNotBoundError, CantCreateProviderError
-from inject.points import InjectionPoint, NoInjectorRegistered
 from inject.scopes import ScopeInterface, set_default_scope, \
     clear_default_scopes
 
