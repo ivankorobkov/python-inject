@@ -1,4 +1,4 @@
-'''Injections are real dependency injection methods: an attribute descriptor,
+'''Injections are dependency injection points: an attribute descriptor,
 and a function decorator.
 '''
 from inject.functional import update_wrapper

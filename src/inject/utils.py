@@ -13,9 +13,22 @@ class NoAttrFound(Exception):
 
 
 def get_attrname_by_value(obj, attrvalue):
-    '''Return a name for an attribute by it value, or raise ValueError.
+    '''Return a name for an attribute by its value.
     
-    The function iterates over instance's __dict__.
+    The function is used to find an attribute name by an injection descriptor
+    object. It first iterates over instance's __dict__, then fallbacks to
+    {inspect.getmembers()}.
+    
+    For example:
+    
+        >>> class A(object):
+        >>>    a = 'myvalue'
+        >>> get_attrname_by_value('myvalue')
+        'a'
+        >>>
+    
+    @raise MultipleAttrsFound: If multiple attributes are found for a given value.
+    @raise NoAttrFound: If not attribute is found for a given value.
     '''
     def _get(items):
         attrname = None
