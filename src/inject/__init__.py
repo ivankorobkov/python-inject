@@ -129,10 +129,10 @@ from inject.injections import AttributeInjection as attr, \
     NamedAttributeInjection as named_attr, \
     ParamInjection as param, \
     super_param as super, \
-    NoParamError
+    NoParamError, \
+    NoInjectorRegistered
 
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance, NotBoundError, CantCreateProviderError, ScopeNotBoundError
-from inject.invokers import Invoker
-from inject.points import NoInjectorRegistered
+from inject.invokers import Invoker 
 from inject.scopes import noscope, appscope, reqscope, NoRequestStartedError

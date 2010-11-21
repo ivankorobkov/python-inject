@@ -48,8 +48,8 @@ the injections, 2) B{or create injector-specific injections}.
 import logging
 
 from inject.config import default_config
+from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.log import configure_stdout_handler, logger
-from inject.points import InjectionPoint
 from inject.providers import ProviderFactory
 from inject.scopes import get_default_scope, appscope
 
@@ -363,8 +363,6 @@ def get_instance(type):
     
     @raise NoInjectorRegistered.
     '''
-    from inject.points import NoInjectorRegistered
-    
     injector = InjectionPoint.injector
     if injector is None:
         raise NoInjectorRegistered()
