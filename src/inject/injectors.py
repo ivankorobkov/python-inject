@@ -52,6 +52,7 @@ from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.log import configure_stdout_handler, logger
 from inject.providers import ProviderFactory
 from inject.scopes import get_default_scope, appscope
+from inject.imports import LazyImport
 
 
 class NotBoundError(KeyError):
@@ -250,6 +251,9 @@ class Injector(object):
         @raise CantCreateProviderError.
         '''
         if to is None:
+            if isinstance(type, LazyImport):
+                type = type.obj
+            
             if callable(type):
                 to = type
             else:

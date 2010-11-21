@@ -1,7 +1,10 @@
 '''Injections are dependency injection points: an attribute descriptor,
 and a function decorator.
 '''
+import sys
+
 from inject.functional import update_wrapper
+from inject.imports import LazyImport
 from inject.utils import get_attrname_by_value
 
 
@@ -10,6 +13,18 @@ from inject.utils import get_attrname_by_value
     is injected in a super class.
 '''
 super_param = object()
+
+
+def _get_caller_globals():
+    '''Return an injection caller globals.
+    
+    This is an internal function which is used to get global required
+    by the lazy_import function.
+    '''
+    b_frame = sys._getframe(2)
+    if b_frame:
+        return b_frame.f_globals
+    return {}
 
 
 class NoParamError(Exception):
@@ -24,7 +39,6 @@ class NoParamError(Exception):
             pass
     
     '''
-
 
 
 class NoInjectorRegistered(Exception):
@@ -42,8 +56,11 @@ class InjectionPoint(object):
     
     injector = None
     
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, type, globals=None):
+        if (isinstance(type, basestring)):
+            self.type = LazyImport(type, globals)
+        else:
+            self.type = type
     
     def get_instance(self):
         '''Return an instance from an injector.'''
@@ -77,7 +94,11 @@ class AttributeInjection(object):
                 'The reinject argument must be True or False, got %s. '
                 'To pass an attr name use named_attr(name, type).' % reinject)
         self.reinject = reinject
-        self.injection = self.point_class(type)
+        
+        if isinstance(type, basestring):
+            self.injection = self.point_class(type, _get_caller_globals())
+        else:
+            self.injection = self.point_class(type)
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -119,7 +140,7 @@ class NamedAttributeInjection(object):
         '''Create an injection for an attribute.'''
         self.attr = attr
         self.reinject = reinject
-        self.injection = self.point_class(type)
+        self.injection = self.point_class(type, _get_caller_globals())
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -164,7 +185,11 @@ class ParamInjection(object):
         if type is None:
             type = name
         
-        injection = cls.point_class(type)
+        injection = None
+        if isinstance(type, basestring):
+            injection = cls.point_class(type, _get_caller_globals())
+        else:
+            injection = cls.point_class(type)
         
         def decorator(func):
             if getattr(func, 'injection_wrapper', False):

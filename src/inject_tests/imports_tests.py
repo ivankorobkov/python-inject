@@ -4,22 +4,25 @@ from inject.imports import lazy_import
 
 class LazyImportTestCase(unittest.TestCase):
     
-    def test_lazy_reference(self):
+    def testLazyReference(self):
         self.assertTrue(lazy_reference() is DummyObject)
     
-    def test_lazy_reference_error(self):
+    def testLazyReferenceError(self):
         dummy_object = lazy_import('.WrongObject', globals())
         self.assertRaises(ImportError, dummy_object)
     
-    def test_lazy_import(self):
+    def testLazyImport(self):
         lazy = lazy_import('inject.Injector')
         from inject import Injector
-        inj = lazy()
         self.assertTrue(lazy() is Injector)
     
-    def test_lazy_import_error(self):
+    def testLazyImportError(self):
         lazy = lazy_import('wrong.module.Class')
         self.assertRaises(ImportError, lazy)
+    
+    def testString(self):
+        lazy = lazy_import('string')
+        self.assertEqual(lazy(), 'string')
 
 
 lazy_reference = lazy_import('.DummyObject', globals())
