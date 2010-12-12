@@ -2,24 +2,22 @@ import unittest
 from mock import Mock
 
 from inject.injections import InjectionPoint, NoInjectorRegistered, \
-    AttributeInjection, ParamInjection, NoParamError, NamedAttributeInjection
+    AttributeInjection, ParamInjection, NoParamError, NamedAttributeInjection, \
+    ClassAttributeInjection
 from inject.injectors import Injector
 
 
 class InjectionTestCase(unittest.TestCase):
-    
-    point_class = InjectionPoint
-    injector_class = Injector
     
     def testGetInstance(self):
         '''InjectionPoint should call injector's get_instance method.'''
         class A(object): pass
         class B(object): pass
         
-        my_injector = self.injector_class()
+        my_injector = Injector()
         my_injector.bind(A, to=B)
         
-        class MyPoint(self.point_class):
+        class MyPoint(InjectionPoint):
             injector = my_injector
         
         injection_point = MyPoint(A)
@@ -31,7 +29,7 @@ class InjectionTestCase(unittest.TestCase):
         '''InjectionPoint should raise NoInjectorRegistered.'''
         class A(object): pass
         
-        injection_point = self.point_class(A)
+        injection_point = InjectionPoint(A)
         
         self.assertRaises(NoInjectorRegistered, injection_point.get_instance)
 
@@ -41,7 +39,6 @@ class AttributeInjectionTestCase(unittest.TestCase):
     def setUp(self):
         self.injector = Injector()
         self.injector.register()
-        self.injection_class = AttributeInjection
     
     def tearDown(self):
         self.injector.unregister()
@@ -50,7 +47,7 @@ class AttributeInjectionTestCase(unittest.TestCase):
         '''AttributeInjection should get an instance from an injection.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class(A)
+            a = AttributeInjection(A)
         
         a = A()
         self.injector.bind(A, to=a)
@@ -62,7 +59,7 @@ class AttributeInjectionTestCase(unittest.TestCase):
         '''AttributeInjection should support inheritance.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class(A)
+            a = AttributeInjection(A)
         class C(B): pass
         
         a = A()
@@ -77,7 +74,7 @@ class AttributeInjectionTestCase(unittest.TestCase):
         '''AttributeInjection should set an attribute of an object.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class(A)
+            a = AttributeInjection(A)
         
         self.injector.bind(A, to=A)
         
@@ -96,7 +93,7 @@ class AttributeInjectionTestCase(unittest.TestCase):
                 self.i = self.__class__.i
         
         class B(object):
-            a = self.injection_class(A, reinject=True)
+            a = AttributeInjection(A, reinject=True)
         
         self.injector.bind(A, to=A)
         
@@ -112,11 +109,11 @@ class AttributeInjectionTestCase(unittest.TestCase):
         '''AttributeInjection should raise TypeError for wrong reinject type.'''
         class A(object): pass
         
-        self.assertRaises(TypeError, self.injection_class, A, reinject=A)
-        self.assertRaises(TypeError, self.injection_class, A, reinject=None)
+        self.assertRaises(TypeError, AttributeInjection, A, reinject=A)
+        self.assertRaises(TypeError, AttributeInjection, A, reinject=None)
         
-        attr = self.injection_class(A, True) #@UnusedVariable
-        attr2 = self.injection_class(A, False) #@UnusedVariable
+        attr = AttributeInjection(A, True) #@UnusedVariable
+        attr2 = AttributeInjection(A, False) #@UnusedVariable
     
     def testLazyImport(self):
         '''AttributeInjection lazy imports.'''
@@ -144,7 +141,6 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
     def setUp(self):
         self.injector = Injector()
         self.injector.register()
-        self.injection_class = NamedAttributeInjection
     
     def tearDown(self):
         self.injector.unregister()
@@ -153,7 +149,7 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         '''NamedAttributeInjection should get an instance from an injection.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class('a', A)
+            a = NamedAttributeInjection('a', A)
         
         a = A()
         self.injector.bind(A, to=a)
@@ -165,7 +161,7 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         '''NamedAttributeInjection should support inheritance.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class('a', A)
+            a = NamedAttributeInjection('a', A)
         class C(B): pass
         
         a = A()
@@ -180,7 +176,7 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         '''NamedAttributeInjection should set an attribute of an object.'''
         class A(object): pass
         class B(object):
-            a = self.injection_class('a', A)
+            a = NamedAttributeInjection('a', A)
         
         self.injector.bind(A, to=A)
         
@@ -199,7 +195,7 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
                 self.i = self.__class__.i
         
         class B(object):
-            a = self.injection_class('a', A, reinject=True)
+            a = NamedAttributeInjection('a', A, reinject=True)
         
         self.injector.bind(A, to=A)
         
@@ -231,6 +227,28 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         
         self.assertTrue(isinstance(p.q, Q))
         self.assertTrue(isinstance(q.p, P))
+
+
+class ClassAttributeInjectionTestCase(unittest.TestCase):
+    
+    def setUp(self):
+        self.injector = Injector()
+        self.injector.register()
+    
+    def tearDown(self):
+        self.injector.unregister()
+    
+    def testInjection(self):
+        '''ClassAttributeInjection should resolve a dependency on every access.'''
+        class A(object): pass
+        class B(object):
+            a = ClassAttributeInjection(A)
+        
+        a = B.a
+        a2 = B.a
+        self.assertTrue(isinstance(a, A))
+        self.assertTrue(isinstance(a2, A))
+        self.assertFalse(a is a2)
 
 
 class ParamTestCase(unittest.TestCase):

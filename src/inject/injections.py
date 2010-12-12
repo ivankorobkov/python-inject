@@ -154,6 +154,21 @@ class NamedAttributeInjection(object):
         return obj
 
 
+class ClassAttributeInjection(object):
+    
+    '''ClassAttributeInjection is a class descriptor, which resolves
+    a dependency every time it is accessed.
+    '''
+    
+    point_class = InjectionPoint
+    
+    def __init__(self, type):
+        self.injection = self.point_class(type, _get_caller_globals())
+    
+    def __get__(self, instance, owner):
+        return self.injection.get_instance()
+
+
 class ParamInjection(object):
     
     '''ParamInjection is a function decorator, which injects the required
