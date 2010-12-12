@@ -4,7 +4,7 @@ from inject.functional import update_wrapper
 
 class LazyImport(object):
     
-    '''LazyImport is a wrapper around the lazy_import method, which
+    '''LazyImport is a wrapper around the lazy_import function, which
     lazily imports objects on the hash and equality methods calls.
     
     It is used inside the InjectionPoint, so it executes imports only

@@ -9,6 +9,7 @@ C{noscope} can be used to explicitly specify creating new instances for every
 injection request.
 '''
 import threading
+from inject.exc import NoRequestStartedError
 
 
 '''
@@ -108,13 +109,6 @@ class appscope(AbstractScopeDecorator):
     '''appscope decorator.'''
     
     scope_class = ApplicationScope
-
-
-class NoRequestStartedError(Exception):
-    
-    '''NoRequestStartedError is raised when a request scoped provider is 
-    accessed but no request is present.
-    '''
 
 
 class RequestScope(threading.local, ScopeInterface):

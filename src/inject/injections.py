@@ -3,6 +3,7 @@ and a function decorator.
 '''
 import sys
 
+from inject.exc import NoInjectorRegistered, NoParamError
 from inject.functional import update_wrapper
 from inject.imports import LazyImport
 from inject.utils import get_attrname_by_value
@@ -25,27 +26,6 @@ def _get_caller_globals():
     if b_frame:
         return b_frame.f_globals
     return {}
-
-
-class NoParamError(Exception):
-    
-    '''NoParamError is raised when you inject a param into a func,
-    but the function does not accept such a param.
-    
-    For example::
-        
-        @inject.param('key', dict) # No param "key".
-        def func(arg):
-            pass
-    
-    '''
-
-
-class NoInjectorRegistered(Exception):
-    
-    '''NoInjectorRegistered is raised when there is no injector registered,
-    and the injections try to use it.
-    '''
 
 
 class InjectionPoint(object):

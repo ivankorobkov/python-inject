@@ -48,42 +48,13 @@ the injections, 2) B{or create injector-specific injections}.
 import logging
 
 from inject.config import default_config
+from inject.exc import NotBoundError, CantCreateProviderError, \
+    ScopeNotBoundError
+from inject.imports import LazyImport
 from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.log import configure_stdout_handler, logger
 from inject.providers import ProviderFactory
 from inject.scopes import get_default_scope, appscope
-from inject.imports import LazyImport
-
-
-class NotBoundError(KeyError):
-    
-    '''NotBoundError extends KeyError, is raised when there is no bound
-    provider.
-    '''
-    
-    def __init__(self, key):
-        msg = 'No bound provider for %s, use injector.bind to bind it.' \
-            % str(key)
-        KeyError.__init__(self, msg)
-
-
-class CantCreateProviderError(Exception):
-    
-    '''CantCreateProviderError is raised when to is not given and type is
-    not callable.
-    '''
-
-
-class ScopeNotBoundError(KeyError):
-    
-    '''ScopeNotBound extends KeyError, is raised when a scope is used,
-    but it is not bound in the injector.
-    '''
-    
-    def __init__(self, scope_class):
-        msg = 'Scope %r is not bound, use injector.bind_scope to bind it.' \
-            % scope_class
-        KeyError.__init__(self, msg)
 
 
 @appscope
@@ -95,7 +66,7 @@ class Injector(object):
     @ivar _bound_scopes: Scopes to bound scopes mapping.
     @ivar echo: If set to True creates a default logger, adds an stdout
         handler, and sets the level to DEBUG. The flag affects only this
-        injector instance logging.
+        injector logging.
     '''
     
     provider_class = ProviderFactory

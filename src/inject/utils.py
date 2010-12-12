@@ -1,15 +1,6 @@
 '''Utility functions.'''
 import inspect
-
-
-class MultipleAttrsFound(Exception):
-    
-    pass
-
-
-class NoAttrFound(Exception):
-    
-    pass
+from inject.exc import MultipleAttrsFound, NoAttrFound
 
 
 def get_attrname_by_value(obj, attrvalue):
