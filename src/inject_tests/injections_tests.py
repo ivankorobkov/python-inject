@@ -113,26 +113,6 @@ class AttributeInjectionTestCase(unittest.TestCase):
         
         attr = AttributeInjection(A, True) #@UnusedVariable
         attr2 = AttributeInjection(A, False) #@UnusedVariable
-    
-    def testLazyImport(self):
-        '''AttributeInjection lazy imports.'''
-        from inject_tests.fixtures.cyclic1 import A, A2
-        from inject_tests.fixtures.cyclic2 import B
-        
-        a = A()
-        a2 = A2()
-        b = B()
-        
-        self.assertTrue(isinstance(a.b, B))
-        self.assertTrue(isinstance(a2.b, B))
-        self.assertTrue(isinstance(b.a, A))
-    
-    def testLazyReference(self):
-        '''AttributeInjection lazy references.'''
-        from inject_tests.fixtures.lazyref import A, B
-        
-        a = A()
-        self.assertTrue(isinstance(a.b, B))
 
 
 class NamedAttributeInjectionTestCase(unittest.TestCase):
@@ -205,27 +185,6 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         self.assertFalse(a is a2)
         self.assertEqual(a.i, 1)
         self.assertEqual(a2.i, 2)
-    
-    def testLazyImports(self):
-        '''NamedAttributeInjection lazy imports.'''
-        from inject_tests.fixtures.cyclic1 import P
-        from inject_tests.fixtures.cyclic2 import Q
-        
-        p = P()
-        q = Q()
-        
-        self.assertTrue(isinstance(p.q, Q))
-        self.assertTrue(isinstance(q.p, P))
-    
-    def testLazyRef(self):
-        '''NamedAttributeInjection lazy references.'''
-        from inject_tests.fixtures.lazyref import P, Q
-        
-        p = P()
-        q = Q()
-        
-        self.assertTrue(isinstance(p.q, Q))
-        self.assertTrue(isinstance(q.p, P))
 
 
 class ClassAttributeInjectionTestCase(unittest.TestCase):
@@ -362,31 +321,3 @@ class ParamTestCase(unittest.TestCase):
         wrapper = ParamInjection.create_wrapper(func3)
         ParamInjection.add_injection(wrapper, 'kwarg', 'inj')
         self.assertEqual(wrapper.injections['kwarg'], 'inj')
-
-
-class ParamLazyTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        self.injector = Injector()
-        self.injector.register()
-    
-    def tearDown(self):
-        self.injector.unregister()
-    
-    def testLazyRef(self):
-        '''ParamInjection lazy references.'''
-        from inject_tests.fixtures.lazyref import func, Z
-        
-        z = func()
-        self.assertTrue(isinstance(z, Z))
-    
-    def testLazyImport(self):
-        '''ParamInjection lazy imports.'''
-        from inject_tests.fixtures.cyclic1 import func
-        from inject_tests.fixtures.cyclic2 import Z
-        
-        z = func()
-        self.assertTrue(isinstance(z, Z))
-        
-        z2 = z.get_z()
-        self.assertTrue(isinstance(z2, Z))

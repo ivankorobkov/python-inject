@@ -1,19 +1,32 @@
 '''Utilities for imports.'''
+import sys
+
 from inject.functional import update_wrapper
+
+
+def _get_caller_globals():
+    '''Return an injection caller globals.
+    
+    This is an internal function which is used to get global required
+    by the lazy_import function.
+    '''
+    b_frame = sys._getframe(2)
+    if b_frame:
+        return b_frame.f_globals
+    return {}
 
 
 class LazyImport(object):
     
-    '''LazyImport is a wrapper around the lazy_import function, which
-    lazily imports objects on the hash and equality methods calls.
-    
-    It is used inside the InjectionPoint, so it executes imports only
-    on injection requests.
+    '''LazyImport is a wrapper around the lazy_import function, it delegates
+    hash and equality methods to the imported object.
     '''
     
     __slots__ = ('imp', '_obj')
     
-    def __init__(self, name, globals=None):
+    def __init__(self, name):
+        globals = _get_caller_globals()
+        
         self.imp = lazy_import(name, globals)
         self._obj = None
     
@@ -34,34 +47,28 @@ class LazyImport(object):
     obj = property(_get_obj)
 
 
-def lazy_import(name, globals=None):
-    '''Return a function which 1) lazily references a global object if the name
-    starts with a dot, 2) lazily imports an object in the name contains a dot,
-    3) otherwise returns a string.
+def lazy_import(name, globals):
+    '''Return a function which 1) lazily references a global object, or
+    2) lazily imports an object.
     
     Examples::
         
-        lazy_import('.MyClass', globals()) => lazy reference to a global object.
-        lazy_import('..mymodule.MyClass') => from ..mymodule import MyClass
-        lazy_import('span.eggs') => from spam import eggs.
-        lazy_import('database_host') => a string "database_host".
+        lazy_import('MyClass', globals()) => lazy reference to a global object.
+        lazy_import('..mymodule.MyClass', None) => from ..mymodule import MyClass
+        lazy_import('span.eggs', None) => from spam import eggs.
     
     @raise ImportError: if a global reference or an imported object is not found.
     '''
     def func():
         obj = None
-        if globals is not None and \
-            name.startswith('.') and \
-            not name.startswith('..'):
+        if '.' not in name:
             # Lazy global reference.
-            
-            key = name.strip('.')
-            if key in globals:
-                obj = globals[key]
+            if globals and name in globals:
+                obj = globals[name]
             else:
-                raise ImportError('No object named %s.' % key)
+                raise ImportError('No local object named %s.' % name)
         
-        elif '.' in name:
+        else:
             # Normal import.
             modname, objname = name.rsplit('.', 1)
             
@@ -75,10 +82,6 @@ def lazy_import(name, globals=None):
             
             except AttributeError:
                 raise ImportError('No module named %s.' % name)
-        
-        else:
-            # String without dots.
-            obj = name
         
         func.obj = obj
         return func.obj

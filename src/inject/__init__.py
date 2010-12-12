@@ -116,9 +116,12 @@ tuple in C{settings.py}. It is recommended to insert it as the first item.
 __version__ = '2.0-alpha'
 
 __all__ = ['default_config',
+           'exc',
            'attr', 'named_attr', 'class_attr', 'param', 'super',
-           'Injector', 'register', 'unregister', 'is_registered',
-           'Invoker', 'noscope', 'appscope', 'reqscope']
+           'Injector', 'register', 'unregister', 'is_registered', 'get_instance',
+           'Invoker',
+           'lazy',
+           'noscope', 'appscope', 'reqscope', 'RequestScope', 'ApplicatinScope']
 
 from inject import exc
 from inject.config import default_config
@@ -127,12 +130,11 @@ from inject.injections import AttributeInjection as attr, \
     NamedAttributeInjection as named_attr, \
     ClassAttributeInjection as class_attr, \
     ParamInjection as param, \
-    super_param as super, \
-    NoParamError, \
-    NoInjectorRegistered
+    super_param as super
 
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance
-from inject.invokers import Invoker 
+from inject.invokers import Invoker
+from inject.imports import LazyImport as lazy 
 from inject.scopes import noscope, appscope, reqscope, \
     RequestScope, ApplicationScope
