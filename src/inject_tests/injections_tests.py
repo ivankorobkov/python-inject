@@ -1,5 +1,4 @@
 import unittest
-from mock import Mock
 
 from inject.injections import InjectionPoint, NoInjectorRegistered, \
     AttributeInjection, ParamInjection, NoParamError, NamedAttributeInjection, \
@@ -254,21 +253,21 @@ class ClassAttributeInjectionTestCase(unittest.TestCase):
 class ParamTestCase(unittest.TestCase):
     
     def setUp(self):
-        class DummyParamInjection(ParamInjection):
-            point_class = Mock()
-        
-        self.injection_class = DummyParamInjection
+        self.injector = Injector()
+        self.injector.register()
+    
+    def tearDown(self):
+        self.injector.unregister()
     
     def testInjection(self):
         '''ParamInjection should inject dependencies as kwargs.'''
         class A(object): pass
         a = A()
+        self.injector.bind(A, a)
         
-        @self.injection_class('a', A)
+        @ParamInjection('a', A)
         def func(a):
             return a
-        
-        func.injections['a'].get_instance.return_value = a
         
         self.assertTrue(func() is a)
     
@@ -276,19 +275,14 @@ class ParamTestCase(unittest.TestCase):
         '''ParamInjection should use name as type when type is not given.'''
         class A(object): pass
         a = A()
-        injector = Injector()
-        injector.register()
-        try:
-            injector.bind('a', to=a)
-            
-            @ParamInjection('a')
-            def func(a):
-                return a
-            
-            a2 = func()
-            self.assertTrue(a2 is a)
-        finally:
-            injector.unregister()
+        self.injector.bind('a', a)
+        
+        @ParamInjection('a')
+        def func(a):
+            return a
+        
+        a2 = func()
+        self.assertTrue(a2 is a)
     
     def testMultipleInjection(self):
         '''Multiple ParamInjection injections should be combined into one.'''
@@ -296,17 +290,13 @@ class ParamTestCase(unittest.TestCase):
         class B(object): pass
         a = A()
         b = B()
+        self.injector.bind(A, a)
+        self.injector.bind(B, b)
         
-        @self.injection_class('a', A)
-        @self.injection_class('b', B)
+        @ParamInjection('a', A)
+        @ParamInjection('b', B)
         def func(b, a):
             return b, a
-        
-        injections = func.injections
-        injections['a'] = Mock()
-        injections['b'] = Mock()
-        injections['a'].get_instance.return_value = a
-        injections['b'].get_instance.return_value = b
         
         b2, a2 = func()
         
@@ -319,62 +309,58 @@ class ParamTestCase(unittest.TestCase):
         class B(object): pass
         a = A()
         b = B()
+        self.injector.bind(A, a)
+        self.injector.bind(B, b)
         
-        @self.injection_class('a', A)
-        @self.injection_class('b', B)
+        @ParamInjection('a', A)
+        @ParamInjection('b', B)
         def func(a, b):
             return a, b
-        
-        injections = func.injections
-        injections['a'] = Mock()
-        injections['b'] = Mock()
-        injections['a'].get_instance.return_value = a
-        injections['b'].get_instance.return_value = b
         
         a2, b2 = func(b='b')
         self.assertTrue(a2 is a)
         self.assertEqual(b2, 'b')
     
     def testCreateWrapper(self):
-        '''Create wrapper should return a func with set attrs.'''
+        '''Create wrapper should return a func with set attributes.'''
         def func(): pass
-        wrapper = self.injection_class.create_wrapper(func)
+        wrapper = ParamInjection.create_wrapper(func)
         
         self.assertTrue(wrapper.func is func)
         self.assertEqual(wrapper.injections, {})
         self.assertTrue(wrapper.injection_wrapper)
     
     def testAddInjection(self):
-        '''Add injection should add an inj to injections dict.'''
+        '''Add injection should add an injection to the injections dict.'''
         def func(arg): pass
-        wrapper = self.injection_class.create_wrapper(func)
+        wrapper = ParamInjection.create_wrapper(func)
         
-        self.injection_class.add_injection(wrapper, 'arg', 'inj')
+        ParamInjection.add_injection(wrapper, 'arg', 'inj')
         self.assertEqual(wrapper.injections['arg'], 'inj')
     
     def testAddInjectionNoParamError(self):
-        '''Add injection should raise NoParamError when no such a param.'''
+        '''Should raise NoParamError when the func does not take an injected param.'''
         def func(): pass
         
-        wrapper = self.injection_class.create_wrapper(func)
+        wrapper = ParamInjection.create_wrapper(func)
         self.assertRaises(NoParamError,
-                          self.injection_class.add_injection,
+                          ParamInjection.add_injection,
                           wrapper, 'arg2', 'inj')
     
     def testAddInjectionArgs(self):
         '''Add injection should not raise NoParamError, when *args given.'''
         def func2(*args): pass
         
-        wrapper = self.injection_class.create_wrapper(func2)
-        self.injection_class.add_injection(wrapper, 'arg', 'inj')
+        wrapper = ParamInjection.create_wrapper(func2)
+        ParamInjection.add_injection(wrapper, 'arg', 'inj')
         self.assertEqual(wrapper.injections['arg'], 'inj')
     
     def testAddInjectionKwargs(self):
         '''Add injection should not raise NoParamError, when **kwargs.'''
         def func3(**kwargs): pass
         
-        wrapper = self.injection_class.create_wrapper(func3)
-        self.injection_class.add_injection(wrapper, 'kwarg', 'inj')
+        wrapper = ParamInjection.create_wrapper(func3)
+        ParamInjection.add_injection(wrapper, 'kwarg', 'inj')
         self.assertEqual(wrapper.injections['kwarg'], 'inj')
 
 
