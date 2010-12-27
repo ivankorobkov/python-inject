@@ -11,72 +11,62 @@ from inject.exc import CantGetInstanceError
 
 class ModuleFunctionsTestCase(unittest.TestCase):
     
-    injector_class = Injector
-    point_class = InjectionPoint
-    
-    register_injector = staticmethod(register)
-    unregister_injector = staticmethod(unregister)
-    is_registered = staticmethod(is_registered)
-    get_instance = staticmethod(get_instance)
-    
     def tearDown(self):
         inject.unregister()
     
     def testRegisterUnregister(self):
         '''Register/unregister should set injections injector.'''
-        inj = self.point_class('inj')
+        inj = InjectionPoint('inj')
         self.assertTrue(inj.injector is None)
         
-        injector = self.injector_class()
-        injector2 = self.injector_class()
+        injector = Injector()
+        injector2 = Injector()
         
-        self.register_injector(injector)
+        register(injector)
         self.assertTrue(inj.injector is injector)
         
-        self.unregister_injector(injector2)
+        unregister(injector2)
         self.assertTrue(inj.injector is injector)
         
-        self.unregister_injector(injector)
+        unregister(injector)
         self.assertTrue(inj.injector is None)
         
-        self.register_injector(injector)
-        self.unregister_injector()
+        register(injector)
+        unregister()
         self.assertTrue(inj.injector is None)
     
     def testIsRegistered(self):
         '''Is_registered should return whether an injector is registered.'''
-        injector = self.injector_class()
-        injector2 = self.injector_class()
+        injector = Injector()
+        injector2 = Injector()
         
-        self.assertFalse(self.is_registered(injector))
-        self.assertFalse(self.is_registered(injector2))
+        self.assertFalse(is_registered(injector))
+        self.assertFalse(is_registered(injector2))
         
-        self.register_injector(injector)
-        self.assertTrue(self.is_registered(injector))
-        self.assertFalse(self.is_registered(injector2))
+        register(injector)
+        self.assertTrue(is_registered(injector))
+        self.assertFalse(is_registered(injector2))
 
     def testGetInstance(self):
         '''Get_instance should return an instance from an injector.'''
         class A(object): pass
         
-        self.assertRaises(NoInjectorRegistered, self.get_instance, A)
+        self.assertRaises(NoInjectorRegistered, get_instance, A)
     
     def testGetInstanceNoInjectorRegistered(self):
         '''Get_instance should raise NoInjectorRegistered.'''
         class A(object): pass
         
         a = A()
-        injector = self.injector_class(create_default_providers=True)
+        injector = Injector(create_default_providers=True)
         injector.bind(A, to=a)
-        self.register_injector(injector)
+        register(injector)
         
-        a2 = self.get_instance(A)
+        a2 = get_instance(A)
         self.assertTrue(a2 is a)
 
 
 class InjectorTestCase(unittest.TestCase):
-    
-    injector_class = Injector
     
     def testConfigure(self):
         '''Injector should be configurable.'''
@@ -85,7 +75,7 @@ class InjectorTestCase(unittest.TestCase):
         def config(injector):
             injector.bind(A, to=A2)
         
-        injector = self.injector_class()
+        injector = Injector()
         config(injector)
         
         self.assertTrue(A in injector._bindings)
@@ -95,7 +85,7 @@ class InjectorTestCase(unittest.TestCase):
         class A(object): pass
         class B(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(A, to=B)
         self.assertTrue(injector._bindings)
         
@@ -107,7 +97,7 @@ class InjectorTestCase(unittest.TestCase):
         class A(object): pass
         class B(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(A, to=B)
         self.assertTrue(injector._bindings[A] is B)
     
@@ -115,7 +105,7 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector.bind_to_none should create a provider which returns None.'''
         class A(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind_to_none(A)
         self.assertTrue(injector.get_instance(A) is None)
     
@@ -127,7 +117,7 @@ class InjectorTestCase(unittest.TestCase):
         
         a = A()
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind_to_instance(A, a)
         self.assertTrue(injector.get_instance(A) is a)
     
@@ -136,7 +126,7 @@ class InjectorTestCase(unittest.TestCase):
         class Scope(object): pass
         scope = Scope()
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(Scope, scope)
         
         self.assertTrue(injector._get_bound_scope(Scope) is scope)
@@ -145,7 +135,7 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector.is_bound should return True.'''
         class A(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(A, to=A)
         self.assertTrue(injector.is_bound(A))
     
@@ -153,14 +143,14 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector.is_bound should return False.'''
         class A(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         self.assertFalse(injector.is_bound(A))
     
     def testUnbind(self):
         '''Injector.unbind should remove a binding.'''
         class A(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(A, to=A)
         self.assertTrue(injector.is_bound(A))
         
@@ -171,7 +161,7 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector.unbind should raise NotBoundError.'''
         class A(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         self.assertRaises(NotBoundError, injector.unbind, A)
     
     #==========================================================================
@@ -184,7 +174,7 @@ class InjectorTestCase(unittest.TestCase):
         class B(object): pass
         class C(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(A, to=B)
         
         self.assertTrue(injector.get_provider(A) is B)
@@ -193,7 +183,7 @@ class InjectorTestCase(unittest.TestCase):
         '''Injector.get_provider should create a default provider.'''
         class A(object): pass
         
-        injector = self.injector_class(create_default_providers=True)
+        injector = Injector(create_default_providers=True)
         provider = injector.get_provider(A)
         self.assertTrue(provider is A)
     
@@ -204,7 +194,7 @@ class InjectorTestCase(unittest.TestCase):
         '''
         class A(object): pass
         
-        injector = self.injector_class(create_default_providers=False)
+        injector = Injector(create_default_providers=False)
         self.assertRaises(NotBoundError, injector.get_provider, A)
     
     def testAddProvider(self):
@@ -212,7 +202,7 @@ class InjectorTestCase(unittest.TestCase):
         class A(object): pass
         class B(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector._add_provider(A, B)
         
         provider = injector.get_provider(A)
@@ -223,7 +213,7 @@ class InjectorTestCase(unittest.TestCase):
         class A(object): pass
         class B(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         provider = injector._create_provider(A, B)
         
         self.assertTrue(provider is B)
@@ -233,7 +223,7 @@ class InjectorTestCase(unittest.TestCase):
         class A(object): pass
         class B(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         
         provider = injector._create_provider(A)
         self.assertTrue(provider is A)
@@ -243,7 +233,7 @@ class InjectorTestCase(unittest.TestCase):
         
         When to is None, and type is not callable.
         '''
-        injector = self.injector_class()
+        injector = Injector()
         self.assertRaises(CantCreateProviderError, injector._create_provider,
                           'type')
 
@@ -251,7 +241,7 @@ class InjectorTestCase(unittest.TestCase):
         '''Inject._create_default_provider should create a default provider.'''
         class A(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         provider = injector._create_default_provider(A)
         
         self.assertTrue(provider is A)
@@ -268,7 +258,7 @@ class InjectorTestCase(unittest.TestCase):
         
         scope = Scope()
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(Scope, to=scope)
         
         scoped_provider = injector._create_provider(A, scope=Scope)
@@ -283,7 +273,7 @@ class InjectorTestCase(unittest.TestCase):
         
         scope = Scope()
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(Scope, to=scope)
         
         scoped_provider = injector._scope_provider(A, scope=Scope)
@@ -294,7 +284,7 @@ class InjectorTestCase(unittest.TestCase):
         class A(object): pass
         class Scope(ScopeInterface): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         self.assertRaises(ScopeNotBoundError, injector._scope_provider,
             A, scope=Scope)
     
@@ -309,8 +299,8 @@ class InjectorTestCase(unittest.TestCase):
                 return 'scoped_provider'
         
         scope = Scope()
-        injector = self.injector_class()
-        injector.bind_scope(Scope, to=scope)
+        injector = Injector()
+        injector.bind(Scope, to=scope)
         
         set_default_scope(A, Scope)
         try:
@@ -329,7 +319,7 @@ class InjectorTestCase(unittest.TestCase):
         class A(object): pass
         class B(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         injector.bind(A, to=B)
         
         a = injector.get_instance(A)
@@ -342,7 +332,7 @@ class InjectorTestCase(unittest.TestCase):
         '''
         class A(object): pass
         
-        injector = self.injector_class()
+        injector = Injector()
         
         a = injector.get_instance(A)
         self.assertTrue(isinstance(a, A))
@@ -353,5 +343,5 @@ class InjectorTestCase(unittest.TestCase):
             def __init__(self, b):
                 pass
         
-        injector = self.injector_class()
+        injector = Injector()
         self.assertRaises(CantGetInstanceError, injector.get_instance, A)

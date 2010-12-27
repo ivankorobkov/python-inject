@@ -5,12 +5,10 @@ from inject.providers import InstanceProvider, ProviderFactory
 
 class InstanceProviderTestCase(unittest.TestCase):
     
-    provider_class = InstanceProvider
-    
     def test(self):
         '''InstanceProvider provider should always return the same value.'''
         obj = object()
-        provider = self.provider_class(obj)
+        provider = InstanceProvider(obj)
         self.assertTrue(provider() is obj)
         self.assertTrue(provider() is obj)
     
@@ -18,7 +16,7 @@ class InstanceProviderTestCase(unittest.TestCase):
         '''InstanceProvider.__hash__ should be a delegate to instance's hash.'''
         class A(object): pass
         a = A()
-        provider = self.provider_class(a)
+        provider = InstanceProvider(a)
         self.assertEqual(hash(a), hash(provider))
         
         d = {}
@@ -27,23 +25,21 @@ class InstanceProviderTestCase(unittest.TestCase):
     
     def testEq(self):
         '''InstanceProvider.__eq__ should be a delegate for instance's eq.'''
-        provider = self.provider_class(123)
+        provider = InstanceProvider(123)
         self.assertEqual(provider, 123)
     
     def testNe(self):
         '''InstanceProivder.__ne__ should be a delegate for instance's ne.'''
-        provider = self.provider_class(123)
+        provider = InstanceProvider(123)
         self.assertNotEqual(provider, 321)
 
 
 class ProvidersFactoryTestCase(unittest.TestCase):
     
-    factory_class = ProviderFactory
-    
     def testCallable(self):
         '''ProviderFactory should return untouched callables.'''
         def func(): pass
-        provider = self.factory_class(func)
+        provider = ProviderFactory(func)
         self.assertTrue(provider is func)
     
     def testUnboundMethod(self):
@@ -51,12 +47,11 @@ class ProvidersFactoryTestCase(unittest.TestCase):
         class A(object):
             def method(self):
                 pass
-        provider = self.factory_class(A.method)
-        invoker_class = self.factory_class.invoker_class
+        provider = ProviderFactory(A.method)
+        invoker_class = ProviderFactory.invoker_class
         self.assertTrue(isinstance(provider, invoker_class))
     
     def testInstance(self):
         '''ProviderFactory should return an instance provider.'''
-        provider = self.factory_class(123)
-        self.assertTrue(isinstance(provider,
-                                   self.factory_class.instance_class))
+        provider = ProviderFactory(123)
+        self.assertTrue(isinstance(provider, ProviderFactory.instance_class))

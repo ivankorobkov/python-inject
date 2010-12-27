@@ -5,8 +5,6 @@ from inject.functional import update_wrapper
 
 class UpdateWrapperTestCase(unittest.TestCase):
     
-    update_wrapper = staticmethod(update_wrapper)
-    
     def testFunc(self):
         '''Update_wrapper() should set func's name, doc, module and dict.'''
         def func():
@@ -17,7 +15,7 @@ class UpdateWrapperTestCase(unittest.TestCase):
         def wrapper():
             pass
         
-        self.update_wrapper(wrapper, func)
+        update_wrapper(wrapper, func)
         
         self.assertEqual(wrapper.__name__, 'func')
         self.assertEqual(wrapper.__doc__, 'Docstring.')
@@ -42,7 +40,7 @@ class UpdateWrapperTestCase(unittest.TestCase):
         
         # Test using an unbound method.
         wrapper = Wrapper()
-        self.update_wrapper(wrapper, A.method)
+        update_wrapper(wrapper, A.method)
         
         self.assertEqual(wrapper.__name__, 'method')
         self.assertEqual(wrapper.__doc__, 'Method\'s docstring.')
@@ -52,7 +50,7 @@ class UpdateWrapperTestCase(unittest.TestCase):
         
         # Test using a bound method.
         wrapper = Wrapper()
-        self.update_wrapper(wrapper, a.method)
+        update_wrapper(wrapper, a.method)
         
         self.assertEqual(wrapper.__name__, 'method')
         self.assertEqual(wrapper.__doc__, 'Method\'s docstring.')

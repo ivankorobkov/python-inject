@@ -9,8 +9,6 @@ class InvokerTestCase(unittest.TestCase):
     def setUp(self):
         self.injector = Injector()
         self.injector.register()
-        
-        self.invoker_class = Invoker
     
     def tearDown(self):
         self.injector.unregister()
@@ -19,21 +17,21 @@ class InvokerTestCase(unittest.TestCase):
         '''Invoker should return an instance if an unbound method.'''
         class A(object):
             def method(self): pass 
-        invoker = self.invoker_class(A.method)
-        self.assertTrue(isinstance(invoker, self.invoker_class))
+        invoker = Invoker(A.method)
+        self.assertTrue(isinstance(invoker, Invoker))
     
     def testNewNotUnboundMethod(self):
         '''Invoker should return an obj untouched if not an unbound method.'''
         def func():
             pass
-        invoker = self.invoker_class(func)
+        invoker = Invoker(func)
         self.assertTrue(invoker is func)
         
         class A(object):
             def method(self): pass
         
         a = A()
-        invoker = self.invoker_class(a.method)
+        invoker = Invoker(a.method)
         
         self.assertEqual(invoker, a.method)
     
@@ -44,7 +42,7 @@ class InvokerTestCase(unittest.TestCase):
                 return 'arg: %s' % arg
         
         self.injector.bind(A, to=A)
-        invoker = self.invoker_class(A.method)
+        invoker = Invoker(A.method)
         
         result = invoker('value')
         self.assertEqual(result, 'arg: value')
@@ -55,7 +53,7 @@ class InvokerTestCase(unittest.TestCase):
             def method(self):
                 pass
         
-        invoker = self.invoker_class(A.method)
+        invoker = Invoker(A.method)
         self.assertEqual(hash(invoker), hash(A.method))
         
         d = {}
@@ -70,6 +68,6 @@ class InvokerTestCase(unittest.TestCase):
             def method2(self):
                 pass
         
-        invoker = self.invoker_class(A.method)
+        invoker = Invoker(A.method)
         self.assertEqual(invoker, A.method)
         self.assertNotEqual(invoker, A.method2)
