@@ -153,7 +153,7 @@ class RequestScope(ThreadScope):
     
         @inject.param('scope', reqscope)
         def python25(environ, startresponse, scope):
-            with scope.start():
+            with scope:
                 startresponse()
                 return 'Response'
     
