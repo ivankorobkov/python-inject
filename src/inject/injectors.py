@@ -47,7 +47,7 @@ the injections, 2) B{or create injector-specific injections}.
 '''
 import logging
 
-from inject.config import default_config
+from inject.config import default_configuration
 from inject.exc import NotBoundError, CantCreateProviderError, \
     ScopeNotBoundError, CantGetInstanceError
 from inject.imports import LazyImport
@@ -62,24 +62,22 @@ class Injector(object):
     
     '''Injector stores configuration for providers.
     
-    @ivar _bindings: Types to providers mapping.
-    @ivar _bound_scopes: Scopes to bound scopes mapping.
     @ivar echo: If set to True creates a default logger, adds an stdout
         handler, and sets the level to DEBUG. The flag affects only this
         injector logging.
+    
+    @ivar _bindings: Types to providers mapping.    
     '''
     
     provider_class = ProviderFactory
     
-    def __init__(self, create_default_providers=True,
-                 default_config=default_config,
+    def __init__(self, create_default_providers=True, default_config=True,
                  echo=False):
         
         self._logger_name = None
         self._echo = None
         
         self._bindings = {}
-        self._bound_scopes = {}
         
         self._logger = logging.getLogger(self.logger_name)
         
@@ -96,8 +94,10 @@ class Injector(object):
         self.echo = echo
         
         self.create_default_providers = create_default_providers
-        if default_config:
-            default_config(self)
+        
+        self._default_config = default_config
+        if self._default_config:
+            default_configuration(self)
     
     def _get_logger_name(self):
         if self._logger_name is None:
@@ -121,12 +121,23 @@ class Injector(object):
     logger_name = property(_get_logger_name, _set_logger_name)
     echo = property(_get_echo, _set_echo)
     
-    def clear(self):
-        '''Remove all bindings.'''
+    def clear(self, default_config=None):
+        '''Remove all bindings.
+        
+        @param default_config: A flag which indicates whether to set
+            the default config after clearing the injector bindings.
+            When set to None the injector._default_config flag is used.
+        '''
         self._bindings.clear()
         
         if self._debug:
             self._logger.debug('Cleared all bindings.')
+        
+        if default_config is None:
+            default_config = self._default_config
+        
+        if default_config:
+            default_configuration(self)
     
     def bind(self, type, to=None, scope=None):
         '''Specify a binding for a type.
@@ -150,15 +161,11 @@ class Injector(object):
     def bind_to_instance(self, type, inst):
         '''Bind type to an instance.
         
-        The method exists because callables are considered to be providers,
-        and some instances can be callables. It wraps an instance with
+        The method exists because all callables are considered to be providers,
+        and some instances can be callable. It wraps an instance with
         a lambda.
         '''
         self.bind(type, to=lambda: inst)
-    
-    def bind_scope(self, scope, to):
-        '''Bind a scope key to an instance.'''
-        self._bound_scopes[scope] = to
     
     def is_bound(self, type):
         '''Return True if type is bound, else return False.'''
@@ -178,9 +185,9 @@ class Injector(object):
             self._logger.debug('Unbound %r.', type)
     
     def get_provider(self, type):
-        '''Return a provider, or raise NotBoundError.
+        '''Return a provider, or raise an error.
         
-        If create_default_providers flag is True, and no binding exist for 
+        If create_default_providers flag is True, and no binding exists for 
         a type, and the type is callable, return it.
         
         @raise NotBoundError.
@@ -201,8 +208,8 @@ class Injector(object):
         '''Return an instance for a type.
         
         @raise NotBoundError.
-        @raise CantCreateProviderError.
         @raise CantGetInstanceError.
+        @raise CantCreateProviderError.
         '''
         provider = self.get_provider(type)
         try:
@@ -212,7 +219,7 @@ class Injector(object):
         except Exception, e:
             s = 'Failed to get an instance for %r from %r. ' \
                 'The exception was: %s: %s. ' \
-                'Use Injector(echo=True) to see the traceback.' % \
+                'Set injector.echo=True to see the traceback.' % \
                 (type, provider, str(e.__class__.__name__), e)
             self._logger.exception(s)
             raise CantGetInstanceError(s)
@@ -281,12 +288,14 @@ class Injector(object):
     def _get_bound_scope(self, scope=None):
         '''Return a bound scope or raise ScopeNotBoundError.
         
+        A scope cannot be bound using a default provider.
+        
         @raise ScopeNotBoundError.
         '''
-        try:
-            return self._bound_scopes[scope]
-        except KeyError:
+        if not self.is_bound(scope):
             raise ScopeNotBoundError(scope)
+        
+        return self.get_instance(scope)
     
     _get_default_scope = staticmethod(get_default_scope)
     

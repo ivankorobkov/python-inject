@@ -99,7 +99,7 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind(A, to=B)
         self.assertTrue(injector._bindings)
         
-        injector.clear()
+        injector.clear(default_config=False)
         self.assertFalse(injector._bindings)
     
     def testBind(self):
@@ -132,14 +132,14 @@ class InjectorTestCase(unittest.TestCase):
         self.assertTrue(injector.get_instance(A) is a)
     
     def testBindScope(self):
-        '''Injector.bind_scope should bind a scope class to an instance.'''
+        '''Injector.bind should bind a scope class to an instance.'''
         class Scope(object): pass
         scope = Scope()
         
         injector = self.injector_class()
-        injector.bind_scope(Scope, scope)
+        injector.bind(Scope, scope)
         
-        self.assertTrue(injector._bound_scopes[Scope] is scope)
+        self.assertTrue(injector._get_bound_scope(Scope) is scope)
     
     def testIsBound(self):
         '''Injector.is_bound should return True.'''
@@ -259,7 +259,7 @@ class InjectorTestCase(unittest.TestCase):
     def testCreateProviderScope(self):
         '''Injector._create_provider should scope a provider.
         
-        When scope is given.
+        When a scope is given.
         '''
         class A(object): pass
         class Scope(ScopeInterface):
@@ -269,7 +269,7 @@ class InjectorTestCase(unittest.TestCase):
         scope = Scope()
         
         injector = self.injector_class()
-        injector.bind_scope(Scope, to=scope)
+        injector.bind(Scope, to=scope)
         
         scoped_provider = injector._create_provider(A, scope=Scope)
         self.assertEqual(scoped_provider, 'scoped_provider')
@@ -284,7 +284,7 @@ class InjectorTestCase(unittest.TestCase):
         scope = Scope()
         
         injector = self.injector_class()
-        injector.bind_scope(Scope, to=scope)
+        injector.bind(Scope, to=scope)
         
         scoped_provider = injector._scope_provider(A, scope=Scope)
         self.assertEqual(scoped_provider, 'scoped_provider')

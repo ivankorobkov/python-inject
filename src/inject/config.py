@@ -5,7 +5,7 @@ from inject.scopes import ApplicationScope, appscope, \
     RequestScope, reqscope
 
 
-def default_config(injector):
+def default_configuration(injector):
     from inject.injectors import Injector
     injector.bind(Injector, to=injector)
     
@@ -13,14 +13,14 @@ def default_config(injector):
     noscope_instance = NoScope()
     reqscope_instance = RequestScope()
     
-    injector.bind_scope(ApplicationScope, to=appscope_instance)
-    injector.bind_scope(appscope, to=appscope_instance)
+    injector.bind(ApplicationScope, to=appscope_instance)
+    injector.bind(appscope, to=appscope_instance)
     
-    injector.bind_scope(NoScope, to=noscope_instance)
-    injector.bind_scope(noscope, to=noscope_instance)
+    injector.bind(NoScope, to=noscope_instance)
+    injector.bind(noscope, to=noscope_instance)
     
-    injector.bind_scope(RequestScope, to=reqscope_instance)
-    injector.bind_scope(reqscope, to=reqscope_instance)
+    injector.bind(RequestScope, to=reqscope_instance)
+    injector.bind(reqscope, to=reqscope_instance)
     
     logger.debug('Configured injector %r using the default config.',
                  injector)

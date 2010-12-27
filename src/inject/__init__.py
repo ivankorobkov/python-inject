@@ -115,8 +115,7 @@ tuple in C{settings.py}. It is recommended to insert it as the first item.
 '''
 __version__ = '2.0-alpha'
 
-__all__ = ['default_config',
-           'exc',
+__all__ = ['exc',
            'attr', 'named_attr', 'class_attr', 'param', 'super',
            'Injector', 'register', 'unregister', 'is_registered', 'get_instance',
            'invoker',
@@ -124,7 +123,6 @@ __all__ = ['default_config',
            'noscope', 'appscope', 'reqscope', 'RequestScope', 'ApplicatinScope']
 
 from inject import exc
-from inject.config import default_config
 
 from inject.injections import AttributeInjection as attr, \
     NamedAttributeInjection as named_attr, \
