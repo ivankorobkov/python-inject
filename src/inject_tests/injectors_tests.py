@@ -4,8 +4,7 @@ import inject
 from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance, NotBoundError, ScopeNotBoundError, CantCreateProviderError
-from inject.scopes import ScopeInterface, set_default_scope, \
-    clear_default_scopes
+from inject.scopes import ScopeInterface, set_default_scope
 from inject.exc import CantGetInstanceError
 
 
@@ -303,12 +302,8 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind(Scope, to=scope)
         
         set_default_scope(A, Scope)
-        try:
-            
-            scoped_provider = injector._scope_provider(A)
-            self.assertEqual(scoped_provider, 'scoped_provider')
-        finally:
-            clear_default_scopes()
+        scoped_provider = injector._scope_provider(A)
+        self.assertEqual(scoped_provider, 'scoped_provider')
     
     #==========================================================================
     # get_instance tests

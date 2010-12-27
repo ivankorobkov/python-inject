@@ -4,16 +4,13 @@ import weakref
 
 from inject.scopes import NoRequestStartedError, AbstractScopeDecorator, \
     ApplicationScope, RequestScope, get_default_scope, set_default_scope, \
-    clear_default_scopes, appscope, reqscope, NoScope, noscope
+    clear_default_scope, appscope, reqscope, NoScope, noscope
 
 
 class DefaultScopeTestCase(unittest.TestCase):
     
-    def tearDown(self):
-        clear_default_scopes()
-    
     def test_default_scope(self):
-        '''Test setting, getting and clearing the default scopes.'''
+        '''Test setting/getting the default scopes.'''
         class A(object): pass
         class Scope(object): pass
         
@@ -21,26 +18,53 @@ class DefaultScopeTestCase(unittest.TestCase):
         
         set_default_scope(A, Scope)
         self.assertTrue(get_default_scope(A) is Scope)
-        
-        clear_default_scopes()
-        self.assertTrue(get_default_scope(A) is None)
     
-    def test_nonhashable_objects(self):
-        '''Test getting and setting default scopes for nonhashable objects.'''
+    def test_cant_set_attr(self):
+        '''Test getting/setting default scopes for objects which cannot have attrs.'''
         s = [1, 2, 3]
         
         # No error
         get_default_scope(s)
         
-        self.assertRaises(TypeError, set_default_scope, s, None)
+        self.assertRaises(AttributeError, set_default_scope, s, None)
+    
+    def test_clear_default_scope(self):
+        '''Test clearing the default scopes.'''
+        class A(object): pass
+        class Scope(object): pass
+        
+        self.assertTrue(get_default_scope(A) is None)
+        
+        clear_default_scope(A)
+        self.assertTrue(get_default_scope(A) is None)
+        
+        set_default_scope(A, Scope)
+        self.assertTrue(get_default_scope(A) is Scope)
+        
+        clear_default_scope(A)
+        self.assertTrue(get_default_scope(A) is None)
+    
+    def test_inheritance(self):
+        '''Test default scope inheritance.'''
+        class A(object): pass
+        class A2(A): pass
+        class Scope(object): pass
+        class Scope2(object): pass
+        
+        self.assertTrue(get_default_scope(A) is None)
+        
+        set_default_scope(A, Scope)
+        self.assertTrue(get_default_scope(A) is Scope)
+        self.assertTrue(get_default_scope(A2) is Scope)
+        
+        set_default_scope(A2, Scope2)
+        self.assertTrue(get_default_scope(A) is Scope)
+        self.assertTrue(get_default_scope(A2) is Scope2)
 
 
 class AbstractDecoratorTestCase(unittest.TestCase):
     
     decorator_class = AbstractScopeDecorator
-    
-    def tearDown(self):
-        clear_default_scopes()
     
     def test(self):
         '''AbstractScopeDecorator should call set_default_scope.'''
@@ -84,9 +108,6 @@ class ApplicationScopeTestCase(unittest.TestCase):
     def setUp(self):
         self.scope = self.scope_class()
     
-    def tearDown(self):
-        clear_default_scopes()
-    
     def testScope(self):
         '''Application scope should create a cached scoped provider.'''
         scope = self.scope
@@ -114,9 +135,6 @@ class RequestScopTestCase(unittest.TestCase):
     
     def setUp(self):
         self.scope = self.scope_class()
-    
-    def tearDown(self):
-        clear_default_scopes()
 
     def testDecorator(self):
         '''Request scope decorator should set the default scope.'''

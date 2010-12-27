@@ -10,34 +10,26 @@ injection request.
 '''
 import threading
 from inject.exc import NoRequestStartedError
+from inject.functional import update_wrapper
 
 
-'''
-@var _default_scopes: Dictionary which stores providers associated with default
-    scopes.
-'''
-_default_scopes = {}
+DEFAULT_SCOPE_ATTR = '__inject_default_scope__'
 
 
 def get_default_scope(provider):
     '''Return the default scope class for a provider, or None.'''
-    try:
-        return _default_scopes.get(provider, None)
-    except TypeError:
-        # Nonhashable type.
-        return
+    return getattr(provider, DEFAULT_SCOPE_ATTR, None)
 
 
 def set_default_scope(provider, scope_class):
-    '''Set the default scope class for a provider.'''
-    # It's OK to propagate TypeError: nonhashable type,
-    # So no checks.
-    _default_scopes[provider] = scope_class
+    '''Set the __inject_default_scope__ attribute of a provider.'''
+    setattr(provider, DEFAULT_SCOPE_ATTR, scope_class)
 
 
-def clear_default_scopes():
-    '''Clear the default scope classes.'''
-    _default_scopes.clear()
+def clear_default_scope(provider):
+    '''Clear the provider default scope attribute if present.'''
+    if hasattr(provider, DEFAULT_SCOPE_ATTR):
+        delattr(provider, DEFAULT_SCOPE_ATTR)
 
 
 class ScopeInterface(object):
@@ -153,9 +145,17 @@ class RequestScope(threading.local, ScopeInterface):
             cache[provider] = inst
             return inst
         
+        try:
+            update_wrapper(scopedprovider, provider)
+        except AttributeError:
+            # The update_wrapper must have accessed a non-present
+            # attribute. It can be possible when a provider is
+            # a user-generated callable object. For example, it can be
+            # an instance of a class with __slots__, which does not
+            # have the __dict__ attribute.
+            pass
+        
         return scopedprovider
-
-RequestScope = appscope(RequestScope)
 
 
 class reqscope(AbstractScopeDecorator):
