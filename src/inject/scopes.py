@@ -68,7 +68,7 @@ class NoScope(ScopeInterface):
 
 class noscope(AbstractScopeDecorator):
     
-    '''noscope decorator.'''
+    '''Decorator which sets the default scope to NoScope.'''
     
     scope_class = NoScope
 
@@ -98,46 +98,22 @@ class ApplicationScope(ScopeInterface):
 
 class appscope(AbstractScopeDecorator):
     
-    '''appscope decorator.'''
+    '''Decorator which sets the default scope to ApplicationScope.'''
     
     scope_class = ApplicationScope
 
 
-class RequestScope(threading.local, ScopeInterface):
+class ThreadScope(threading.local, ScopeInterface):
     
-    '''RequestScope is a request-local thread-local scope which caches
-    instances for each request.
+    '''ThreadScope is a thread-local scope.'''
     
-    To use it start and end the requests, usually using try/finally.
-    For example::
-    
-        def myapp(environ, startresponse):
-            reqscope.start()
-            try:
-                startresponse()
-                return 'Response'
-            finally:
-                reqscope.end()
-    
-    '''
-    
-    cache = None
-    
-    def start(self):
-        '''Start a new request.'''
+    def __init__(self):
         self.cache = {}
-    
-    def end(self):
-        '''End a request and clear the instances.'''
-        del self.cache
-    
+
     def scope(self, provider):
         '''Return a scoped provider (a callable).'''
         def scopedprovider():
             cache = self.cache
-            if cache is None:
-                raise NoRequestStartedError()
-            
             if provider in cache:
                 return cache[provider]
             
@@ -158,8 +134,59 @@ class RequestScope(threading.local, ScopeInterface):
         return scopedprovider
 
 
+class threadscope(AbstractScopeDecorator):
+    
+    '''Decorator which sets the default scope to ThreadScope.'''
+    
+    scope_class = ThreadScope
+
+
+class RequestScope(ThreadScope):
+    
+    '''RequestScope is a request-local thread-local scope which must
+    be explicitly started/ended for every request.
+    
+    To use it start and end the requests, usually using try/finally.
+    For example::
+    
+        def myapp(environ, startresponse):
+            reqscope.start()
+            try:
+                startresponse()
+                return 'Response'
+            finally:
+                reqscope.end()
+    
+    '''
+    
+    def __init__(self):
+        self.cache = None
+    
+    def start(self):
+        '''Start a new request.'''
+        self.cache = {}
+    
+    def end(self):
+        '''End a request and clear the instances.'''
+        del self.cache
+    
+    def _get_cache(self):
+        cache = self._cache
+        if cache is None:
+            raise NoRequestStartedError()
+        return cache
+    
+    def _set_cache(self, value):
+        self._cache = value
+    
+    def _del_cache(self):
+        del self._cache
+    
+    cache = property(_get_cache, _set_cache, _del_cache)
+
+
 class reqscope(AbstractScopeDecorator):
     
-    '''reqscope decorator.'''
+    '''Decorator which sets the default scope to RequestScope.'''
     
     scope_class = RequestScope
