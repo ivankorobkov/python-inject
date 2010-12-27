@@ -6,6 +6,7 @@ from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance, NotBoundError, ScopeNotBoundError, CantCreateProviderError
 from inject.scopes import ScopeInterface, set_default_scope, \
     clear_default_scopes
+from inject.exc import CantGetInstanceError
 
 
 class ModuleFunctionsTestCase(unittest.TestCase):
@@ -345,3 +346,12 @@ class InjectorTestCase(unittest.TestCase):
         
         a = injector.get_instance(A)
         self.assertTrue(isinstance(a, A))
+    
+    def testCantGetInstanceError(self):
+        '''Injector.get_instance should raise CantGetInstanceError.'''
+        class A(object):
+            def __init__(self, b):
+                pass
+        
+        injector = self.injector_class()
+        self.assertRaises(CantGetInstanceError, injector.get_instance, A)

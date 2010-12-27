@@ -41,6 +41,13 @@ class CantCreateProviderError(Exception):
     '''
 
 
+class CantGetInstanceError(Exception):
+    
+    '''CantGetInstanceError is raised when a provider has raised
+    an exception.
+    '''
+
+
 class ScopeNotBoundError(KeyError):
     
     '''ScopeNotBound extends KeyError, is raised when a scope is used,

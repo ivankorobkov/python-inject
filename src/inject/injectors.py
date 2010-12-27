@@ -49,7 +49,7 @@ import logging
 
 from inject.config import default_config
 from inject.exc import NotBoundError, CantCreateProviderError, \
-    ScopeNotBoundError
+    ScopeNotBoundError, CantGetInstanceError
 from inject.imports import LazyImport
 from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.log import configure_stdout_handler, logger
@@ -202,8 +202,21 @@ class Injector(object):
         
         @raise NotBoundError.
         @raise CantCreateProviderError.
+        @raise CantGetInstanceError.
         '''
-        instance = self.get_provider(type)()
+        provider = self.get_provider(type)
+        try:
+            instance = provider()
+        except (SystemExit, KeyboardInterrupt), e:
+            raise e
+        except Exception, e:
+            s = 'Failed to get an instance for %r from %r. ' \
+                'The exception was: %s: %s. ' \
+                'Use Injector(echo=True) to see the traceback.' % \
+                (type, provider, str(e.__class__.__name__), e)
+            self._logger.exception(s)
+            raise CantGetInstanceError(s)
+        
         if self._debug:
             self._logger.debug('Got instance %r for %r.' % (instance, type))
         
