@@ -210,3 +210,9 @@ class RequestScopeTestCase(unittest.TestCase):
         scope.end()
         
         self.assertTrue(a() is None)
+    
+    def testContextManager(self):
+        scope = RequestScope()
+        def provider(): pass
+        
+        raise NotImplementedError()

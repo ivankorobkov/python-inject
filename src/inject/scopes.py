@@ -143,24 +143,41 @@ class threadscope(AbstractScopeDecorator):
 
 class RequestScope(ThreadScope):
     
-    '''RequestScope is a request-local thread-local scope which must
+    '''RequestScope is a request-local thread-local scope which supports
+    the context manager protocol (the with statement, 2.5+) or must
     be explicitly started/ended for every request.
     
-    To use it start and end the requests, usually using try/finally.
+    To use it start and end the requests, usually using the with statement,
+    or try/finally.
     For example::
     
-        def myapp(environ, startresponse):
-            reqscope.start()
+        @inject.param('scope', reqscope)
+        def python25(environ, startresponse, scope):
+            with scope.start():
+                startresponse()
+                return 'Response'
+    
+        @inject.param('scope', reqscope)
+        def python24(environ, startresponse, scope):
+            scope.start()
             try:
                 startresponse()
                 return 'Response'
             finally:
-                reqscope.end()
+                scope.end()
     
     '''
     
     def __init__(self):
         self.cache = None
+    
+    def __enter__(self):
+        self.start()
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end()
+        return False
     
     def start(self):
         '''Start a new request.'''
