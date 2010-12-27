@@ -145,10 +145,16 @@ class Injector(object):
         The method exists because it is not possible to pass to=None.
         It binds type to a function, which returns None.
         '''
-        def none():
-            return None
+        self.bind(type, to=lambda: None)
+    
+    def bind_to_instance(self, type, inst):
+        '''Bind type to an instance.
         
-        self.bind(type, to=none)
+        The method exists because callables are considered to be providers,
+        and some instances can be callables. It wraps an instance with
+        a lambda.
+        '''
+        self.bind(type, to=lambda: inst)
     
     def bind_scope(self, scope, to):
         '''Bind a scope key to an instance.'''

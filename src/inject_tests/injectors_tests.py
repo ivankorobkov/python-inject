@@ -118,6 +118,18 @@ class InjectorTestCase(unittest.TestCase):
         injector.bind_to_none(A)
         self.assertTrue(injector.get_instance(A) is None)
     
+    def testBindToInstance(self):
+        '''Injector.bind_to_instance should support binding callable instances.'''
+        class A(object):
+            def __call__(self):
+                pass
+        
+        a = A()
+        
+        injector = self.injector_class()
+        injector.bind_to_instance(A, a)
+        self.assertTrue(injector.get_instance(A) is a)
+    
     def testBindScope(self):
         '''Injector.bind_scope should bind a scope class to an instance.'''
         class Scope(object): pass
