@@ -225,3 +225,26 @@ class RequestScopeTestCase(unittest.TestCase):
         
         self.assertTrue(a is a2)
         self.assertRaises(NoRequestStartedError, A)
+    
+    def testMultipleRequests(self):
+        '''RequestScope multiple requests test.'''
+        scope = RequestScope()
+        class A(object): pass
+        A = scope.scope(A)
+        
+        self.assertRaises(NoRequestStartedError, A)
+        
+        with scope:
+            a = A()
+            a2 = A()
+        
+        with scope:
+            a3 = A()
+        
+        with scope:
+            a4 = A()
+        
+        self.assertTrue(a is a2)
+        self.assertTrue(a3 is not a2)
+        self.assertTrue(a4 is not a3)
+        self.assertRaises(NoRequestStartedError, A)
