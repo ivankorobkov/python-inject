@@ -185,7 +185,7 @@ class RequestScope(ThreadScope):
     
     def end(self):
         '''End a request and clear the instances.'''
-        del self.cache
+        self.cache = None
     
     def _get_cache(self):
         cache = self._cache
@@ -197,7 +197,7 @@ class RequestScope(ThreadScope):
         self._cache = value
     
     def _del_cache(self):
-        del self._cache
+        self._cache = None
     
     cache = property(_get_cache, _set_cache, _del_cache)
 

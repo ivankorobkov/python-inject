@@ -212,7 +212,16 @@ class RequestScopeTestCase(unittest.TestCase):
         self.assertTrue(a() is None)
     
     def testContextManager(self):
+        '''RequestScope should support the context manager protocol.'''
         scope = RequestScope()
-        def provider(): pass
+        class A(object): pass
+        A = scope.scope(A)
         
-        raise NotImplementedError()
+        self.assertRaises(NoRequestStartedError, A)
+        
+        with scope:
+            a = A()
+            a2 = A()
+        
+        self.assertTrue(a is a2)
+        self.assertRaises(NoRequestStartedError, A)
