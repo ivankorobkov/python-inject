@@ -40,8 +40,7 @@ class DjangoInjectMiddleware(object):
     
     It is recommended to put it before any other middleware. Otherwise, it is
     possible that you will use injection in another middleware when the request
-    scope has been already unregistered. In this case NoRequestRegisteredError
-    is raised.
+    scope has been already unregistered.
     '''
     
     scope = inject.attr(inject.RequestScope)

@@ -1,13 +1,11 @@
 import unittest
 
 import inject
-from inject.middleware import WsgiInjectMiddleware, DjangoInjectMiddleware
-from inject.scopes import NoRequestStartedError
+from inject.middleware import DjangoInjectMiddleware, WsgiInjectMiddleware
+from inject.exc import CantGetInstanceError
 
 
 class WsgiTestCase(unittest.TestCase):
-    
-    middleware_class = WsgiInjectMiddleware
     
     def setUp(self):
         self.injector = inject.Injector()
@@ -18,47 +16,45 @@ class WsgiTestCase(unittest.TestCase):
     
     def test(self):
         '''Test WSGI middleware.'''
-        class Counter(object):
+        class Object(object):
             
-            i = 0
+            count = 0
+            
+            def __new__(cls):
+                cls.count += 1
+                return super(Object, cls).__new__(cls)
+            
             def __init__(self):
-                self.__class__.i += 1
-            
-            def __str__(self):
-                return str(self.i)
+                self.i = self.count
         
-        Counter = inject.reqscope(Counter)
-        
-        
-        class Response(object):
-            
-            @inject.param('counter', Counter)
-            def __init__(self, counter):
-                self.counter = counter
-            
-            def __iter__(self):
-                yield 'Start'
-                yield 'Request #%s' % self.counter
-                yield 'End'
-        
+        self.injector.bind(Object, scope=inject.reqscope)
         
         class Application(object):
             
-            @inject.param('counter', Counter)
-            def __init__(self, environ, start_response, counter):
-                self.counter = counter
+            @inject.param('obj', Object)
+            def __init__(self, environ, start_response, obj):
+                pass
             
-            def __iter__(self):
-                return iter(Response())
+            @inject.param('obj', Object)
+            def __iter__(self, obj):
+                yield obj
         
-        app = self.middleware_class(Application)
+        app = WsgiInjectMiddleware(Application)
         
-        response = list(app({}, None))
-        response2 = list(app({}, None))
-        response3 = list(app({}, None))
-        self.assertEqual(response, ['Start', 'Request #1', 'End'])
-        self.assertEqual(response2, ['Start', 'Request #2', 'End'])
-        self.assertEqual(response3, ['Start', 'Request #3', 'End'])
+        obj = list(app({}, None))[0]
+        obj2 = list(app({}, None))[0]
+        obj3 = list(app({}, None))[0]
+        
+        # Only 3 instances should be created - one for each request.
+        self.assertEqual(Object.count, 3)
+        
+        self.assertEqual(obj.i, 1)
+        
+        self.assertTrue(obj2 is not obj)
+        self.assertEqual(obj2.i, 2)
+        
+        self.assertTrue(obj3 is not obj2)
+        self.assertEqual(obj3.i, 3)
 
 
 class DjangoTestCase(unittest.TestCase):
@@ -74,46 +70,42 @@ class DjangoTestCase(unittest.TestCase):
     
     def test(self):
         '''Test Django middleware.'''
-        class Counter(object):
+        class Object(object):
             
-            i = 0
+            count = 0
+            
+            def __new__(cls):
+                cls.count += 1
+                return super(Object, cls).__new__(cls)
+            
             def __init__(self):
-                self.__class__.i += 1
-            
-            def __str__(self):
-                return str(self.i)
+                self.i = self.count
         
-        Country = inject.reqscope(Counter)
+        self.injector.bind(Object, scope=inject.reqscope)
         
         class Request(object):
-            def __init__(self):
-                self.META = {}
             
-            @inject.param('counter', Counter)
-            def do(self, counter):
-                return str(counter)
-            
-            @inject.param('counter', Counter)
-            def do2(self, counter):
-                return str(counter)
-            
-            @inject.param('counter', Counter)
-            def do3(self, counter):
-                return str(counter)
+            @inject.param('obj', Object)
+            def get_obj(self, obj):
+                return obj
             
         request = Request()
         
-        m = self.middleware_class()
-        mresponse = m.process_request(request)
-        self.assertTrue(mresponse is None)
+        m = DjangoInjectMiddleware()
+        self.assertRaises(CantGetInstanceError, request.get_obj)
         
-        c1 = request.do()
-        c2 = request.do()
-        self.assertEqual(c1, '1')
-        self.assertEqual(c2, '1')
+        m.process_request(request)
+        
+        self.assertEqual(request.get_obj().i, 1)
+        self.assertEqual(request.get_obj().i, 1)
+        self.assertTrue(request.get_obj() is request.get_obj())
+        
+        m.process_response(request, None)
+        self.assertRaises(CantGetInstanceError, request.get_obj)
+    
+    def test_response(self):
+        '''Test Django middleware response.'''
+        m = DjangoInjectMiddleware()
         
         response = object()
-        response2 = m.process_response(request, response)
-        self.assertTrue(response2 is response)
-        
-        self.assertRaises(NoRequestStartedError, request.do3)
+        self.assertTrue(m.process_response(None, response) is response)
