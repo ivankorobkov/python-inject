@@ -120,7 +120,7 @@ __all__ = ['exc',
            'Injector', 'register', 'unregister', 'is_registered', 'get_instance',
            'invoker',
            'lazy',
-           'noscope', 'appscope', 'reqscope', 'RequestScope', 'ApplicatinScope']
+           'noscope', 'appscope', 'threadscope', 'reqscope']
 
 from inject import exc
 
@@ -134,5 +134,4 @@ from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance
 from inject.invokers import Invoker as invoker
 from inject.imports import LazyImport as lazy 
-from inject.scopes import noscope, appscope, reqscope, \
-    RequestScope, ApplicationScope
+from inject.scopes import noscope, appscope, threadscope, reqscope
