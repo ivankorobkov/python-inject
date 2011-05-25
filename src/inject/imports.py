@@ -22,13 +22,17 @@ class LazyImport(object):
     hash and equality methods to the imported object.
     '''
     
-    __slots__ = ('imp', '_obj')
+    __slots__ = ('name', 'imp', '_obj')
     
     def __init__(self, name):
         globals = _get_caller_globals()
         
+        self.name = name
         self.imp = lazy_import(name, globals)
         self._obj = None
+    
+    def __repr__(self):
+        return '<%s for %s>' % (self.__class__.__name__, self.name)
     
     def __hash__(self):
         return hash(self.obj)
