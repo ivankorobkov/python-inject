@@ -18,7 +18,7 @@ Links
 Short Tutorial
 ==============
 See the I{examples} directory and I{User's Guide} for more information.
-You can find this file in I{examples/simple.py}.::
+You can find this file in I{examples/simple.py}::
 
     """Basic python-inject example, execute it to see the output.
     
