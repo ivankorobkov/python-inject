@@ -1,19 +1,9 @@
-'''C{inject} is a fast python dependency injection tool. It uses decorators and 
-descriptors to reference external dependencies, and scopes (Guice-inspired) to 
-specify how to reuse objects. Dependencies can be referenced by types and 
-optional annotations. No configuration is required, but advanced in-code 
-configuration is possible.
+'''C{python-inject} is a fast python dependency injection tool. It uses 
+decorators and descriptors to reference external dependencies, and scopes 
+to specify objects life-cycle.
 
-Most other python dependency injection tools, such as PyContainer or Spring 
-Python, are ports from other languages (Java). So they are based on dependency 
-injection ways specific for statically typed languages, described by Martin 
-Fowler.
-
-Python is not Java. Patterns and programming techniques, which seem proper and 
-usable in one language, can be awkward in another. `Inject` has been created to 
-provide a _pythonic_ way of dependency injection, utilizing specific Python 
-functionality. Terminology used in `inject` has been intentionally made similar
-to Guice, however the internal architecture is different.
+C{python-inject} has been created to provide a _pythonic_ way of dependency 
+injection, utilizing specific Python functionality.
 
 Links
 =====
@@ -27,89 +17,113 @@ Links
 
 Short Tutorial
 ==============
-See the I{Examples} directory and I{User's Guide} for more information.
+See the I{examples} directory and I{User's Guide} for more information.
+You can find this file in I{examples/simple.py}.::
 
-Import C{inject} and use it to inject an class instance into other objects.
-No configuration is required.::
-
+    """Basic python-inject example, execute it to see the output.
+    
+    All memcached, redis and mail classes are dummy classes that do not connect
+    to anything. They are only used to demonstrate the dependency injection
+    principle and python-inject functionality.
+    """
     import inject
     
-    @inject.appscope        # The default scope.
-    class A(object): pass
-    class B(object): pass
-    
-    class C(object):
-    
-        a = inject.attr('a', A)    # Inject a descriptor.
+    class Memcached(object):
+        """Dummy memcached backend, always returns None."""
+        def __init__(self, host, port):
+            print 'Connected memcached to %s:%s' % (host, port)
         
-        # Inject a param into a function.
-        @inject.param('b', B, scope=inject.appscope):
-        def __init__(self, b):
-            self.b = b
+        def get(self, key):
+            """Always return None."""
+            return None
     
-    c = C()
-
-If you need advanced configuration, create an instance of L{Injector},
-B{register} it using L{inject.register} and add bindings to it.::
-    
-    import inject
-    
-    injector = inject.Injector()
-    inject.register(injector)    # Register the injector!!!
-    
-    
-    class A(object): pass
-    class B(object): pass
-    class C(object): pass
-    
-    class D(object):
-    
-        a = inject.attr('a', A)
-        b = inject.attr('b', B, annotation='some_text')
+    class Redis(object):
+        """Redis backend, always returns a new User instance for any key."""
+        def __init__(self, host, port):
+            print 'Connected redis to %s:%s' % (host, port)
         
-        @inject.param('b', B)
-        @inject.param('c', C):
-        def __init__(self, b, c):
-            self.b = b
-            self.c = c
+        def get(self, key):
+            return User("Ivan Korobkov", "ivan.korobkov@gmail.com")
     
-    class B2(object): pass
-    @inject.appscope
-    class C2(object): pass
-    
-    injector.bind(A, scope=inject.appscope)
-    # Inject B2 when B is required only when it is annotated with "some_text".  
-    injector.bind(B, annotation='some_text', to=B2)
-    injector.bind(C, to=C2, scope=inject.noscope) # Override the default scope.
-    
-    d = D()
+    class MailService(object):
+        """Sends emails."""
+        def send(self, email, text):
+            """send an email."""
+            print "Sent an email to %s, text=%s." % (email, text)
     
     
-Use C{inject.super} as the default value, if it is injected in a super class.
-Always pass the super injected params as keyword arguments.::
+    class User(object):
     
-    class Z(object): pass
+        """Example model."""
     
-    class D2(object):
+        # Both Redis and Memcached are injected as class attributes
+        # so they can be accessed from the classmethods.
+        redis = inject.class_attr(Redis)
+        memcached = inject.class_attr(Memcached)
         
-        @inject.param('z', Z)
-        def __init__(self, z, b=inject.super, c=inject.super):
-            super(D2, self).__init__(b=b, c=c)
-            self.z = z
+        # MailService is injected as a normal attribute, it can be accessed
+        # only from the normal (bound) methods, not classmethods.
+        mail_service = inject.attr(MailService)
+        
+        @classmethod
+        def get_by_id(cls, id):
+            """Get a user from memcached, if not present fallback to redis."""
+            key = 'user-%s' % id
+            user = cls.memcached.get(key)
+            if user:
+                return user
+            user = cls.redis.get(key)
+            print 'Loaded %s from redis.' % user
+            return user
+        
+        def __init__(self, name, email):
+            self.name = name
+            self.email = email
+        
+        def __str__(self):
+            return '<User "%s">' % self.name
+        
+        def greet(self):
+            """Send a greeting email to the user."""
+            text = 'Hello, %s!' % self.name
+            self.mail_service.send(self.email, text)
     
-    d2 = D2()
-
-
-Request scope (L{scopes.Request}) is a thread-local request-local scope. 
-It allows to instantiate classes only once per request. To use it in a WSGI 
-application, wrap your application with L{WsgiInjectMiddleware}.
-
-To use it with Django, insert L{DjangoInjectMiddleware} into the middleware
-tuple in C{settings.py}. It is recommended to insert it as the first item.
+    
+    if __name__ == '__main__':
+        """Register an injector, configure the bindings and send a greeting
+        email to a user. Usually, you should store your bindings in another
+        function (or functions) in another module.
+        
+        For example:
+            # bindings.py
+            def config(injector):
+                config_redis(injector)
+                config_memcached(injector)
+                # etc.
+            
+            def config_redis(injector)
+                redis = Redis('myhost', 1234)
+                injector.bind(Redis, redis)
+            
+            def config_memached(injector):
+                ...
+        
+        """
+        injector = inject.Injector()
+        injector.register()
+        
+        memcached = Memcached('localhost', 2345)
+        redis = Redis('localhost', 1234)
+        
+        injector.bind(Redis, redis)
+        injector.bind(Memcached, memcached)
+        
+        user = User.get_by_id(10)
+        user.greet()
 
 
 @author: Ivan Korobkov <ivan.korobkov@gmail.com>
-@copyright: 2010 Ivan Korobkov
+@copyright: 2010, 2011 Ivan Korobkov
 @license: MIT License, see LICENSE
 @version: 2.0-alpha
 '''

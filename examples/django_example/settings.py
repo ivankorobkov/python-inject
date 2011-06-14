@@ -1,13 +1,15 @@
 try:
-    import inject #@UnusedImport
+    import inject
 except ImportError:
-    # Must be running without installing the inject package.
+    # Must be running without installing python-inject.
     import os
     import sys
     cwd = os.getcwd()
     parent = os.path.normpath(os.path.join(cwd, os.pardir, os.pardir,
                                            'src'))
     sys.path.append(parent)
+    import inject
+
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
