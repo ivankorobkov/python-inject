@@ -4,7 +4,7 @@
 All memcached, redis and mail classes are dummy classes that do not connect
 to anything. They are only used to demonstrate the dependency injection
 principle and python-inject functionality.
-."""
+"""
 try:
     import inject
 except ImportError:
@@ -74,9 +74,13 @@ class User(object):
     def __str__(self):
         return '<User "%s">' % self.name
     
-    def greet(self):
-        """Send a greeting email to the user."""
-        text = 'Hello, %s!' % self.name
+    @inject.param("hello_text")
+    def greet(self, hello_text):
+        """Send a greeting email to the user.
+        
+        @param hello_text: Demonstrates injecting params into functions. 
+        """
+        text = hello_text % self.name
         self.mail_service.send(self.email, text)
 
 
@@ -109,6 +113,7 @@ if __name__ == '__main__':
     
     injector.bind(Redis, redis)
     injector.bind(Memcached, memcached)
+    injector.bind("hello_text", "Hello, %s!")
     
     user = User.get_by_id(10)
     user.greet()
