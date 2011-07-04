@@ -20,6 +20,23 @@ class NoInjectorRegistered(Exception):
     '''NoInjectorRegistered is raised when there is no injector registered,
     and the injections try to use it.
     '''
+    
+    def __init__(self):
+        msg = 'Injector must be instantiated and registered.' \
+            'Use injector=Injector(); injector.register().'
+        super(NoInjectorRegistered, self).__init__(msg)
+
+
+class InjectorAlreadyRegistered(Exception):
+    
+    '''InjectorAlreadyRegistered is raised when the second injector
+    is registered. It prevets one injector from overriding another.
+    '''
+    
+    def __init__(self):
+        msg = 'Another injector is already registered. ' \
+            'There can be only one registered injector.'
+        super(InjectorAlreadyRegistered, self).__init__(msg)
 
 
 class NotBoundError(KeyError):

@@ -49,7 +49,7 @@ import logging
 
 from inject.config import default_configuration
 from inject.exc import NotBoundError, CantCreateProviderError, \
-    ScopeNotBoundError, CantGetInstanceError
+    ScopeNotBoundError, CantGetInstanceError, InjectorAlreadyRegistered
 from inject.imports import LazyImport
 from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.log import configure_stdout_handler, logger
@@ -321,10 +321,12 @@ class Injector(object):
 
 
 def register(injector):
-    '''Register an injector as the main injector.'''
+    '''Register an injector as the main injector.
+    
+    @raise InjectorAlreadyRegistered: if another injector is already registered.
+    '''
     if InjectionPoint.injector is not None:
-        logger.warn('Overriding the already registered injector %r '
-                    'with %r.', InjectionPoint.injector, injector)
+        raise InjectorAlreadyRegistered()
     else:
         logger.debug('Registering injector %r.', injector)
     InjectionPoint.injector = injector
