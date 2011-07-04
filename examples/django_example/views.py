@@ -25,7 +25,7 @@ class Hello(object):
 
 class Text1(object):
     
-    @inject.param('app_started_at', 'app_started_at')
+    @inject.param('app_started_at')
     def __init__(self, app_started_at):
         self.app_started_at = app_started_at
     
@@ -38,7 +38,7 @@ class Text1(object):
 
 class Text2(object):
     
-    @inject.param('req_started_at', 'req_started_at')
+    @inject.param('req_started_at')
     def __init__(self, req_started_at):
         self.req_started_at = req_started_at
     
@@ -51,26 +51,21 @@ class Text2(object):
 
 class Text3(object):
     
-    @inject.param('req_started_at', 'req_started_at')
-    @inject.param('req_ended_at', datetime, bindto=datetime.now)
+    @inject.param('req_started_at')
+    @inject.param('req_ended_at')
     def __str__(self, req_started_at, req_ended_at):
         return 'The request ended at <b>%s</b>,<br />' \
                'but started at <b>%s</b>.<br />' \
                'It took <b>%s</b> to serve the request.<br /><br />' \
                'There are two datetime object here, but the first<br />' \
                'is not request scoped (req_ended_at), while the second<br/>' \
-               '(req_started_at) is.' % (req_ended_at, req_started_at, 
+               '(req_started_at) is.' % (req_ended_at, req_started_at,
                                      req_ended_at - req_started_at)
 
-
-@inject.param('hello', Hello)
-@inject.param('text1', Text1)
-@inject.param('text2', Text2)
-@inject.param('text3', Text3)
-def index(request, hello, text1, text2, text3):
+def index(request):
     content = []
-    content.append(str(hello))
-    content.append(str(text1))
-    content.append(str(text2))
-    content.append(str(text3))
-    return HttpResponse('<br /><br />'.join(content))
+    content.append(Hello())
+    content.append(Text1())
+    content.append(Text2())
+    content.append(Text3())
+    return HttpResponse('<br /><br />'.join([str(c) for c in content]))
