@@ -1,36 +1,31 @@
 import unittest
 
-from inject.injections import InjectionPoint, NoInjectorRegistered, \
-    AttributeInjection, ParamInjection, NoParamError, NamedAttributeInjection, \
+from inject.injections import InjectionPoint, AttributeInjection, \
+    ParamInjection, NoParamError, NamedAttributeInjection, \
     ClassAttributeInjection
 from inject.injectors import Injector
 
 
 class InjectionTestCase(unittest.TestCase):
     
+    def setUp(self):
+        self.injector = Injector()
+        self.injector.register()
+    
+    def tearDown(self):
+        self.injector.unregister()
+    
     def testGetInstance(self):
         '''InjectionPoint should call injector's get_instance method.'''
         class A(object): pass
-        class B(object): pass
         
-        my_injector = Injector()
-        my_injector.bind(A, to=B)
-        
-        class MyPoint(InjectionPoint):
-            injector = my_injector
-        
-        injection_point = MyPoint(A)
-        a = injection_point.get_instance()
-        
-        self.assertTrue(isinstance(a, B))
-    
-    def testNoInjectorRegistered(self):
-        '''InjectionPoint should raise NoInjectorRegistered.'''
-        class A(object): pass
+        a = A()
+        self.injector.bind(A, to=a)
         
         injection_point = InjectionPoint(A)
+        a2 = injection_point.get_instance()
         
-        self.assertRaises(NoInjectorRegistered, injection_point.get_instance)
+        self.assertTrue(a2 is a)
 
 
 class AttributeInjectionTestCase(unittest.TestCase):
@@ -75,34 +70,34 @@ class AttributeInjectionTestCase(unittest.TestCase):
         class B(object):
             a = AttributeInjection(A)
         
-        self.injector.bind(A, to=A)
+        a = A()
+        self.injector.bind(A, a)
         
         b = B()
-        a = b.a
-        a2 = b.a
-        self.assertTrue(isinstance(b.a, A))
-        self.assertTrue(a is a2)
+        self.assertTrue(b.a is a)
+        
+        a2 = A()
+        self.injector.bind(A, a2)
+        
+        # It is still a, not a2.
+        self.assertTrue(b.a is a)
     
     def testReinjecting(self):
         '''AttributeInjection should support reinjecting dependencies.'''
-        class A(object):
-            i = 0
-            def __init__(self):
-                self.__class__.i += 1
-                self.i = self.__class__.i
-        
+        class A(object): pass
         class B(object):
             a = AttributeInjection(A, reinject=True)
         
-        self.injector.bind(A, to=A)
+        a = A()
+        self.injector.bind(A, a)
         
         b = B()
-        a = b.a
-        a2 = b.a
+        self.assertTrue(b.a is a)
+        self.assertTrue(b.a is a) # Multiple accesses.
         
-        self.assertFalse(a is a2)
-        self.assertEqual(a.i, 1)
-        self.assertEqual(a2.i, 2)
+        a2 = A()
+        self.injector.bind(A, a2)
+        self.assertTrue(b.a is a2)
     
     def testReinjectingTypeError(self):
         '''AttributeInjection should raise TypeError for wrong reinject type.'''
@@ -157,34 +152,34 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         class B(object):
             a = NamedAttributeInjection('a', A)
         
-        self.injector.bind(A, to=A)
+        a = A()
+        self.injector.bind(A, a)
         
         b = B()
-        a = b.a
-        a2 = b.a
-        self.assertTrue(isinstance(b.a, A))
-        self.assertTrue(a is a2)
+        self.assertTrue(b.a is a)
+        
+        a2 = A()
+        self.injector.bind(A, a2)
+        
+        # It is still a, not a2.
+        self.assertTrue(b.a is a)
 
     def testReinjecting(self):
         '''NamedAttributeInjection should support reinjecting dependencies.'''
-        class A(object):
-            i = 0
-            def __init__(self):
-                self.__class__.i += 1
-                self.i = self.__class__.i
-        
+        class A(object): pass
         class B(object):
             a = NamedAttributeInjection('a', A, reinject=True)
         
-        self.injector.bind(A, to=A)
+        a = A()
+        self.injector.bind(A, a)
         
         b = B()
-        a = b.a
-        a2 = b.a
+        self.assertTrue(b.a is a)
+        self.assertTrue(b.a is a) # Multiple accesses.
         
-        self.assertFalse(a is a2)
-        self.assertEqual(a.i, 1)
-        self.assertEqual(a2.i, 2)
+        a2 = A()
+        self.injector.bind(A, a2)
+        self.assertTrue(b.a is a2)
 
 
 class ClassAttributeInjectionTestCase(unittest.TestCase):
@@ -202,11 +197,13 @@ class ClassAttributeInjectionTestCase(unittest.TestCase):
         class B(object):
             a = ClassAttributeInjection(A)
         
-        a = B.a
-        a2 = B.a
-        self.assertTrue(isinstance(a, A))
-        self.assertTrue(isinstance(a2, A))
-        self.assertFalse(a is a2)
+        a = A()
+        self.injector.bind(A, a)
+        self.assertTrue(B.a is a)
+        
+        a2 = A()
+        self.injector.bind(A, a2)
+        self.assertTrue(B.a is a2)
 
 
 class ParamTestCase(unittest.TestCase):

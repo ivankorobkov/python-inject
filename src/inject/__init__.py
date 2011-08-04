@@ -137,19 +137,15 @@ __version__ = '2.0-alpha'
 
 __all__ = ['exc',
            'attr', 'named_attr', 'class_attr', 'param', 'super',
-           'Injector', 'register', 'unregister', 'is_registered', 'get_instance',
+           'Injector', 'get_instance',
            'lazy'
            'ApplicationScope', 'RequestScope', 'ThreadScope']
 
 from inject import exc
 
-from inject.injections import AttributeInjection as attr, \
-    NamedAttributeInjection as named_attr, \
-    ClassAttributeInjection as class_attr, \
-    ParamInjection as param, \
+from inject.injections import attr, named_attr, class_attr, param, \
     super_param as super
 
 from inject.imports import LazyImport as lazy
-from inject.injectors import Injector, register, unregister, is_registered, \
-    get_instance
+from inject.injectors import Injector, get_instance
 from inject.scopes import ApplicationScope, RequestScope, ThreadScope

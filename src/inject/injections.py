@@ -1,8 +1,9 @@
 '''Injections are dependency injection points: an attribute descriptor,
 and a function decorator.
 '''
-from inject.exc import NoInjectorRegistered, NoParamError
+from inject.exc import NoParamError
 from inject.functional import update_wrapper
+from inject.injectors import get_instance as _get_instance
 from inject.utils import get_attrname_by_value
 
 
@@ -17,20 +18,14 @@ class InjectionPoint(object):
     
     '''InjectionPoint serves injection requests.'''
     
-    __slots__ = ('type', 'injector')
-    
-    injector = None
+    __slots__ = ('type',)
     
     def __init__(self, type):
         self.type = type
     
     def get_instance(self):
-        '''Return an instance from an injector.'''
-        injector = self.injector
-        if injector is None:
-            raise NoInjectorRegistered()
-        
-        return self.injector.get_instance(self.type)
+        '''Return an instance for the injection point type.'''
+        return _get_instance(self.type)
 
 
 class AttributeInjection(object):
@@ -46,8 +41,6 @@ class AttributeInjection(object):
     
     '''
     
-    point_class = InjectionPoint
-    
     def __init__(self, type, reinject=False):
         '''Create an injection for an attribute.'''
         self.attr = None
@@ -56,7 +49,7 @@ class AttributeInjection(object):
                 'The reinject argument must be True or False, got %s. '
                 'To pass an attr name use named_attr(name, type).' % reinject)
         self.reinject = reinject
-        self.injection = self.point_class(type)
+        self.injection = InjectionPoint(type)
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -91,13 +84,11 @@ class NamedAttributeInjection(object):
     
     '''
     
-    point_class = InjectionPoint
-    
     def __init__(self, attr, type, reinject=False):
         '''Create an injection for an attribute.'''
         self.attr = attr
         self.reinject = reinject
-        self.injection = self.point_class(type)
+        self.injection = InjectionPoint(type)
     
     def __get__(self, instance, owner):
         if instance is None:
@@ -120,7 +111,7 @@ class ClassAttributeInjection(object):
     point_class = InjectionPoint
     
     def __init__(self, type):
-        self.injection = self.point_class(type)
+        self.injection = InjectionPoint(type)
     
     def __get__(self, instance, owner):
         return self.injection.get_instance()
@@ -150,14 +141,12 @@ class ParamInjection(object):
         
     '''
     
-    point_class = InjectionPoint
-    
     def __new__(cls, name, type=None):
         '''Create a decorator injection for a param.'''
         if type is None:
             type = name
         
-        injection = cls.point_class(type)
+        injection = InjectionPoint(type)
         
         def decorator(func):
             if getattr(func, 'injection_wrapper', False):
@@ -214,3 +203,9 @@ class ParamInjection(object):
                     (func, name))
         
         wrapper.injections[name] = injection
+
+
+attr = AttributeInjection
+named_attr = NamedAttributeInjection
+class_attr = ClassAttributeInjection
+param = ParamInjection

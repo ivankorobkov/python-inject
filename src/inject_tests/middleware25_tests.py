@@ -2,7 +2,6 @@ import unittest
 
 import inject
 from inject.middleware import DjangoInjectMiddleware, WsgiInjectMiddleware
-from inject.exc import CantGetInstanceError
 
 
 class WsgiTestCase(unittest.TestCase):
@@ -92,8 +91,6 @@ class DjangoTestCase(unittest.TestCase):
         request = Request()
         
         m = DjangoInjectMiddleware()
-        self.assertRaises(CantGetInstanceError, request.get_obj)
-        
         m.process_request(request)
         
         self.assertEqual(request.get_obj().i, 1)
@@ -101,7 +98,6 @@ class DjangoTestCase(unittest.TestCase):
         self.assertTrue(request.get_obj() is request.get_obj())
         
         m.process_response(request, None)
-        self.assertRaises(CantGetInstanceError, request.get_obj)
     
     def test_response(self):
         '''Test Django middleware response.'''

@@ -47,13 +47,9 @@ the injections, 2) B{or create injector-specific injections}.
 '''
 import logging
 
-from inject.config import default_configuration
-from inject.exc import NotBoundError, CantCreateProviderError, \
-    ScopeNotBoundError, CantGetInstanceError, InjectorAlreadyRegistered
-from inject.imports import LazyImport
-from inject.injections import InjectionPoint, NoInjectorRegistered
-from inject.log import configure_stdout_handler, logger
-from inject.providers import ProviderFactory
+from inject.exc import InjectorAlreadyRegistered, NoInjectorRegistered, \
+    NotBoundError
+from inject.scopes import ApplicationScope, ThreadScope, RequestScope
 
 
 class Injector(object):
@@ -67,293 +63,158 @@ class Injector(object):
     @ivar _bindings: Types to providers mapping.    
     '''
     
-    provider_class = ProviderFactory
+    logger = logging.getLogger('inject.Injector')
+    injector = None
     
-    def __init__(self, create_default_providers=True, default_config=True,
-                 echo=False):
+    @classmethod
+    def cls_get_injector(cls):
+        '''Return a registered injector or raise an exception.
         
-        self._logger_name = None
-        self._echo = None
+        @raise NoInjectorRegistered: if no injector is registered.
+        '''
+        injector = cls.injector
+        if injector is None:
+            raise NoInjectorRegistered()
         
-        self._bindings = {}
+        return injector
+    
+    @classmethod
+    def cls_unregister(cls):
+        injector = cls.injector
         
-        self._logger = logging.getLogger(self.logger_name)
-        
-        # The initial logger level configuration.
-        # It is also used when setting echo back to False.
-        self._logger_debug_enabled = self._logger.isEnabledFor(logging.DEBUG)
-        if self._logger_debug_enabled:
-            self._debug = True
-        else:
-            self._debug = False
-        
-        # Set echo after getting a logger,
-        # because it can change logger's level.
-        self.echo = echo
-        
-        self.create_default_providers = create_default_providers
-        
+        cls.injector = None
+        cls.logger.info('Unregistered %r.', injector)
+    
+    def __init__(self, default_config=True):
         self._default_config = default_config
+        self._init()
+    
+    def _init(self):
+        self._scopes = {}
+        self._scopes_stack = []
+        
+        self._app_scope = ApplicationScope()
+        self.bind_scope(ApplicationScope, self._app_scope)
+        
         if self._default_config:
-            default_configuration(self)
+            self._load_default_config()
     
-    def _get_logger_name(self):
-        if self._logger_name is None:
-            self._logger_name = 'inject.%s.%s' % (self.__class__.__name__,
-                                                  hex(id(self))[-6:])
-        return self._logger_name
-    
-    def _set_logger_name(self, logger_name):
-        self._logger_name = logger_name
-    
-    def _get_echo(self):
-        return self._echo
-    
-    def _set_echo(self, value):
-        if value:
-            configure_stdout_handler(self.logger_name)
-            self._debug = True
-        else:
-            self._debug = self._logger_debug_enabled
-    
-    logger_name = property(_get_logger_name, _set_logger_name)
-    echo = property(_get_echo, _set_echo)
-    
-    def clear(self, default_config=None):
-        '''Remove all bindings.
+    def _load_default_config(self):
+        self.bind(Injector, to=self)
         
-        @param default_config: A flag which indicates whether to set
-            the default config after clearing the injector bindings.
-            When set to None the injector._default_config flag is used.
-        '''
-        self._bindings.clear()
+        thread_scope = ThreadScope()
+        self.bind_scope(ThreadScope, thread_scope)
         
-        if self._debug:
-            self._logger.debug('Cleared all bindings.')
+        reqscope = RequestScope()
+        self.bind_scope(RequestScope, reqscope)
         
-        if default_config is None:
-            default_config = self._default_config
-        
-        if default_config:
-            default_configuration(self)
+        self.logger.info('Loaded the default configuration.')
     
-    def bind(self, type, to=None, scope=None):
-        '''Specify a binding for a type.
+    def clear(self):
+        '''Remove all bindings and scopes.'''
+        self._app_scope = None
+        self._scopes = None
+        self._scopes_stack = None
         
-        @raise CantCreateProviderError.
-        '''
-        provider = self._create_provider(type, to=to, scope=scope)
-        self._add_provider(type, provider)
-        
-        if self._debug:
-            self._logger.debug('Bound %r to %r, scope %r.', type, to, scope)
+        self.logger.info('Cleared all bindings.')
+        self._init()
     
-    def bind_to_none(self, type):
-        '''Bind type to None.
+    def bind(self, type, to=None):
+        '''Specify a binding for a type.'''
+        if type in self:
+            self.unbind(type)
         
-        The method exists because it is not possible to pass to=None.
-        It binds type to a function, which returns None.
-        '''
-        self.bind(type, to=lambda: None)
+        self._app_scope.bind(type, to)
     
-    def bind_to_instance(self, type, inst):
-        '''Bind type to an instance.
+    def unbind(self, type):
+        '''Unbind type in all scopes.'''
+        for scope in self._scopes_stack:
+            if scope.is_bound(type):
+                scope.unbind(type)
+                return
         
-        The method exists because all callables are considered to be providers,
-        and some instances can be callable. It wraps an instance with
-        a lambda.
-        '''
-        self.bind(type, to=lambda: inst)
+        raise NotBoundError(type)
+    
+    def __contains__(self, type):
+        '''Return True if type is bound, else return False.'''
+        for scope in self._scopes_stack:
+            if type in scope:
+                return True
+        
+        return False
     
     def is_bound(self, type):
         '''Return True if type is bound, else return False.'''
-        return type in self._bindings
+        for scope in self._scopes_stack:
+            if scope.is_bound(type):
+                return True
+        
+        return False
     
-    def unbind(self, type):
-        '''unbind type, if it is bound, else raise NotBoundError.
+    def get(self, type):
+        '''Return a bound instance for a type or raise an error.
         
-        @raise NotBoundError.
+        @raise NotBoundError: if there is no binding for a type.
         '''
-        try:
-            del self._bindings[type]
-        except KeyError:
-            raise NotBoundError(type)
+        for scope in self._scopes_stack:
+            if type in scope:
+                return scope.get(type)
         
-        if self._debug:
-            self._logger.debug('Unbound %r.', type)
-    
-    def get_provider(self, type):
-        '''Return a provider, or raise an error.
-        
-        If create_default_providers flag is True, and no binding exists for 
-        a type, and the type is callable, return it.
-        
-        @raise NotBoundError.
-        @raise CantCreateProviderError.
-        '''
-        bindings = self._bindings
-        
-        if type not in bindings:
-            if self.create_default_providers:
-                provider = self._create_default_provider(type)
-                self._add_provider(type, provider)
-            else:
-                raise NotBoundError(type)
-        
-        return bindings[type]
-    
-    def get_instance(self, type):
-        '''Return an instance for a type.
-        
-        @raise NotBoundError.
-        @raise CantGetInstanceError.
-        @raise CantCreateProviderError.
-        '''
-        provider = self.get_provider(type)
-        try:
-            instance = provider()
-        except (SystemExit, KeyboardInterrupt), e:
-            raise e
-        except Exception, e:
-            s = 'Failed to get an instance for %r from %r. ' \
-                'The exception was: %s: %s. ' \
-                'Set injector.echo=True to see the traceback.' % \
-                (type, provider, str(e.__class__.__name__), e)
-            self._logger.exception(s)
-            raise CantGetInstanceError(s)
-        
-        if self._debug:
-            self._logger.debug('Got instance %r for %r.' % (instance, type))
-        
-        return instance
+        raise NotBoundError(type)
     
     #==========================================================================
-    # Private methods
+    # Scopes
     #==========================================================================
     
-    def _add_provider(self, type, provider):
-        '''Add a provider for a type.'''
-        if type in self._bindings and self._debug:
-            self._logger.warn('Overriding an existing binding for %r with %r.',
-                              type, provider)
+    def bind_scope(self, scope_type, scope):
+        self.unbind_scope(scope_type)
         
-        self._bindings[type] = provider
+        self.bind(scope_type, scope)
+        self._scopes[scope_type] = scope
+        self._scopes_stack.append(scope)
+        
+        self.logger.info('Bound scope %r to %r.', scope_type, scope)
     
-    def _create_provider(self, type, to=None, scope=None):
-        '''Create a new provider for a type and return it.
-        If to is None, and type is callable, use it as a provider.
+    def unbind_scope(self, scope_type):
+        if scope_type not in self._scopes:
+            return
         
-        @raise CantCreateProviderError.
-        '''
-        if to is None:
-            if isinstance(type, LazyImport):
-                type = type.obj
-            
-            if callable(type):
-                to = type
-            else:
-                raise CantCreateProviderError('To is not given and type %r is '
-                                              'not callable.' % type)
+        self.unbind(scope_type)
+        scope = self._scopes[scope_type]
+        del self._scopes[scope_type]
+        self._scopes_stack.remove(scope)
         
-        provider = self.provider_class(to=to)
-        return self._scope_provider(provider, scope=scope)
+        self.logger.info('Unbound scope %r.', scope)
     
-    def _create_default_provider(self, type):
-        '''Create a default provider for a type.'''
-        provider = self._create_provider(type, to=None, scope=None)
-        if self._debug:
-            self._logger.debug('Created a default provider for %r.', type)
-        
-        return provider
-    
-    def _scope_provider(self, provider, scope=None):
-        '''Get a scope for a provider, and if it is not None use it to scope
-        the provider, return the provider.
-        '''
-        if scope is not None:
-            bound_scope = self._get_bound_scope(scope)
-            provider = bound_scope.scope(provider)
-            
-            if self._debug:
-                self._logger.debug('Scoped provider %r using scope %r.',
-                                  provider, scope)
-        
-        return provider
-    
-    def _get_bound_scope(self, scope=None):
-        '''Return a bound scope or raise ScopeNotBoundError.
-        
-        A scope cannot be bound using a default provider.
-        
-        @raise ScopeNotBoundError.
-        '''
-        if not self.is_bound(scope):
-            raise ScopeNotBoundError(scope)
-        
-        return self.get_instance(scope)
+    def is_scope_bound(self, scope_type):
+        return scope_type in self._scopes
     
     #==========================================================================
     # Registering/unregistering
     #==========================================================================
     
     def register(self):
-        '''Register the injector as the main injector.'''
-        register(self)
-        if self._debug:
-            self._logger.debug('Registered %r as the main injector.', self)
+        '''Register this injector.
+        
+        @raise InjectorAlreadyRegistered: if another injector is already
+            registered.
+        '''
+        if self.injector is not None:
+            raise InjectorAlreadyRegistered()
+        
+        Injector.injector = self        
+        self.logger.info('Registered %r.', self)
     
     def unregister(self):
-        '''Unregister the injector if it is registered.'''
-        unregister(self)
-        if self._debug:
-            self._logger.debug('Unregistered injector %r.', self)
+        '''Unregister this injector.'''
+        if self.injector is not self:
+            return
+        
+        self.cls_unregister()
     
     def is_registered(self):
-        '''Return whether the injector is registered.'''
-        return is_registered(self)
-
-
-def register(injector):
-    '''Register an injector as the main injector.
-    
-    @raise InjectorAlreadyRegistered: if another injector is already registered.
-    '''
-    if InjectionPoint.injector is not None:
-        raise InjectorAlreadyRegistered()
-    else:
-        logger.debug('Registering injector %r.', injector)
-    InjectionPoint.injector = injector
-
-
-def unregister(injector=None):
-    '''Unregister an injector.
-    
-    If an injector is given, unregister it only if it is registered.
-    If None, unregister any registered injector.
-    '''
-    def _unregister():
-        injector = InjectionPoint.injector
-        InjectionPoint.injector = None
-        logger.debug('Unregistered injector %r.', injector)
-    
-    existing_injector = InjectionPoint.injector
-    
-    if existing_injector is injector and existing_injector is not None:
-        _unregister()
-    else:
-        if injector is None:
-            if existing_injector is None:
-                logger.warn('Nothing to unregister, '
-                            'no injector is registered.')
-            else:
-                _unregister()
-        else:
-            logger.warn('Can\'t unregister injector %r, because it is '
-                        'not registered.', injector)
-
-def is_registered(injector):
-    '''Return whether an injector is registered.'''
-    return InjectionPoint.injector is injector
+        '''Return whether this injector is registered.'''
+        return self.injector is self
 
 
 def get_instance(type):
@@ -361,8 +222,5 @@ def get_instance(type):
     
     @raise NoInjectorRegistered.
     '''
-    injector = InjectionPoint.injector
-    if injector is None:
-        raise NoInjectorRegistered()
-    
-    return injector.get_instance(type)
+    injector = Injector.cls_get_injector()
+    return injector.get(type)

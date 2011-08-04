@@ -111,8 +111,9 @@ class RequestScopeTestCase(ApplicationScopeTestCase):
         a = A()
         self.assertRaises(NoRequestError, s.bind, A, a)
         self.assertRaises(NoRequestError, s.unbind, A)
-        self.assertRaises(NoRequestError, s.is_bound, A)
         self.assertRaises(NoRequestError, s.get, A)
+        
+        self.assertFalse(s.is_bound(A))
     
     def testContextManager(self):
         '''RequestScope should support the context manager protocol.'''

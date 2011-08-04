@@ -17,7 +17,11 @@ class AbstractScope(object):
         self._bindings = {}
     
     def __contains__(self, type):
-        return type in self._bindings
+        bindings = self._bindings
+        if not bindings:
+            return False
+        
+        return type in bindings
     
     def bind(self, type, to):
         if type in self._bindings:
@@ -34,7 +38,7 @@ class AbstractScope(object):
         self.logger.info('Unbound %r.', type)
     
     def is_bound(self, type):
-        return type in self._bindings
+        return type in self
     
     def get(self, type):
         return self._bindings.get(type)
@@ -47,9 +51,14 @@ class ApplicationScope(AbstractScope):
     '''
     
     logger = logging.getLogger('inject.ApplicationScope')
+    
+    def __init__(self):
+        super(ApplicationScope, self).__init__()
+        
+        self.bind(ApplicationScope, self)
 
 
-class ThreadScope(threading.local, ApplicationScope):
+class ThreadScope(threading.local, AbstractScope):
     
     '''ThreadScope is a thread-local scope.'''
     
@@ -111,11 +120,7 @@ class RequestScope(ThreadScope):
     def unbind(self, type):
         self._request_required()
         return super(RequestScope, self).unbind(type)
-    
-    def is_bound(self, type):
-        self._request_required()
-        return super(RequestScope, self).is_bound(type)
-    
+
     def get(self, type):
         self._request_required()
         return super(RequestScope, self).get(type)
