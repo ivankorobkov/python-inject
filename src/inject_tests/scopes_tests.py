@@ -1,139 +1,130 @@
 import threading
 import unittest
-import weakref
 
-from inject.scopes import NoRequestStartedError, ApplicationScope, \
+from inject.scopes import NoRequestError, ApplicationScope, \
     RequestScope, ThreadScope
+
+
+class A(object):
+    
+    pass
 
 
 class ApplicationScopeTestCase(unittest.TestCase):
     
-    def testScope(self):
-        '''Application scope should create a cached scoped provider.'''
-        scope = ApplicationScope()
-        class A(object): pass
+    def testBinding(self):
+        s = ApplicationScope()
         
-        scopedprovider = scope.scope(A)
-        a = scopedprovider()
-        self.assertTrue(isinstance(a, A))
+        a = A()
+        s.bind(A, a)
         
-        a2 = scopedprovider()
-        self.assertTrue(a is a2)
-
-
-class ThreadScopeTestCase(unittest.TestCase):
+        self.assertTrue(s.is_bound(A))
+        self.assertTrue(s.get(A) is a)
     
-    def testThreadingScope(self):
-        '''ThreadScope scope should create a thread-local provider.'''
-        scope = ThreadScope()
-        class A(object): pass
+    def testRebind(self):
+        s = ApplicationScope()
         
-        scopedprovider = scope.scope(A)
-        a = scopedprovider()
+        a = A()
+        s.bind(A, a)
+        self.assertTrue(s.get(A) is a)
+        
+        a2 = A()
+        s.bind(A, a2)
+        self.assertTrue(s.get(A) is a2)
+    
+    def testNoBinding(self):
+        s = ApplicationScope()
+        
+        self.assertFalse(s.is_bound(A))
+        self.assertTrue(s.get(A) is None)
+    
+    def testUnbind(self):
+        s = ApplicationScope()
+        
+        a = A()
+        s.bind(A, a)
+        self.assertTrue(s.get(A) is a)
+        
+        s.unbind(A)
+        self.assertFalse(s.is_bound(A))
+        self.assertTrue(s.get(A) is None)
+    
+    def testContains(self):
+        s = ApplicationScope()
+        
+        self.assertFalse(A in s)
+        
+        a = A()
+        s.bind(A, a)
+        self.assertTrue(A in s)
+
+
+class ThreadScopeTestCase(ApplicationScopeTestCase):
+    
+    def testThreadLocal(self):
+        s = ThreadScope()
+        
+        a = A()
+        s.bind(A, a)
         
         def run():
-            a2 = scopedprovider()
-            self.assertTrue(a is not a2)
+            a2 = A()
+            s.bind(A, a2)
+            
+            self.assertTrue(s.get(A) is a2)
         
         thread = threading.Thread(target=run)
         thread.start()
         thread.join()
+        
+        self.assertTrue(s.get(A) is a)
 
 
-class RequestScopeTestCase(unittest.TestCase):
+class RequestScopeTestCase(ApplicationScopeTestCase):
 
-    def testRequestScope(self):
-        '''RequestScope scope should create a request-local provider.'''
-        scope = RequestScope()
-        class A(object): pass
+    def testRequestLocal(self):
+        s = RequestScope()
+        s.start()
         
-        scopedprovider = scope.scope(A)
-        
-        scope.start()
-        a = scopedprovider()
-        a2 = scopedprovider()
-        
-        self.assertTrue(isinstance(a, A))
-        self.assertTrue(a is a2)
-        
-        
-        scope.start()
-        a3 = scopedprovider()
-        
-        self.assertTrue(a is a2)
-        self.assertTrue(a3 is not a)
-        self.assertTrue(isinstance(a3, A))
-    
-    def testNoRequestStartedError(self):
-        '''RequestScope-scoped provider should raise NoRequestStartedError.'''
-        scope = RequestScope()
-        def provider(): pass
-        
-        scopedprovider = scope.scope(provider)
-        self.assertRaises(NoRequestStartedError, scopedprovider)
-    
-    def testStart(self):
-        '''RequestScope start should affect only one thread.'''
-        scope = RequestScope()
-        def provider(): pass
-        scopedprovider = scope.scope(provider)
+        self.assertFalse(s.is_bound(A))
+        a = A()
+        s.bind(A, a)
+        self.assertTrue(s.get(A) is a)
         
         def run():
-            self.assertRaises(NoRequestStartedError, scopedprovider)
+            a2 = A()
+            s.start()
+            self.assertFalse(s.is_bound(A))
+            s.bind(A, a2)
+            self.assertTrue(s.get(A) is a2)
         
-        scope.start()
         thread = threading.Thread(target=run)
         thread.start()
         thread.join()
+        
+        self.assertTrue(s.is_bound(A))
+        self.assertTrue(s.get(A) is a)
     
-    def testEnd(self):
-        '''RequestScope end should delete the instances cache.'''
-        scope = RequestScope()
-        class A(object): pass
-        scopedprovider = scope.scope(A)
+    def testRequestRequired(self):
+        s = RequestScope()
         
-        scope.start()
-        a = weakref.ref(scopedprovider())
-        
-        self.assertTrue(isinstance(a(), A))
-        scope.end()
-        
-        self.assertTrue(a() is None)
+        a = A()
+        self.assertRaises(NoRequestError, s.bind, A, a)
+        self.assertRaises(NoRequestError, s.unbind, A)
+        self.assertRaises(NoRequestError, s.is_bound, A)
+        self.assertRaises(NoRequestError, s.get, A)
     
     def testContextManager(self):
         '''RequestScope should support the context manager protocol.'''
-        scope = RequestScope()
-        class A(object): pass
-        A = scope.scope(A)
+        s = RequestScope()
+        self.assertRaises(NoRequestError, s.get, A)
         
-        self.assertRaises(NoRequestStartedError, A)
-        
-        with scope:
+        with s:
             a = A()
-            a2 = A()
+            s.bind(A, a)
+            self.assertTrue(s.get(A) is a)
         
-        self.assertTrue(a is a2)
-        self.assertRaises(NoRequestStartedError, A)
-    
-    def testMultipleRequests(self):
-        '''RequestScope multiple requests test.'''
-        scope = RequestScope()
-        class A(object): pass
-        A = scope.scope(A)
+        self.assertRaises(NoRequestError, s.get, A)
         
-        self.assertRaises(NoRequestStartedError, A)
-        
-        with scope:
-            a = A()
-            a2 = A()
-        
-        with scope:
-            a3 = A()
-        
-        with scope:
-            a4 = A()
-        
-        self.assertTrue(a is a2)
-        self.assertTrue(a3 is not a2)
-        self.assertTrue(a4 is not a3)
-        self.assertRaises(NoRequestStartedError, A)
+        with s:
+            self.assertTrue(s.get(A) is None)

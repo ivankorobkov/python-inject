@@ -1,79 +1,59 @@
-'''Scopes configure how objects are instantiated and reused.
+'''Scopes configure how objects are reused.
 
-By default, a new instance is injected every time. ApplicationScope scope creates
-only one instance of a class (a provider) for the whole application. RequestScope 
-scope creates unique instances for each HTTP request. RequestScope scope stores
-values in a thread-local request-local manner.
-
-C{noscope} can be used to explicitly specify creating new instances for every
-injection request.
+ApplicationScope has bindings for the whole application.
+ThreadScope stores instances for each thread.
+RequestScope stores 
 '''
+import logging
 import threading
-from inject.exc import NoRequestStartedError
-from inject.functional import update_wrapper
+from inject.exc import NoRequestError
 
 
-class ScopeInterface(object):
+class AbstractScope(object):
     
-    '''ScopeInterface.'''
+    logger = None
     
-    def scope(self, provider):
-        '''Return a scoped provider (a callable).'''
-        pass
+    def __init__(self):
+        self._bindings = {}
+    
+    def __contains__(self, type):
+        return type in self._bindings
+    
+    def bind(self, type, to):
+        if type in self._bindings:
+            self.logger.info('Overriding an existing binding: ',
+                'type=%r, binding=%r.', type, self._bindings[type])
+        
+        self._bindings[type] = to
+        self.logger.info('Bound %r to %r.', type, to)
+    
+    def unbind(self, type):
+        if type in self._bindings:
+            del self._bindings[type]
+        
+        self.logger.info('Unbound %r.', type)
+    
+    def is_bound(self, type):
+        return type in self._bindings
+    
+    def get(self, type):
+        return self._bindings.get(type)
 
 
-class ApplicationScope(ScopeInterface):
+class ApplicationScope(AbstractScope):
     
     '''ApplicationScope scope caches instances for an application (a process).
     It can be called a singleton scope.
     '''
     
-    def __init__(self):
-        self.cache = {}
-    
-    def scope(self, provider):
-        '''Return a scoped provider (a callable).'''
-        cache = self.cache
-        def scopedprovider():
-            if provider in cache:
-                return cache[provider]
-            
-            inst = provider()
-            cache[provider] = inst
-            return inst
-        
-        return scopedprovider
+    logger = logging.getLogger('inject.ApplicationScope')
 
 
-class ThreadScope(threading.local, ScopeInterface):
+class ThreadScope(threading.local, ApplicationScope):
     
     '''ThreadScope is a thread-local scope.'''
     
-    def __init__(self):
-        self.cache = {}
-
-    def scope(self, provider):
-        '''Return a scoped provider (a callable).'''
-        def scopedprovider():
-            cache = self.cache
-            if provider in cache:
-                return cache[provider]
-            
-            inst = provider()
-            cache[provider] = inst
-            return inst
-        
-        try:
-            update_wrapper(scopedprovider, provider)
-        except AttributeError:
-            # The update_wrapper must have accessed a non-present
-            # attribute. It can be possible when a provider is
-            # a user-generated callable object. For example, it can be
-            # an instance of a class with __slots__, which does not
-            # have the __dict__ attribute.
-            pass
-        
-        return scopedprovider
+    logger = logging.getLogger('inject.ThreadScope')
 
 
 class RequestScope(ThreadScope):
@@ -84,15 +64,15 @@ class RequestScope(ThreadScope):
     
     To use it start and end the requests, usually using the with statement,
     or try/finally.
-    For example::
+    WSGI example::
     
-        @inject.param('scope', reqscope)
+        @inject.param('scope', RequestScope)
         def python25(environ, startresponse, scope):
             with scope:
                 startresponse()
                 return 'Response'
-    
-        @inject.param('scope', reqscope)
+        
+        @inject.param('scope', RequestScope)
         def python24(environ, startresponse, scope):
             scope.start()
             try:
@@ -103,8 +83,10 @@ class RequestScope(ThreadScope):
     
     '''
     
+    logger = logging.getLogger('inject.RequestScope')
+    
     def __init__(self):
-        self.cache = None
+        self._bindings = None
     
     def __enter__(self):
         self.start()
@@ -116,22 +98,28 @@ class RequestScope(ThreadScope):
     
     def start(self):
         '''Start a new request.'''
-        self.cache = {}
+        self._bindings = {}
     
     def end(self):
-        '''End a request and clear the instances.'''
-        self.cache = None
+        '''End the request and clear the bindings.'''
+        self._bindings = None
     
-    def _get_cache(self):
-        cache = self._cache
-        if cache is None:
-            raise NoRequestStartedError()
-        return cache
+    def bind(self, type, to):
+        self._request_required()
+        return super(RequestScope, self).bind(type, to)
     
-    def _set_cache(self, value):
-        self._cache = value
+    def unbind(self, type):
+        self._request_required()
+        return super(RequestScope, self).unbind(type)
     
-    def _del_cache(self):
-        self._cache = None
+    def is_bound(self, type):
+        self._request_required()
+        return super(RequestScope, self).is_bound(type)
     
-    cache = property(_get_cache, _set_cache, _del_cache)
+    def get(self, type):
+        self._request_required()
+        return super(RequestScope, self).get(type)
+    
+    def _request_required(self):
+        if self._bindings is None:
+            raise NoRequestError()

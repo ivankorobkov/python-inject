@@ -89,8 +89,8 @@ class NoAttrFound(Exception):
     '''NoAttrFound is raised when no attribute is found for a given value.'''
 
 
-class NoRequestStartedError(Exception):
+class NoRequestError(Exception):
     
-    '''NoRequestStartedError is raised when a request scoped provider is 
-    accessed but no request is present.
+    '''NoRequestError is raised when a request scope is accessed
+    but no request is present.
     '''
