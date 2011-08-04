@@ -4,4 +4,5 @@
 *.pyo
 .project
 .pydevproject
+build
 MANIFEST
