@@ -140,12 +140,9 @@ __all__ = ['exc',
            'Injector', 'get_instance',
            'lazy'
            'ApplicationScope', 'RequestScope', 'ThreadScope']
-
 from inject import exc
-
 from inject.injections import attr, named_attr, class_attr, param, \
     super_param as super
-
-from inject.imports import LazyImport as lazy
+from inject.imports import lazy
 from inject.injectors import Injector, get_instance
 from inject.scopes import appscope, threadscope, reqscope

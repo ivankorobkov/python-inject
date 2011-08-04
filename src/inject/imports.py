@@ -1,7 +1,7 @@
 '''Utilities for imports.'''
 import sys
 
-from inject.functional import update_wrapper
+from functools import update_wrapper
 
 
 def _get_caller_globals():
@@ -92,3 +92,6 @@ def lazy_import(name, globals):
     
     update_wrapper(func, lazy_import)
     return func
+
+
+lazy = LazyImport

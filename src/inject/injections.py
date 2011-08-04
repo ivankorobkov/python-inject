@@ -1,8 +1,9 @@
 '''Injections are dependency injection points: an attribute descriptor,
 and a function decorator.
 '''
+from functools import update_wrapper
+
 from inject.exc import NoParamError
-from inject.functional import update_wrapper
 from inject.injectors import get_instance as _get_instance
 from inject.utils import get_attrname_by_value
 
