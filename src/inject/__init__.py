@@ -138,7 +138,6 @@ __version__ = '2.0-alpha'
 __all__ = ['exc',
            'attr', 'named_attr', 'class_attr', 'param', 'super',
            'Injector', 'register', 'unregister', 'is_registered', 'get_instance',
-           'invoker',
            'lazy'
            'ApplicationScope', 'RequestScope', 'ThreadScope']
 
@@ -153,5 +152,4 @@ from inject.injections import AttributeInjection as attr, \
 from inject.imports import LazyImport as lazy
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance
-from inject.invokers import Invoker as invoker
 from inject.scopes import ApplicationScope, RequestScope, ThreadScope

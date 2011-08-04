@@ -5,7 +5,6 @@ The module has only two providers: an instance provider, which is a callable
 wrapper around any object, and a factory. The factory returns a callable,
 an instance provider, or an invoker.
 '''
-from inject.invokers import Invoker
 
 
 class InstanceProvider(object):
@@ -46,7 +45,6 @@ class ProviderFactory(object):
     '''
     
     instance_class = InstanceProvider
-    invoker_class = Invoker
     
     def __new__(cls, to=None):
         '''Create provider for C{to}.'''
