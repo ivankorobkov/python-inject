@@ -4,7 +4,7 @@ import inject
 from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance, NotBoundError, ScopeNotBoundError, CantCreateProviderError
-from inject.scopes import ScopeInterface, set_default_scope
+from inject.scopes import ScopeInterface
 from inject.exc import CantGetInstanceError
 
 
@@ -286,24 +286,6 @@ class InjectorTestCase(unittest.TestCase):
         injector = Injector()
         self.assertRaises(ScopeNotBoundError, injector._scope_provider,
             A, scope=Scope)
-    
-    def testScopeProviderDefaultScope(self):
-        '''Inject._scope_provider should get a default scope.
-        
-        When scope is not given, and the default scope is set.
-        '''
-        class A(object): pass
-        class Scope(ScopeInterface):
-            def scope(self, provider):
-                return 'scoped_provider'
-        
-        scope = Scope()
-        injector = Injector()
-        injector.bind(Scope, to=scope)
-        
-        set_default_scope(A, Scope)
-        scoped_provider = injector._scope_provider(A)
-        self.assertEqual(scoped_provider, 'scoped_provider')
     
     #==========================================================================
     # get_instance tests

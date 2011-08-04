@@ -139,8 +139,8 @@ __all__ = ['exc',
            'attr', 'named_attr', 'class_attr', 'param', 'super',
            'Injector', 'register', 'unregister', 'is_registered', 'get_instance',
            'invoker',
-           'lazy',
-           'noscope', 'appscope', 'threadscope', 'reqscope']
+           'lazy'
+           'ApplicationScope', 'NoScope', 'RequestScope', 'ThreadScope']
 
 from inject import exc
 
@@ -150,8 +150,8 @@ from inject.injections import AttributeInjection as attr, \
     ParamInjection as param, \
     super_param as super
 
+from inject.imports import LazyImport as lazy
 from inject.injectors import Injector, register, unregister, is_registered, \
     get_instance
 from inject.invokers import Invoker as invoker
-from inject.imports import LazyImport as lazy 
-from inject.scopes import noscope, appscope, threadscope, reqscope
+from inject.scopes import ApplicationScope, NoScope, RequestScope, ThreadScope

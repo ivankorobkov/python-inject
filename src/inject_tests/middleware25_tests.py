@@ -27,7 +27,7 @@ class WsgiTestCase(unittest.TestCase):
             def __init__(self):
                 self.i = self.count
         
-        self.injector.bind(Object, scope=inject.reqscope)
+        self.injector.bind(Object, scope=inject.RequestScope)
         
         class Application(object):
             
@@ -81,7 +81,7 @@ class DjangoTestCase(unittest.TestCase):
             def __init__(self):
                 self.i = self.count
         
-        self.injector.bind(Object, scope=inject.reqscope)
+        self.injector.bind(Object, scope=inject.RequestScope)
         
         class Request(object):
             

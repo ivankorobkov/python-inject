@@ -54,10 +54,8 @@ from inject.imports import LazyImport
 from inject.injections import InjectionPoint, NoInjectorRegistered
 from inject.log import configure_stdout_handler, logger
 from inject.providers import ProviderFactory
-from inject.scopes import get_default_scope, appscope
 
 
-@appscope
 class Injector(object):
     
     '''Injector stores configuration for providers.
@@ -272,9 +270,6 @@ class Injector(object):
         '''Get a scope for a provider, and if it is not None use it to scope
         the provider, return the provider.
         '''
-        if scope is None:
-            scope = self._get_default_scope(provider)
-        
         if scope is not None:
             bound_scope = self._get_bound_scope(scope)
             provider = bound_scope.scope(provider)
@@ -296,8 +291,6 @@ class Injector(object):
             raise ScopeNotBoundError(scope)
         
         return self.get_instance(scope)
-    
-    _get_default_scope = staticmethod(get_default_scope)
     
     #==========================================================================
     # Registering/unregistering

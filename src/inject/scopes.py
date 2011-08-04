@@ -13,25 +13,6 @@ from inject.exc import NoRequestStartedError
 from inject.functional import update_wrapper
 
 
-DEFAULT_SCOPE_ATTR = '__inject_default_scope__'
-
-
-def get_default_scope(provider):
-    '''Return the default scope class for a provider, or None.'''
-    return getattr(provider, DEFAULT_SCOPE_ATTR, None)
-
-
-def set_default_scope(provider, scope_class):
-    '''Set the __inject_default_scope__ attribute of a provider.'''
-    setattr(provider, DEFAULT_SCOPE_ATTR, scope_class)
-
-
-def clear_default_scope(provider):
-    '''Clear the provider default scope attribute if present.'''
-    if hasattr(provider, DEFAULT_SCOPE_ATTR):
-        delattr(provider, DEFAULT_SCOPE_ATTR)
-
-
 class ScopeInterface(object):
     
     '''ScopeInterface.'''
@@ -39,21 +20,6 @@ class ScopeInterface(object):
     def scope(self, provider):
         '''Return a scoped provider (a callable).'''
         pass
-
-
-class AbstractScopeDecorator(object):
-    
-    '''AbstractScopeDecorator sets the default scope for a provider.'''
-    
-    scope_class = None
-    set_default_scope = staticmethod(set_default_scope)
-    
-    def __new__(cls, provider):
-        '''Decorate a provider and set its default scope,
-        return the provider.
-        '''
-        cls.set_default_scope(provider, cls.scope_class)
-        return provider
 
 
 class NoScope(ScopeInterface):
@@ -64,13 +30,6 @@ class NoScope(ScopeInterface):
     
     def scope(self, provider):
         return provider
-
-
-class noscope(AbstractScopeDecorator):
-    
-    '''Decorator which sets the default scope to NoScope.'''
-    
-    scope_class = NoScope
 
 
 class ApplicationScope(ScopeInterface):
@@ -94,13 +53,6 @@ class ApplicationScope(ScopeInterface):
             return inst
         
         return scopedprovider
-
-
-class appscope(AbstractScopeDecorator):
-    
-    '''Decorator which sets the default scope to ApplicationScope.'''
-    
-    scope_class = ApplicationScope
 
 
 class ThreadScope(threading.local, ScopeInterface):
@@ -132,13 +84,6 @@ class ThreadScope(threading.local, ScopeInterface):
             pass
         
         return scopedprovider
-
-
-class threadscope(AbstractScopeDecorator):
-    
-    '''Decorator which sets the default scope to ThreadScope.'''
-    
-    scope_class = ThreadScope
 
 
 class RequestScope(ThreadScope):
@@ -200,10 +145,3 @@ class RequestScope(ThreadScope):
         self._cache = None
     
     cache = property(_get_cache, _set_cache, _del_cache)
-
-
-class reqscope(AbstractScopeDecorator):
-    
-    '''Decorator which sets the default scope to RequestScope.'''
-    
-    scope_class = RequestScope
