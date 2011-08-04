@@ -16,21 +16,22 @@ class WsgiInjectMiddleware(object):
     
     '''
     
-    scope = inject.attr(inject.scopes.RequestScope)
+    scope = inject.class_attr(inject.scopes.RequestScope)
     
     def __init__(self, app):
         self.app = app
     
     def __call__(self, environ, start_response):
+        scope = self.scope
         try:
-            self.scope.start()
+            scope.start()
             # We have to manually iterate over the response,
             # so that all its parts have been generated before
             # the request is unregistered.
             for s in iter(self.app(environ, start_response)):
                 yield s
         finally:
-            self.scope.end()
+            scope.end()
 
 
 class DjangoInjectMiddleware(object):
@@ -43,7 +44,7 @@ class DjangoInjectMiddleware(object):
     scope has been already unregistered.
     '''
     
-    scope = inject.attr(inject.scopes.RequestScope)
+    scope = inject.class_attr(inject.scopes.RequestScope)
     
     def process_request(self, request):
         '''Register a request scope for a request.'''

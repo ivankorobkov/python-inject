@@ -128,3 +128,8 @@ class RequestScope(ThreadScope):
     def _request_required(self):
         if self._bindings is None:
             raise NoRequestError()
+
+
+appscope = ApplicationScope
+threadscope = ThreadScope
+reqscope = RequestScope

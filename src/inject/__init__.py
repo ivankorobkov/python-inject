@@ -148,4 +148,4 @@ from inject.injections import attr, named_attr, class_attr, param, \
 
 from inject.imports import LazyImport as lazy
 from inject.injectors import Injector, get_instance
-from inject.scopes import ApplicationScope, RequestScope, ThreadScope
+from inject.scopes import appscope, threadscope, reqscope
