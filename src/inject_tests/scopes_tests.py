@@ -3,18 +3,7 @@ import unittest
 import weakref
 
 from inject.scopes import NoRequestStartedError, ApplicationScope, \
-    RequestScope, NoScope, ThreadScope
-
-
-class NoScopeTestCase(unittest.TestCase):
-    
-    def testScope(self):
-        '''NoScope should return the provider untouched.'''
-        class A(object): pass
-        scope = NoScope()
-        
-        A2 = scope.scope(A)
-        self.assertTrue(A is A2)
+    RequestScope, ThreadScope
 
 
 class ApplicationScopeTestCase(unittest.TestCase):

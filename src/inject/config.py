@@ -1,6 +1,6 @@
 '''Default injector configuration, which binds scopes, and the injector.'''
 from inject.log import logger
-from inject.scopes import ApplicationScope, NoScope, RequestScope, ThreadScope
+from inject.scopes import ApplicationScope, RequestScope, ThreadScope
 
 
 def default_configuration(injector):
@@ -9,9 +9,6 @@ def default_configuration(injector):
     
     appscope_instance = ApplicationScope()
     injector.bind(ApplicationScope, to=appscope_instance)
-    
-    noscope_instance = NoScope()
-    injector.bind(NoScope, to=noscope_instance)
     
     thread_scope_instance = ThreadScope()
     injector.bind(ThreadScope, to=thread_scope_instance)

@@ -22,16 +22,6 @@ class ScopeInterface(object):
         pass
 
 
-class NoScope(ScopeInterface):
-    
-    '''NoScope is a dummy scope which exists only to distinguish between
-    None and NoScope.
-    '''
-    
-    def scope(self, provider):
-        return provider
-
-
 class ApplicationScope(ScopeInterface):
     
     '''ApplicationScope scope caches instances for an application (a process).
