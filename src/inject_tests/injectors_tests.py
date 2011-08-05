@@ -91,6 +91,22 @@ class InjectorTestCase(unittest.TestCase):
         scope.bind(A, a)
         
         self.assertTrue(injector.get(A) is a)
+    
+    def testGetAutobind(self):
+        class A(object): pass
+        
+        injector = Injector()
+        
+        a = injector.get(A)
+        a2 = injector.get(A)
+        self.assertTrue(a is a2)
+        self.assertTrue(isinstance(a, A))
+    
+    def testGetNotBoundNoAutobind(self):
+        class A(object): pass
+        
+        injector = Injector(autobind=False)
+        self.assertRaises(NotBoundError, injector.get, A)
 
 
 class InjectorScopesTestCase(unittest.TestCase):
@@ -113,7 +129,6 @@ class InjectorScopesTestCase(unittest.TestCase):
         injector.bind_scope(Scope, scope)
         
         injector.unbind_scope(Scope)
-        self.assertRaises(NotBoundError, injector.get, Scope)
         self.assertFalse(injector.is_bound(Scope))
         self.assertFalse(injector.is_scope_bound(Scope))
 

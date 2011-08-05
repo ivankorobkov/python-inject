@@ -85,8 +85,10 @@ class Injector(object):
         cls.injector = None
         cls.logger.info('Unregistered %r.', injector)
     
-    def __init__(self, default_config=True):
+    def __init__(self, autobind=True, default_config=True):
+        self._autobind = autobind
         self._default_config = default_config
+        
         self._init()
     
     def _init(self):
@@ -154,11 +156,17 @@ class Injector(object):
     def get(self, type):
         '''Return a bound instance for a type or raise an error.
         
-        @raise NotBoundError: if there is no binding for a type.
+        @raise NotBoundError: if there is no binding for a type,
+            and autobind is False or the type is not callable.
         '''
         for scope in self._scopes_stack:
             if type in scope:
                 return scope.get(type)
+        
+        if self._autobind and callable(type):
+            inst = type()
+            self.bind(type, inst)
+            return inst
         
         raise NotBoundError(type)
     
@@ -224,3 +232,21 @@ def get_instance(type):
     '''
     injector = Injector.cls_get_injector()
     return injector.get(type)
+
+
+def register(injector):
+    injector.register()
+
+
+def unregister(injector=None):
+    if injector is None:
+        Injector.cls_unregister()
+    else:
+        injector.unregister()
+
+
+def is_registered(injector=None):
+    if injector is None:
+        return Injector.injector is not None
+    else:
+        return Injector.injector is injector
