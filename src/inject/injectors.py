@@ -156,8 +156,11 @@ class Injector(object):
         
         return False
     
-    def get(self, type):
+    def get(self, type, none=False):
         '''Return a bound instance for a type or raise an error.
+        
+        @param none: If true, returns None when no binding is found, does not
+            raise an error.
         
         @raise NotBoundError: if there is no binding for a type,
             and autobind is False or the type is not callable.
@@ -170,6 +173,9 @@ class Injector(object):
             inst = type()
             self.bind(type, inst)
             return inst
+        
+        if none:
+            return
         
         raise NotBoundError(type)
     
@@ -261,13 +267,13 @@ class Injector(object):
         return self.injector is self
 
 
-def get_instance(type):
+def get_instance(type, none=False):
     '''Return an instance from the registered injector.
     
     @raise NoInjectorRegistered.
     '''
     injector = Injector.cls_get_injector()
-    return injector.get(type)
+    return injector.get(type, none=none)
 
 
 def register(injector):

@@ -98,16 +98,6 @@ class AttributeInjectionTestCase(unittest.TestCase):
         a2 = A()
         self.injector.bind(A, a2)
         self.assertTrue(b.a is a2)
-    
-    def testReinjectingTypeError(self):
-        '''AttributeInjection should raise TypeError for wrong reinject type.'''
-        class A(object): pass
-        
-        self.assertRaises(TypeError, AttributeInjection, A, reinject=A)
-        self.assertRaises(TypeError, AttributeInjection, A, reinject=None)
-        
-        attr = AttributeInjection(A, True) #@UnusedVariable
-        attr2 = AttributeInjection(A, False) #@UnusedVariable
 
 
 class NamedAttributeInjectionTestCase(unittest.TestCase):
