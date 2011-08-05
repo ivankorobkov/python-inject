@@ -6,27 +6,30 @@ RequestScope stores
 '''
 import logging
 import threading
-from inject.exc import NoRequestError
+from inject.exc import NoRequestError, FactoryNotCallable
 
 
 class AbstractScope(object):
     
+    '''Abstract scope.
+    
+    Subclassing: set the _bindings attribute in the constructor to
+        any object which supports the base dict interface.
+    '''
+    
     logger = None
     
     def __init__(self):
-        self._bindings = {}
+        self._factories = {}
     
     def __contains__(self, type):
-        bindings = self._bindings
-        if not bindings:
-            return False
-        
-        return type in bindings
+        return self.is_bound(type)
     
     def bind(self, type, to):
-        if type in self._bindings:
-            self.logger.info('Overriding an existing binding: ',
-                'type=%r, binding=%r.', type, self._bindings[type])
+        if self.is_bound(type):
+            self.logger.info('Overriding an existing binding for type=%r.',
+                             type)
+            self.unbind(type)
         
         self._bindings[type] = to
         self.logger.info('Bound %r to %r.', type, to)
@@ -34,14 +37,35 @@ class AbstractScope(object):
     def unbind(self, type):
         if type in self._bindings:
             del self._bindings[type]
-        
-        self.logger.info('Unbound %r.', type)
+            self.logger.info('Unbound %r.', type)
     
     def is_bound(self, type):
-        return type in self
+        return type in self._bindings
+    
+    def bind_factory(self, type, factory):
+        if not callable(factory):
+            raise FactoryNotCallable(factory)
+        
+        self.unbind_factory(type)
+        self._factories[type] = factory
+    
+    def unbind_factory(self, type):
+        if type in self._factories:
+            del self._factories[type]
+            self.logger.info('Unbound factory for %r.', type)
+    
+    def is_factory_bound(self, type):
+        return type in self._factories
     
     def get(self, type):
-        return self._bindings.get(type)
+        if type in self._bindings:
+            return self._bindings.get(type)
+        
+        elif type in self._factories:
+            factory = self._factories[type]
+            inst = factory()
+            self.bind(type, inst)
+            return inst
 
 
 class ApplicationScope(AbstractScope):
@@ -55,6 +79,7 @@ class ApplicationScope(AbstractScope):
     def __init__(self):
         super(ApplicationScope, self).__init__()
         
+        self._bindings = {}
         self.bind(ApplicationScope, self)
 
 
@@ -92,6 +117,7 @@ class ThreadScope(AbstractScope):
     logger = logging.getLogger('inject.ThreadScope')
     
     def __init__(self):
+        super(ThreadScope, self).__init__()
         self._bindings = ThreadLocalBindings()
 
 
@@ -139,6 +165,7 @@ class RequestScope(ThreadScope):
     logger = logging.getLogger('inject.RequestScope')
     
     def __init__(self):
+        super(RequestScope, self).__init__()
         self._bindings = RequestLocalBindings()
     
     def __enter__(self):

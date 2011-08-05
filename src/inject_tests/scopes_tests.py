@@ -12,8 +12,11 @@ class A(object):
 
 class ApplicationScopeTestCase(unittest.TestCase):
     
+    def new_scope(self):
+        return ApplicationScope()
+    
     def testBinding(self):
-        s = ApplicationScope()
+        s = self.new_scope()
         
         a = A()
         s.bind(A, a)
@@ -22,7 +25,7 @@ class ApplicationScopeTestCase(unittest.TestCase):
         self.assertTrue(s.get(A) is a)
     
     def testRebind(self):
-        s = ApplicationScope()
+        s = self.new_scope()
         
         a = A()
         s.bind(A, a)
@@ -33,13 +36,13 @@ class ApplicationScopeTestCase(unittest.TestCase):
         self.assertTrue(s.get(A) is a2)
     
     def testNoBinding(self):
-        s = ApplicationScope()
+        s = self.new_scope()
         
         self.assertFalse(s.is_bound(A))
         self.assertTrue(s.get(A) is None)
     
     def testUnbind(self):
-        s = ApplicationScope()
+        s = self.new_scope()
         
         a = A()
         s.bind(A, a)
@@ -50,16 +53,47 @@ class ApplicationScopeTestCase(unittest.TestCase):
         self.assertTrue(s.get(A) is None)
     
     def testContains(self):
-        s = ApplicationScope()
+        s = self.new_scope()
         
         self.assertFalse(A in s)
         
         a = A()
         s.bind(A, a)
         self.assertTrue(A in s)
+    
+    def testBindFactory(self):
+        s = self.new_scope()
+        
+        s.bind_factory(A, A)
+        self.assertTrue(s.is_factory_bound(A))
+        self.assertFalse(s.is_bound(A))
+        
+        a = s.get(A)
+        self.assertTrue(isinstance(a, A))
+        self.assertTrue(s.is_bound(A))
+        
+        a2 = s.get(A)
+        self.assertTrue(a2 is a)
+    
+    def testUnbindFactory(self):
+        s = self.new_scope()
+        
+        s.bind_factory(A, A)
+        self.assertTrue(s.is_factory_bound(A))
+        self.assertFalse(s.is_bound(A))
+        
+        s.get(A)
+        self.assertTrue(s.is_bound(A))
+        
+        s.unbind_factory(A)
+        self.assertFalse(s.is_factory_bound(A))
+        self.assertTrue(s.is_bound(A))
 
 
 class ThreadScopeTestCase(ApplicationScopeTestCase):
+    
+    def new_scope(self):
+        return ThreadScope()
     
     def testThreadLocal(self):
         s = ThreadScope()
@@ -81,6 +115,11 @@ class ThreadScopeTestCase(ApplicationScopeTestCase):
 
 
 class RequestScopeTestCase(ApplicationScopeTestCase):
+    
+    def new_scope(self):
+        s = RequestScope()
+        s.start();
+        return s
 
     def testRequestLocal(self):
         s = RequestScope()
@@ -114,6 +153,26 @@ class RequestScopeTestCase(ApplicationScopeTestCase):
         self.assertRaises(NoRequestError, s.get, A)
         
         self.assertFalse(s.is_bound(A))
+    
+    def testRequestLocalAndFactories(self):
+        s = RequestScope()
+        s.start()
+        
+        s.bind_factory(A, A)
+        self.assertTrue(s.is_factory_bound(A))
+        self.assertFalse(s.is_bound(A))
+        
+        a = s.get(A)
+        self.assertTrue(s.is_bound(A))
+        
+        s.end()
+        self.assertTrue(s.is_factory_bound(A))
+        self.assertFalse(s.is_bound(A))
+        
+        s.start()
+        a2 = s.get(A)
+        self.assertFalse(a2 is a)
+        s.end()
     
     def testContextManager(self):
         '''RequestScope should support the context manager protocol.'''

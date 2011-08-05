@@ -48,7 +48,14 @@ class NotBoundError(KeyError):
     def __init__(self, key):
         msg = 'No binding for %s, use injector.bind to bind it.' \
             % str(key)
-        KeyError.__init__(self, msg)
+        super(NotBoundError, self).__init__(msg)
+
+
+class FactoryNotCallable(Exception):
+    
+    def __init__(self, factory):
+        msg = 'Factory must be callable, got: %r.' % factory
+        super(FactoryNotCallable, self).__init__(msg) 
 
 
 class MultipleAttrsFound(Exception):
