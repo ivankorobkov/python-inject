@@ -58,11 +58,55 @@ class ApplicationScope(AbstractScope):
         self.bind(ApplicationScope, self)
 
 
-class ThreadScope(threading.local, AbstractScope):
+class ThreadLocalBindings(threading.local):
+    
+    def __init__(self):
+        self._data = {}
+    
+    def __getitem__(self, key):
+        return self._data[key]
+    
+    def __setitem__(self, key, value):
+        self._data[key] = value
+    
+    def __delitem__(self, key):
+        del self._data[key]
+    
+    def __contains__(self, key):
+        return key in self._data
+    
+    def get(self, key):
+        return self._data.get(key)
+    
+    def __len__(self):
+        return len(self._data)
+    
+    def clear(self):
+        self._data = {}
+
+
+class ThreadScope(AbstractScope):
     
     '''ThreadScope is a thread-local scope.'''
     
     logger = logging.getLogger('inject.ThreadScope')
+    
+    def __init__(self):
+        self._bindings = ThreadLocalBindings()
+
+
+class RequestLocalBindings(ThreadLocalBindings):
+    
+    def __init__(self):
+        super(RequestLocalBindings, self).__init__()
+        self.request_started = False
+    
+    def start_request(self):
+        self.request_started = True
+    
+    def end_request(self):
+        self.clear()
+        self.request_started = False
 
 
 class RequestScope(ThreadScope):
@@ -95,7 +139,7 @@ class RequestScope(ThreadScope):
     logger = logging.getLogger('inject.RequestScope')
     
     def __init__(self):
-        self._bindings = None
+        self._bindings = RequestLocalBindings()
     
     def __enter__(self):
         self.start()
@@ -107,11 +151,11 @@ class RequestScope(ThreadScope):
     
     def start(self):
         '''Start a new request.'''
-        self._bindings = {}
+        self._bindings.start_request()
     
     def end(self):
         '''End the request and clear the bindings.'''
-        self._bindings = None
+        self._bindings.end_request()
     
     def bind(self, type, to):
         self._request_required()
@@ -126,7 +170,7 @@ class RequestScope(ThreadScope):
         return super(RequestScope, self).get(type)
     
     def _request_required(self):
-        if self._bindings is None:
+        if not self._bindings.request_started:
             raise NoRequestError()
 
 
