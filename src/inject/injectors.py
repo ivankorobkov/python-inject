@@ -48,7 +48,7 @@ the injections, 2) B{or create injector-specific injections}.
 import logging
 
 from inject.exc import InjectorAlreadyRegistered, NoInjectorRegistered, \
-    NotBoundError
+    NotBoundError, FactoryNotBoundError
 from inject.scopes import ApplicationScope, ThreadScope, RequestScope
 
 
@@ -121,22 +121,6 @@ class Injector(object):
         self.logger.info('Cleared all bindings.')
         self._init()
     
-    def bind(self, type, to=None):
-        '''Specify a binding for a type.'''
-        if type in self:
-            self.unbind(type)
-        
-        self._app_scope.bind(type, to)
-    
-    def unbind(self, type):
-        '''Unbind type in all scopes.'''
-        for scope in self._scopes_stack:
-            if scope.is_bound(type):
-                scope.unbind(type)
-                return
-        
-        raise NotBoundError(type)
-    
     def __contains__(self, type):
         '''Return True if type is bound, else return False.'''
         for scope in self._scopes_stack:
@@ -145,8 +129,27 @@ class Injector(object):
         
         return False
     
+    def bind(self, type, to=None):
+        '''Specify a binding for a type in the application scope.'''
+        if self.is_bound(type):
+            self.unbind(type)
+        
+        self._app_scope.bind(type, to)
+    
+    def unbind(self, type):
+        '''Unbind type in all scopes.
+        
+        @raise NotBoundError: if the type is not bound.
+        '''
+        for scope in self._scopes_stack:
+            if scope.is_bound(type):
+                scope.unbind(type)
+                return
+        
+        raise NotBoundError(type)
+    
     def is_bound(self, type):
-        '''Return True if type is bound, else return False.'''
+        '''Return True if the type is bound in any scope, else return False.'''
         for scope in self._scopes_stack:
             if scope.is_bound(type):
                 return True
@@ -160,7 +163,7 @@ class Injector(object):
             and autobind is False or the type is not callable.
         '''
         for scope in self._scopes_stack:
-            if type in scope:
+            if scope.is_bound(type) or scope.is_factory_bound(type):
                 return scope.get(type)
         
         if self._autobind and callable(type):
@@ -169,6 +172,39 @@ class Injector(object):
             return inst
         
         raise NotBoundError(type)
+    
+    #==========================================================================
+    # Factories
+    #==========================================================================
+    
+    def bind_factory(self, type, factory):
+        '''Bind a type factory in the application scope.'''
+        if self.is_factory_bound(type):
+            self.unbind_factory(type)
+        
+        self._app_scope.bind_factory(type, factory)
+    
+    def unbind_factory(self, type):
+        '''Unbind a type factory in all scopes.
+        
+        @raise FactoryNotBoundError: if there is no bound type factory.
+        '''
+        for scope in self._scopes_stack:
+            if scope.is_factory_bound(type):
+                scope.unbind_factory(type)
+                return
+        
+        raise FactoryNotBoundError(type)
+    
+    def is_factory_bound(self, type):
+        '''Return True if there is a bound type factory in any scope,
+        else return False.
+        '''
+        for scope in self._scopes_stack:
+            if scope.is_factory_bound(type):
+                return True
+        
+        return False
     
     #==========================================================================
     # Scopes

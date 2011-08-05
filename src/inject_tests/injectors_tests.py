@@ -109,6 +109,43 @@ class InjectorTestCase(unittest.TestCase):
         self.assertRaises(NotBoundError, injector.get, A)
 
 
+class InjectorFactoriesTestCase(unittest.TestCase):
+    
+    def testBindFactory(self):
+        class A(object): pass
+        class B(object): pass
+        
+        injector = Injector()
+        injector.bind_factory(A, B)
+        
+        self.assertTrue(injector.is_factory_bound(A))
+        self.assertFalse(injector.is_bound(A))
+        
+        a = injector.get(A)
+        self.assertTrue(isinstance(a, B))
+        self.assertTrue(injector.is_bound(A))
+        
+        a2 = injector.get(A)
+        self.assertTrue(a2 is a)
+    
+    def testUnbindFactory(self):
+        class A(object): pass
+        class B(object): pass
+        
+        injector = Injector()
+        injector.bind_factory(A, B)
+        
+        self.assertTrue(injector.is_factory_bound(A))
+        self.assertFalse(injector.is_bound(A))
+        
+        injector.get(A)
+        self.assertTrue(injector.is_bound(A))
+        
+        injector.unbind_factory(A)
+        self.assertFalse(injector.is_factory_bound(A))
+        self.assertTrue(injector.is_bound(A))
+
+
 class InjectorScopesTestCase(unittest.TestCase):
 
     def testBindScope(self):

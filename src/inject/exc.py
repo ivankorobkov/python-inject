@@ -51,6 +51,13 @@ class NotBoundError(KeyError):
         super(NotBoundError, self).__init__(msg)
 
 
+class FactoryNotBoundError(Exception):
+    
+    def __init__(self, type):
+        msg = 'No factory is bound for %r.' % type
+        super(FactoryNotBoundError, self).__init__(msg)
+
+
 class FactoryNotCallable(Exception):
     
     def __init__(self, factory):
