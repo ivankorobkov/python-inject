@@ -67,6 +67,13 @@ class Injector(object):
     injector = None
     
     @classmethod
+    def create(cls):
+        '''Instantiate a new injector, register it, and return it.'''
+        injector = cls()
+        injector.register()
+        return injector
+    
+    @classmethod
     def cls_get_injector(cls):
         '''Return a registered injector or raise an exception.
         
@@ -79,11 +86,28 @@ class Injector(object):
         return injector
     
     @classmethod
-    def cls_unregister(cls):
-        injector = cls.injector
+    def cls_register(cls, injector):
+        if cls.injector is not None:
+            raise InjectorAlreadyRegistered()
         
+        cls.injector = injector
+        cls.logger.info('Registered %r.', injector)
+    
+    @classmethod
+    def cls_unregister(cls, injector=None):
+        if injector and cls.injector is not injector:
+            return
+        
+        latter = cls.injector
         cls.injector = None
-        cls.logger.info('Unregistered %r.', injector)
+        cls.logger.info('Unregistered %r.', latter)
+    
+    @classmethod
+    def cls_is_registered(cls, injector=None):
+        if injector:
+            return cls.injector is injector
+        
+        return cls.injector is not None
     
     def __init__(self, autobind=True, default_config=True):
         self._autobind = autobind
@@ -249,22 +273,15 @@ class Injector(object):
         @raise InjectorAlreadyRegistered: if another injector is already
             registered.
         '''
-        if self.injector is not None:
-            raise InjectorAlreadyRegistered()
-        
-        Injector.injector = self        
-        self.logger.info('Registered %r.', self)
+        self.cls_register(self)
     
     def unregister(self):
         '''Unregister this injector.'''
-        if self.injector is not self:
-            return
-        
-        self.cls_unregister()
+        self.cls_unregister(self)
     
     def is_registered(self):
         '''Return whether this injector is registered.'''
-        return self.injector is self
+        return self.cls_is_registered(self)
 
 
 def get_instance(type, none=False):
@@ -277,18 +294,12 @@ def get_instance(type, none=False):
 
 
 def register(injector):
-    injector.register()
+    Injector.cls_register(injector)
 
 
 def unregister(injector=None):
-    if injector is None:
-        Injector.cls_unregister()
-    else:
-        injector.unregister()
+    Injector.cls_unregister(injector)
 
 
 def is_registered(injector=None):
-    if injector is None:
-        return Injector.injector is not None
-    else:
-        return Injector.injector is injector
+    return Injector.cls_is_registered(injector)
