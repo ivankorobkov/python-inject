@@ -1,14 +1,14 @@
-'''Utilities for imports.'''
+'''Utilities for lazy importing/referencing objects.'''
 import sys
-
 from functools import update_wrapper
 
 
 def _get_caller_globals():
-    '''Return an injection caller globals.
+    '''Return an injection caller globals or an empty dict.
     
-    This is an internal function which is used to get global required
-    by the lazy_import function.
+    This is an internal function which is used to get C{global} required
+    by the lazy_import function. It uses CPython C{sys._getframe} function,
+    and can fail to work on other implementations.
     '''
     b_frame = sys._getframe(2)
     if b_frame:
@@ -18,8 +18,10 @@ def _get_caller_globals():
 
 class LazyImport(object):
     
-    '''LazyImport is a wrapper around the lazy_import function, it delegates
+    '''LazyImport is a wrapper around the L{lazy_import} function, it delegates
     hash and equality methods to the imported object.
+    
+    It is guaranteed to work only with CPython.
     '''
     
     __slots__ = ('name', 'imp', '_obj')
@@ -52,12 +54,12 @@ class LazyImport(object):
 
 
 def lazy_import(name, globals):
-    '''Return a function which 1) lazily references a global object, or
-    2) lazily imports an object.
+    '''Return a closure (function) which 1) lazily references a global object,
+    or 2) lazily imports an object.
     
     Examples::
         
-        lazy_import('MyClass', globals()) => lazy reference to a global object.
+        lazy_import('MyClass', globals()) => a lazy reference to a global object.
         lazy_import('..mymodule.MyClass', None) => from ..mymodule import MyClass
         lazy_import('span.eggs', None) => from spam import eggs.
     
@@ -66,14 +68,14 @@ def lazy_import(name, globals):
     def func():
         obj = None
         if '.' not in name:
-            # Lazy global reference.
+            # Global reference.
             if globals and name in globals:
                 obj = globals[name]
             else:
                 raise ImportError('No local object named %s.' % name)
         
         else:
-            # Normal import.
+            # Import.
             modname, objname = name.rsplit('.', 1)
             
             obj = __import__(modname, globals, {}, [], -1)
@@ -94,4 +96,7 @@ def lazy_import(name, globals):
     return func
 
 
+'''
+@var lazy: LazyImport alias.
+'''
 lazy = LazyImport

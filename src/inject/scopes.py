@@ -254,9 +254,9 @@ class RequestScope(ThreadScope):
 
 
 '''
-@ivar appscope: ApplicationScope alias.
-@ivar threadscope: ThreadScope alias.
-@ivar reqscope: RequestScope alias.
+@var appscope: ApplicationScope alias.
+@var threadscope: ThreadScope alias.
+@var reqscope: RequestScope alias.
 '''
 appscope = ApplicationScope
 threadscope = ThreadScope
