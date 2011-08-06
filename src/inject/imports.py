@@ -7,7 +7,7 @@ def _get_caller_globals():
     '''Return an injection caller globals or an empty dict.
     
     This is an internal function which is used to get C{global} required
-    by the lazy_import function. It uses CPython C{sys._getframe} function,
+    by the L{lazy_import} function. It uses CPython C{sys._getframe} function,
     and can fail to work on other implementations.
     '''
     b_frame = sys._getframe(2)

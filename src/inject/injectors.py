@@ -284,7 +284,7 @@ class Injector(object):
 def get_instance(type, none=False):
     '''Return an instance from the registered injector.
     
-    @raise NoInjectorRegistered.
+    @raise NoInjectorRegistered: if no injector is registered.
     '''
     injector = Injector.cls_get_injector()
     return injector.get(type, none=none)

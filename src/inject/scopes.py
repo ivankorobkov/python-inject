@@ -1,9 +1,10 @@
 '''Scope is a specific container/context for bindings (any objects) and their
-factories. Injector accesses a stack of scopes when getting a specific binding.
+factories. L{Injector} accesses a stack of scopes when getting a specific binding.
 
-ApplicationScope stores bindings (singletons) for the whole application.
-ThreadScope stores unique bindings for each thread.
-RequestScope stores unique bindings for each request.
+    - L{AbstractScope} implements all bindings and factroies methods.
+    - L{ApplicationScope} stores bindings (singletons) for the whole application.
+    - L{ThreadScope} stores unique bindings for each thread.
+    - L{RequestScope} stores unique bindings for each thread/request.
 
 '''
 import logging
@@ -18,8 +19,8 @@ class AbstractScope(object):
     Subclassing:
         - Pass the C{bindings} param to the super constructor, the param
           can be any object which supports the base dict interface
-          (see L{TheadLocalBindings} for example).
-        - Set the logger class attribute to a specific logger instance.
+          (see L{ThreadLocalBindings} for example).
+        - Set the C{logger} class attribute to a specific logger instance.
     
     '''
     
@@ -33,7 +34,8 @@ class AbstractScope(object):
         return self.is_bound(type)
     
     def bind(self, type, to):
-        '''Create a binding for a type, override an existing binding if present'''
+        '''Create a binding for a type, override an existing binding if present.
+        '''
         if self.is_bound(type):
             self.logger.info('Overriding an existing binding for %r.', type)
             self.unbind(type)
@@ -48,10 +50,10 @@ class AbstractScope(object):
             self.logger.info('Unbound %r.', type)
     
     def is_bound(self, type):
-        '''Return True if there is a binding for a type.
+        '''Return true if there is a binding for a type.
         
         If there is a factory for the given type but it has not been
-        instantiated than return False.
+        instantiated than return false.
         '''
         return type in self._bindings
     
@@ -61,7 +63,7 @@ class AbstractScope(object):
         
         The factory is bound for the whole scope, i.e. TheadScope
         and RequestScope can have multiple bindings for each thread/request,
-        but only one factory for a type. However, the factory is intantiated
+        but only one factory for a type. However, the factory is instantiated
         for each thread/request.
         '''
         if not callable(factory):
@@ -75,7 +77,7 @@ class AbstractScope(object):
         self.logger.info('Bound factory for %r to %r.', type, factory)
     
     def unbind_factory(self, type):
-        '''Unbind a factory for a type if it is present, otherwise do nothing.'''
+        '''Unbind a factory for a type if it is present, else do nothing.'''
         if type in self._factories:
             del self._factories[type]
             self.logger.info('Unbound factory for %r.', type)
@@ -156,7 +158,7 @@ class ThreadScope(AbstractScope):
 
 class RequestLocalBindings(ThreadLocalBindings):
     
-    '''RequestLocalBindings class subclasses ThreadLocalBindings and can
+    '''RequestLocalBindings class subclasses L{ThreadLocalBindings} and can
     track whether a request has been started or not.
     ''' 
     
@@ -174,26 +176,29 @@ class RequestLocalBindings(ThreadLocalBindings):
 
 class RequestScope(ThreadScope):
     
-    '''RequestScope is a request-local thread-local scope, it stores unique
-    binding for each thread/request but shares the factories between
+    '''RequestScope is a request-local thread-local scope which stores unique
+    bindings for each thread/request but shares the factories between
     threads/requests.
     
     It must be explicitly started/ended for every request.
     
     It supports the context manager protocol (the with statement, Python 2.5+).
     
-    To use it start and end the requests, usually using the with statement,
-    or try/finally.
+    The L{bind}, L{unbind} and L{get} methods raise L{NoRequestError} if
+    there is no request, i.e. the scope L{start} method has not been called.
+    
+    To use the scope start and end requests, usually using the C{with}
+    statement, or C{try/finally}.
     
     WSGI example::
     
-        @inject.param('scope', RequestScope)
+        @inject.param('scope', inject.reqscope)
         def python25(environ, startresponse, scope):
             with scope:
                 startresponse()
                 return 'Response'
         
-        @inject.param('scope', RequestScope)
+        @inject.param('scope', inject.reqscope)
         def python24(environ, startresponse, scope):
             scope.start()
             try:
@@ -228,18 +233,26 @@ class RequestScope(ThreadScope):
         self._bindings.end_request()
     
     def bind(self, type, to):
-        '''Create a binding for a type, override an existing binding if present'''
+        '''Create a binding for a type, override an existing binding if present.
+        
+        @raise NoRequestError: if no request.
+        '''
         self._request_required()
         return super(RequestScope, self).bind(type, to)
     
     def unbind(self, type):
-        '''Unbind a binding for a type if it is preset, else do nothing.'''
+        '''Unbind a binding for a type if it is preset, else do nothing.
+        
+        @raise NoRequestError: if no request.
+        '''
         self._request_required()
         return super(RequestScope, self).unbind(type)
 
     def get(self, type):
         '''Return a bound object for a given type, or instantiate and bind
         it using a factory if it is present, or return None.
+        
+        @raise NoRequestError: if no request.
         '''
         self._request_required()
         return super(RequestScope, self).get(type)

@@ -1,5 +1,102 @@
-'''Injections are dependency injection points: an attribute descriptor,
-and a function decorator.
+'''Injections fetch bindings from an injector.
+L{inject.attr <AttributeInjection>}, L{inject.named_attr <NamedAttributeInjection>}
+and L{inject.class_attr <ClassAttributeInjection>} are descriptors which can
+be used inside classes, while L{inject.param <ParamInjection>} is a function
+decorator.
+
+Injections comparison
+=====================
+
+C{inject.attr}
+--------------
+L{AttributeInjection} can be accessed B{only inside bound methods}, it gets 
+a binding once for each instance, then finds its attribute name,
+and sets instance's attribute to the binding. All subsequent accesses
+of the instance's attribute does not require dependency injection.
+
+B{This injection can be affected by scope-widening problems}, i.e. when
+a request-scoped (or other narrow-scoped) object is injected into
+an application-scoped object. For example, when a request-scoped C{User}
+is injected into some application-scoped C{MailService}.
+
+To prevent such problems never inject narrow-scoped objects into wide-scoped
+objects or (if you have to) use L{inject.class_attr <ClassAttributeInjection>}
+or L{inject.param <ParamInjection>}.
+
+Example::
+    
+    class A(object): pass
+    class B(object):
+        a = inject.attr(A)
+    
+    b = B()
+    b.a # A is fetched from the injector and set as b's attribute.
+    b.a # Only an attribute is accessed, no injection is performed.
+
+
+C{inject.named_attr}
+--------------------
+L{NamedAttributeInjection} subclasses L{AttributeInjection} and requires
+an attribute name. It can be useful when metaclasses or other magic prevents
+L{AttributeInjection} from autodetecting its attribute name.
+
+B{This injection can be affected by scope-widening problems}. 
+
+Example::
+    
+    class A(object): pass
+    class B(object):
+        a = inject.named_attr('a', A)
+
+
+C{inject.class_attr}
+--------------------
+L{ClassAttributeInjection} can be accessed both inside B{class and}
+B{bound methods}. It does not set any class's or instance's attribute
+so every time it is accessed an injection is performed.
+
+This injection is not affected by scope-widening problems because
+it injects a binding every time it is accessed.
+
+Example::
+
+    class A(object): pass
+    class B(object):
+        a = inject.class_attr(A)
+        
+        @classmethod
+        def cls_print_a(cls):
+            a = cls.a
+            print a
+        
+        def print_a(self):
+            a = cls.a
+            print
+    
+    B.cls_print_a()
+    b = B()
+    b.print_a()
+
+
+C{inject.param}
+---------------
+L{ParamInjection} injects a binding into a function or a method every time
+it is called.
+
+This injection is not affected by scope-widening problems.
+
+Example::
+    
+    class A(object): pass
+    class B(object): pass
+    
+    @inject.param('a', A)
+    @inject.param('b', B)
+    def my_func(a, b):
+        print a, b
+    
+    my_func()
+
 '''
 from functools import update_wrapper
 
@@ -35,11 +132,16 @@ class AttributeInjection(object):
     '''AttributeInjection is a descriptor, which injects an instance into
     an attribute.
     
+    B{Alias}: C{attr}.
+    
     Example::
         
         class A(object): pass
         class B(object):
-            a = AttributeInjection(A)
+            a = attr(A)
+    
+    @see: L{inject.injections} for injections comparisons and detailed
+        description.
     
     '''
     
@@ -71,11 +173,16 @@ class NamedAttributeInjection(AttributeInjection):
     '''NamedAttributeInjection is a descriptor, which injects a dependency into
     a specified instance attribute.
     
+    B{Alias}: C{named_attr}.
+    
     Example::
         
         class A(object): pass
         class B(object):
-            a = NamedAttributeInjection('a', A)
+            a = named_attr('a', A)
+    
+    @see: L{inject.injections} for injections comparisons and detailed
+        description.
     
     '''
     
@@ -89,6 +196,12 @@ class ClassAttributeInjection(object):
     
     '''ClassAttributeInjection is a class descriptor, which resolves
     a dependency every time it is accessed.
+    
+    B{Alias}: C{class_attr}.
+    
+    @see: L{inject.injections} for injections comparisons and detailed
+        description.
+    
     '''
     
     point_class = InjectionPoint
@@ -105,6 +218,8 @@ class ParamInjection(object):
     '''ParamInjection is a function decorator, which injects the required
     non-given params directly into a function, passing them as keyword args.
     
+    B{Alias}: C{param}
+    
     Set an argument to C{super_param} to indicate that it is injected in
     a super class.
     
@@ -112,16 +227,19 @@ class ParamInjection(object):
         
         class A(object): pass
         class B(object):
-            @ParamInjection('a', A)
+            @param('a', A)
             def __init__(self, a):
                 self.a = a
         
         class C(B):
-            @ParamInjection('a2', A):
+            @param('a2', A):
             def __init__(self, a2, a=super_param):
                 super(C, self).__init__(a)
                 self.a2 = a2
-        
+    
+    @see: L{inject.injections} for injections comparisons and detailed
+        description.
+    
     '''
     
     def __new__(cls, name, type=None, none=False):

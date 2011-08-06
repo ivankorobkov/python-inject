@@ -4,13 +4,12 @@ from inject.exc import MultipleAttrsFound, NoAttrFound
 
 
 def get_attrname_by_value(obj, attrvalue):
-    '''Return a name for an attribute by its value.
+    '''Return a name for object's attribute by its value.
     
-    The function is used to find an attribute name by an injection descriptor
-    object. It first iterates over instance's __dict__, then fallbacks to
-    {inspect.getmembers()}.
+    It first iterates over instance's C{__dict__}, then fallbacks to
+    C{inspect.getmembers}. It is used by L{inject.injections.AttributeInjection}.
     
-    For example:
+    Example:
     
         >>> class A(object):
         >>>    a = 'myvalue'
@@ -19,7 +18,7 @@ def get_attrname_by_value(obj, attrvalue):
         >>>
     
     @raise MultipleAttrsFound: If multiple attributes are found for a given value.
-    @raise NoAttrFound: If not attribute is found for a given value.
+    @raise NoAttrFound: If no attribute is found for a given value.
     '''
     def _get(items):
         attrname = None
