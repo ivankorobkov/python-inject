@@ -135,11 +135,7 @@ You can find this file in I{examples/simple.py}::
 '''
 __version__ = '2.0-alpha'
 
-__all__ = ['exc',
-           'attr', 'named_attr', 'class_attr', 'param', 'super',
-           'Injector', 'get_instance',
-           'lazy'
-           'ApplicationScope', 'RequestScope', 'ThreadScope']
+
 from inject import exc
 from inject.injections import attr, named_attr, class_attr, param, \
     super_param as super
