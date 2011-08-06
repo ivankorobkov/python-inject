@@ -87,8 +87,9 @@ class Injector(object):
     
     @classmethod
     def cls_register(cls, injector):
-        if cls.injector is not None:
-            raise InjectorAlreadyRegistered()
+        another = cls.injector
+        if another is not None:
+            raise InjectorAlreadyRegistered(another)
         
         cls.injector = injector
         cls.logger.info('Registered %r.', injector)
