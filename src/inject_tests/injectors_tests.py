@@ -175,6 +175,12 @@ class InjectorRegisterTestCase(unittest.TestCase):
     def tearDown(self):
         Injector.cls_unregister()
     
+    def testCreate(self):
+        '''Injector.create should instantiate and register and injector.'''
+        injector = Injector.create()
+        
+        self.assertTrue(injector.is_registered())
+    
     def testRegisterUnregister(self):
         injector = Injector()
         injector2 = Injector()

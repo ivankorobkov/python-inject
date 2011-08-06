@@ -147,11 +147,7 @@ class Injector(object):
     
     def __contains__(self, type):
         '''Return True if type is bound, else return False.'''
-        for scope in self._scopes_stack:
-            if type in scope:
-                return True
-        
-        return False
+        return self.is_bound(type)
     
     def bind(self, type, to=None):
         '''Specify a binding for a type in the application scope.'''
