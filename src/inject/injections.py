@@ -43,11 +43,9 @@ class AttributeInjection(object):
     
     '''
     
-    def __init__(self, type, reinject=False, none=False):
+    def __init__(self, type, none=False):
         '''Create an injection for an attribute.'''
         self.attr = None
-        self.reinject = reinject
-        
         self.injection = InjectionPoint(type, none)
     
     def __get__(self, instance, owner):
@@ -59,9 +57,7 @@ class AttributeInjection(object):
             attr = self._get_set_attr(owner)
         
         obj = self.injection.get_instance()
-        
-        if not self.reinject:
-            setattr(instance, attr, obj)
+        setattr(instance, attr, obj)
         return obj
     
     def _get_set_attr(self, owner):
@@ -70,10 +66,10 @@ class AttributeInjection(object):
         return attr
 
 
-class NamedAttributeInjection(object):
+class NamedAttributeInjection(AttributeInjection):
     
     '''NamedAttributeInjection is a descriptor, which injects a dependency into
-    a specified class attribute.
+    a specified instance attribute.
     
     Example::
         
@@ -83,23 +79,10 @@ class NamedAttributeInjection(object):
     
     '''
     
-    def __init__(self, attr, type, reinject=False, none=False):
+    def __init__(self, attr, type, none=False):
         '''Create an injection for an attribute.'''
+        super(NamedAttributeInjection, self).__init__(type, none)
         self.attr = attr
-        self.reinject = reinject
-        
-        self.injection = InjectionPoint(type, none)
-    
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        
-        attr = self.attr
-        obj = self.injection.get_instance()
-        
-        if not self.reinject:
-            setattr(instance, attr, obj)
-        return obj
 
 
 class ClassAttributeInjection(object):

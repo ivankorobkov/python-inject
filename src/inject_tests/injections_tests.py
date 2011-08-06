@@ -81,23 +81,6 @@ class AttributeInjectionTestCase(unittest.TestCase):
         
         # It is still a, not a2.
         self.assertTrue(b.a is a)
-    
-    def testReinjecting(self):
-        '''AttributeInjection should support reinjecting dependencies.'''
-        class A(object): pass
-        class B(object):
-            a = AttributeInjection(A, reinject=True)
-        
-        a = A()
-        self.injector.bind(A, a)
-        
-        b = B()
-        self.assertTrue(b.a is a)
-        self.assertTrue(b.a is a) # Multiple accesses.
-        
-        a2 = A()
-        self.injector.bind(A, a2)
-        self.assertTrue(b.a is a2)
 
 
 class NamedAttributeInjectionTestCase(unittest.TestCase):
@@ -153,23 +136,6 @@ class NamedAttributeInjectionTestCase(unittest.TestCase):
         
         # It is still a, not a2.
         self.assertTrue(b.a is a)
-
-    def testReinjecting(self):
-        '''NamedAttributeInjection should support reinjecting dependencies.'''
-        class A(object): pass
-        class B(object):
-            a = NamedAttributeInjection('a', A, reinject=True)
-        
-        a = A()
-        self.injector.bind(A, a)
-        
-        b = B()
-        self.assertTrue(b.a is a)
-        self.assertTrue(b.a is a) # Multiple accesses.
-        
-        a2 = A()
-        self.injector.bind(A, a2)
-        self.assertTrue(b.a is a2)
 
 
 class ClassAttributeInjectionTestCase(unittest.TestCase):
