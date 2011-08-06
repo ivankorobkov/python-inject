@@ -1,6 +1,7 @@
 import unittest
 
-from inject.exc import NotBoundError
+from inject.exc import NotBoundError, InjectorAlreadyRegistered,\
+    FactoryNotBoundError, NoInjectorRegistered
 from inject.injectors import Injector
 from inject.scopes import ThreadScope
 
@@ -107,6 +108,14 @@ class InjectorTestCase(unittest.TestCase):
         
         injector = Injector(autobind=False)
         self.assertRaises(NotBoundError, injector.get, A)
+    
+    def testGetNone(self):
+        injector = Injector()
+        self.assertTrue(injector.get('some_key', none=True) is None)
+        
+        injector2 = Injector(autobind=False)
+        class A(object): pass
+        self.assertTrue(injector2.get(A, none=True) is None)
 
 
 class InjectorFactoriesTestCase(unittest.TestCase):
@@ -144,6 +153,12 @@ class InjectorFactoriesTestCase(unittest.TestCase):
         injector.unbind_factory(A)
         self.assertFalse(injector.is_factory_bound(A))
         self.assertTrue(injector.is_bound(A))
+    
+    def testUnbindFactoryNotBoundError(self):
+        class A(object): pass
+        
+        injector = Injector()
+        self.assertRaises(FactoryNotBoundError, injector.unbind_factory, A)
 
 
 class InjectorScopesTestCase(unittest.TestCase):
@@ -197,6 +212,13 @@ class InjectorRegisterTestCase(unittest.TestCase):
         injector.register()
         Injector.cls_unregister()
         self.assertTrue(Injector.injector is None)
+    
+    def testAlreadyRegistered(self):
+        Injector.create()
+        self.assertRaises(InjectorAlreadyRegistered, Injector.create)
+    
+    def testNoInjectorRegistered(self):
+        self.assertRaises(NoInjectorRegistered, Injector.cls_get_injector)
     
     def testIsRegistered(self):
         injector = Injector()

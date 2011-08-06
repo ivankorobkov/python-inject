@@ -3,6 +3,7 @@ import unittest
 
 from inject.scopes import NoRequestError, ApplicationScope, \
     RequestScope, ThreadScope
+from inject.exc import FactoryNotCallable
 
 
 class A(object):
@@ -74,6 +75,11 @@ class ApplicationScopeTestCase(unittest.TestCase):
         
         a2 = s.get(A)
         self.assertTrue(a2 is a)
+    
+    def testBindFactoryNotCallable(self):
+        s = self.new_scope()
+        self.assertRaises(FactoryNotCallable, s.bind_factory, 'some_key',
+                          'not_callable')
     
     def testUnbindFactory(self):
         s = self.new_scope()
