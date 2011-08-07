@@ -110,7 +110,6 @@ class ApplicationScope(AbstractScope):
     
     def __init__(self):
         super(ApplicationScope, self).__init__({})
-        self.bind(ApplicationScope, self)
 
 
 class ThreadLocalBindings(threading.local):

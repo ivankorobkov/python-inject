@@ -49,6 +49,7 @@ import logging
 
 from inject.exc import InjectorAlreadyRegistered, NoInjectorRegistered, \
     NotBoundError, FactoryNotBoundError
+from inject.log import configure_stdout_handler
 from inject.scopes import ApplicationScope, ThreadScope, RequestScope
 
 
@@ -67,9 +68,10 @@ class Injector(object):
     injector = None
     
     @classmethod
-    def create(cls):
+    def create(cls, autobind=True, default_config=True, echo=False):
         '''Instantiate a new injector, register it, and return it.'''
-        injector = cls()
+        injector = cls(autobind=autobind, default_config=default_config,
+                       echo=echo)
         injector.register()
         return injector
     
@@ -110,9 +112,11 @@ class Injector(object):
         
         return cls.injector is not None
     
-    def __init__(self, autobind=True, default_config=True):
+    def __init__(self, autobind=True, default_config=True, echo=False):
         self._autobind = autobind
         self._default_config = default_config
+        if echo:
+            configure_stdout_handler()
         
         self._init()
     
