@@ -69,7 +69,11 @@ class Injector(object):
     
     @classmethod
     def create(cls, autobind=True, default_config=True, echo=False):
-        '''Instantiate a new injector, register it, and return it.'''
+        '''Create and register a new injector, and return it.
+    
+        @raise InjectorAlreadyRegistered: if another injector is already
+            registered.
+        '''
         injector = cls(autobind=autobind, default_config=default_config,
                        echo=echo)
         injector.register()
@@ -89,6 +93,11 @@ class Injector(object):
     
     @classmethod
     def cls_register(cls, injector):
+        '''Register an injector.
+        
+        @raise InjectorAlreadyRegistered: if another injector is already
+            registered.
+        '''
         another = cls.injector
         if another is not None:
             raise InjectorAlreadyRegistered(another)
@@ -283,6 +292,15 @@ class Injector(object):
     def is_registered(self):
         '''Return whether this injector is registered.'''
         return self.cls_is_registered(self)
+
+
+def create(autobind=True, default_config=True, echo=False):
+    '''Create and register a new injector, and return it.
+    
+    @raise InjectorAlreadyRegistered: if another injector is already registered.
+    '''
+    return Injector.create(autobind=autobind, default_config=default_config,
+                           echo=echo)
 
 
 def get_instance(type, none=False):
