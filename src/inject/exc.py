@@ -53,7 +53,18 @@ class FactoryNotCallable(Exception):
     
     def __init__(self, factory):
         msg = 'Factory must be callable, got: %r.' % factory
-        super(FactoryNotCallable, self).__init__(msg) 
+        super(FactoryNotCallable, self).__init__(msg)
+
+
+class AutobindingFailed(Exception):
+    
+    '''AutobindingFailed is raised when an injector has failed
+    to autobind a type.
+    ''' 
+    
+    def __init__(self, type, caused_by):
+        msg = u'Autobinding of %r failed because of %r' % (type, caused_by)
+        return super(AutobindingFailed, self).__init__(msg)
 
 
 class NoRequestError(Exception):

@@ -48,7 +48,7 @@ the injections, 2) B{or create injector-specific injections}.
 import logging
 
 from inject.exc import InjectorAlreadyRegistered, NoInjectorRegistered, \
-    NotBoundError, FactoryNotBoundError
+    NotBoundError, FactoryNotBoundError, AutobindingFailed
 from inject.log import configure_stdout_handler
 from inject.scopes import ApplicationScope, ThreadScope, RequestScope
 
@@ -204,7 +204,11 @@ class Injector(object):
                 return scope.get(type)
         
         if self._autobind and callable(type):
-            inst = type()
+            try:
+                inst = type()
+            except Exception, e:
+                raise AutobindingFailed(type, e)
+            
             self.bind(type, inst)
             return inst
         
