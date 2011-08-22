@@ -9,7 +9,7 @@ factories. L{Injector} accesses a stack of scopes when getting a specific bindin
 '''
 import logging
 import threading
-from inject.exc import NoRequestError, FactoryNotCallable
+from inject.exc import NoRequestError
 
 
 class AbstractScope(object):
@@ -67,7 +67,7 @@ class AbstractScope(object):
         for each thread/request.
         '''
         if not callable(factory):
-            raise FactoryNotCallable(factory)
+            raise TypeError('Factory must be callable, got: %r' % factory)
         
         if self.is_factory_bound(type):
             self.logger.info('Overriding an existing factory for %r.', type)
