@@ -1,4 +1,4 @@
-'''Utilities for lazy importing/referencing objects.'''
+'''Lazy importing and referencing.'''
 import sys
 from functools import update_wrapper
 
@@ -97,6 +97,6 @@ def lazy_import(name, globals):
 
 
 '''
-@var lazy: LazyImport alias.
+@var lazy: L{LazyImport} alias.
 '''
 lazy = LazyImport
