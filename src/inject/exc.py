@@ -33,15 +33,6 @@ class NotBoundError(Exception):
         super(NotBoundError, self).__init__(msg)
 
 
-class FactoryNotBoundError(Exception):
-    
-    '''No bound factory for a type.'''
-    
-    def __init__(self, type):
-        msg = 'No factory is bound for %r.' % type
-        super(FactoryNotBoundError, self).__init__(msg)
-
-
 class AutobindingFailed(Exception):
     
     '''Injector has failed to autobind a type.''' 

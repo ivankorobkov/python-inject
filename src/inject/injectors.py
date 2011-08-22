@@ -33,13 +33,14 @@ Injection points use the L{Injector.get} method to get bindings for types.
 
 An injector by default creates and binds all scopes: L{ApplicationScope},
 L{ThreadScope}, and L{RequestScope}. An injector cannot be used without
-a bound application scope.
+a bound application scope. Scopes are stored in a stack. By default,
+they are accessed in this order: [application, thread, request].
 
 '''
 import logging
 
 from inject.exc import InjectorAlreadyRegistered, NoInjectorRegistered, \
-    NotBoundError, FactoryNotBoundError, AutobindingFailed
+    NotBoundError, AutobindingFailed
 from inject.log import configure_stdout_handler
 from inject.scopes import ApplicationScope, ThreadScope, RequestScope
 
@@ -173,16 +174,11 @@ class Injector(object):
         self._app_scope.bind(type, to)
     
     def unbind(self, type):
-        '''Unbind the first occurrence of a type in any scope.
-        
-        @raise NotBoundError: if the type is not bound.
-        '''
+        '''Unbind the first occurrence of a type in any scope.'''
         for scope in self._scopes_stack:
             if scope.is_bound(type):
                 scope.unbind(type)
                 return
-        
-        raise NotBoundError(type)
     
     def is_bound(self, type):
         '''Return true if a type is bound in any scope, else return False.'''
@@ -233,17 +229,11 @@ class Injector(object):
         self._app_scope.bind_factory(type, factory)
     
     def unbind_factory(self, type):
-        '''Unbind the first occurrence of a type factory in any scope,
-        or raise an error.
-        
-        @raise FactoryNotBoundError: if there is no bound type factory.
-        '''
+        '''Unbind the first occurrence of a type factory in any scope.'''
         for scope in self._scopes_stack:
             if scope.is_factory_bound(type):
                 scope.unbind_factory(type)
                 return
-        
-        raise FactoryNotBoundError(type)
     
     def is_factory_bound(self, type):
         '''Return true if there is a bound type factory in any scope,

@@ -1,7 +1,7 @@
 import unittest
 
-from inject.exc import NotBoundError, InjectorAlreadyRegistered,\
-    FactoryNotBoundError, NoInjectorRegistered
+from inject.exc import NotBoundError, InjectorAlreadyRegistered, \
+    NoInjectorRegistered
 from inject.injectors import Injector
 from inject.scopes import ThreadScope
 
@@ -154,11 +154,11 @@ class InjectorFactoriesTestCase(unittest.TestCase):
         self.assertFalse(injector.is_factory_bound(A))
         self.assertTrue(injector.is_bound(A))
     
-    def testUnbindFactoryNotBoundError(self):
+    def testUnbindNotPresentFactory(self):
         class A(object): pass
         
         injector = Injector()
-        self.assertRaises(FactoryNotBoundError, injector.unbind_factory, A)
+        injector.unbind_factory(A) # Nothing happens.
 
 
 class InjectorScopesTestCase(unittest.TestCase):
