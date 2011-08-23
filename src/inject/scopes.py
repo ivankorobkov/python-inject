@@ -1,10 +1,11 @@
 '''Scope is a specific container/context for bindings (any objects) and their
-factories. L{Injector} accesses a stack of scopes when getting a specific binding.
+factories. L{Injector} accesses a stack of scopes to get bindings.
 
-    - L{AbstractScope} implements all bindings and factroies methods.
+    - L{AbstractScope} implements all bindings and factories methods.
     - L{ApplicationScope} stores bindings (singletons) for the whole application.
     - L{ThreadScope} stores unique bindings for each thread.
     - L{RequestScope} stores unique bindings for each thread/request.
+    - All scopes share factories between threads.
 
 '''
 import logging
@@ -14,7 +15,7 @@ from inject.exc import NoRequestError
 
 class AbstractScope(object):
     
-    '''Abstract scope implements all bindings and factories methods.
+    '''Abstract scope which implements all bindings and factories methods.
     
     Subclassing:
         - Pass the C{bindings} param to the super constructor, the param

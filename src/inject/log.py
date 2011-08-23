@@ -1,4 +1,4 @@
-'''Stdout handler configuration for the C{"inject"} logger.'''
+'''Stdout handler configuration for the C{inject} logger.'''
 import sys
 import logging
 import threading
@@ -9,7 +9,7 @@ _has_stdout_handler = False
 
 
 def configure_stdout_handler():
-    '''Create an stdout logging handler for the C{"inject"} logger.'''
+    '''Create an stdout logging handler for the C{inject} logger.'''
     global _has_stdout_handler
     
     with _lock:
