@@ -1,19 +1,9 @@
-``inject`` is a fast python dependency injection tool. It uses decorators and 
-descriptors to reference external dependencies, and scopes (Guice-inspired) to 
-specify how to reuse objects. Dependencies can be referenced by types and 
-optional annotations. No configuration is required, but advanced in-code 
-configuration is possible.
+``python-inject`` is a fast and simple to use python dependency injection
+framework. It uses decorators and descriptors to reference external
+dependencies, and scopes to specify objects life-cycles.
 
-Most other python dependency injection tools, such as PyContainer or Spring 
-Python, are ports from other languages (Java). So they are based on dependency 
-injection ways specific for statically typed languages, described by Martin 
-Fowler.
-
-Python is not Java. Patterns and programming techniques, which seem proper and 
-usable in one language, can be awkward in another. Inject has been created to 
-provide a `pythonic` way of dependency injection, utilizing specific Python 
-functionality. Terminology used in `inject` has been intentionally made similar
-to Guice, however the internal architecture is different.
+``python-inject`` has been created to provide the `pythonic` way of dependency 
+injection, utilizing specific Python functionality.
 
 License
 =======
@@ -29,105 +19,133 @@ Links
 
 Example
 =======
-::
-
-    import inject
+You can find this file in ``examples/simple.py``::
     
-    @inject.appscope
-    class Config(object): pass
-    class A(object): pass
-    class B(object): pass
+    """Basic python-inject example, execute it to see the output.
     
-    class C(object):
+    All memcached, redis and mail classes are dummy classes that do not connect
+    to anything. They are only used to demonstrate the dependency injection
+    principle and python-inject functionality.
+    """
+    import inject    
+    
+    class Memcached(object):
+        """Dummy memcached backend, always returns None."""
+        def __init__(self, host, port):
+            print 'Connected memcached to %s:%s' % (host, port)
         
-        config = inject.attr('config', Config)
-        a = inject.attr('a', A)
+        def get(self, key):
+            """Always return None."""
+            return None
     
-        @inject.param('b', B):
-        def __init__(self, b):
-            self.b = b
+    class Redis(object):
+        """Redis backend, always returns a new User instance for any key."""
+        def __init__(self, host, port):
+            print 'Connected redis to %s:%s' % (host, port)
+        
+        def get(self, key):
+            return User("Ivan Korobkov", "ivan.korobkov@gmail.com")
     
-    c = C()
+    class MailService(object):
+        """Sends emails."""
+        def send(self, email, text):
+            """send an email."""
+            print "Sent an email to %s, text=%s." % (email, text)
+    
+    
+    class User(object):
+    
+        """Example model."""
+    
+        # Both Redis and Memcached are injected as class attributes
+        # so they can be accessed from the classmethods.
+        redis = inject.class_attr(Redis)
+        memcached = inject.class_attr(Memcached)
+        
+        # MailService is injected as a normal attribute, it can be accessed
+        # only from the normal (bound) methods, not classmethods.
+        mail_service = inject.attr(MailService)
+        
+        @classmethod
+        def get_by_id(cls, id):
+            """Get a user from memcached, if not present fallback to redis."""
+            key = 'user-%s' % id
+            user = cls.memcached.get(key)
+            if user:
+                return user
+            user = cls.redis.get(key)
+            print 'Loaded %s from redis.' % user
+            return user
+        
+        def __init__(self, name, email):
+            self.name = name
+            self.email = email
+        
+        def __str__(self):
+            return '<User "%s">' % self.name
+        
+        @inject.param("hello_text")
+        def greet(self, hello_text):
+            """Send a greeting email to the user.
+            
+            @param hello_text: Demonstrates injecting params into functions. 
+            """
+            text = hello_text % self.name
+            self.mail_service.send(self.email, text)
+    
+    
+    if __name__ == '__main__':
+        """Register an injector, configure the bindings and send a greeting
+        email to a user. Usually, you should store your bindings in another
+        function (or functions) in another module.
+        
+        For example:
+            # bindings.py
+            def config(injector):
+                config_redis(injector)
+                config_memcached(injector)
+                # etc.
+            
+            def config_redis(injector)
+                redis = Redis('myhost', 1234)
+                injector.bind(Redis, redis)
+            
+            def config_memached(injector):
+                memcached = Memcached('myhost', 2345)
+                injector.bind(Memcached, memcached)
+        
+        """
+        injector = inject.Injector()
+        injector.register()
+        
+        memcached = Memcached('localhost', 2345)
+        redis = Redis('localhost', 1234)
+        
+        injector.bind(Redis, redis)
+        injector.bind(Memcached, memcached)
+        injector.bind("hello_text", "Hello, %s!")
+        
+        user = User.get_by_id(10)
+        user.greet()
+
 
 Key features
 ============
-- Fast, only 2-3 times slower that direct instantiation.
-- Normal way of instantiating objects, ``Class(*args, **kwargs)``.
-- Injecting arguments into functions and methods.
-- Referencing dependencies by types and optional annotations.
-- Binding to callables, instances and unbound methods (see [nvokers).
-- Request scope middleware for WSGI and Django applications (requires 
-  Python2.5+).
-- No configuration required at all.
-- Advanced flexible configuration possible::
-    
-    injector.bind(Class, to=Class2)
-    injector.bind(Database, annotation='user', to=UsersDatabase,
-                  scope=appscope)
-    injector.bind('app_started_at', to=datetime.now())
-    injector.bind('some_var', to=Class.unbound_method)
+- Fast and easy to use.
+- Attribute and argument injections::
 
-- Two injection methods, a descriptor and a decorator::
-    
     class My(object):
-        attr = inject.attr('attr', Class2)
+        attr = inject.attr(A)
+        attr2 = inject.named_attr('attr2', B)
+        attr3 = inject.class_attr(C)
     
-    @inject.param('param', Class2):
+    @inject.param('param', D):
     def myfunc(param):
         pass
-       
-- Support for inheritance by passing ``inject.super`` as the default kwarg 
-  value::
-    
-    class My(object):
-        @inject.param('param1', Class1)
-        def __init__(self, param1):
-            self.param1 = param1
-    
-    class My2(My):
-        @inject.param('param2', Class2)
-        def __init__(self, param2, param1=inject.super):
-            super(My2, self).__init__(param1=param1)
-            self.param2 = param2
 
-- Invokers to call unbound methods (cool for listeners)::
-    
-    class My(object):
-        def get_data(self):
-            pass
-    
-    # Create an invoker, which calls an unbound method.
-    invoker = inject.invoker(My.get_data)
-    data = invoker()
-    
-    # Bind directly to an unbound method.
-    @inject.param('data', My.get_data)
-    def func(data):
-        pass
-       
-- Partial injections, when only some arguments are injected::
-    
-    @inject.param('logger', Logger)
-    def mylog(msg, logger):
-        pass
-    
-    mylog('My message')
-       
-- Scopes: application (singleton), request, noscope::
-    
-    class Controller(object):
-        session = inject.attr('session', Session, scope=reqscope)
-    
-    # or in configuration
-    injector.bind(Session, to=Session, scope=reqscope)
-    
-    # or set the default scope
-    @reqscope
-    class Session(object):
-        pass
-    
-    @appscope
-    class DatabasePool(object):
-        pass
-       
+- Normal way of instantiating objects, ``Class(*args, **kwargs)``.
+- Autobinding.
+- Application, thread and request scopes.
+- Request scope middleware for WSGI and Django applications.
+
 - Easy integration into existing projects.
