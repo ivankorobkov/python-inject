@@ -131,9 +131,9 @@ You can find this file in I{examples/simple.py}::
 @author: Ivan Korobkov <ivan.korobkov@gmail.com>
 @copyright: 2010, 2011 Ivan Korobkov
 @license: MIT License, see LICENSE
-@version: 2.0-alpha
+@version: 2.0-beta
 '''
-__version__ = '2.0-alpha'
+__version__ = '2.0-beta'
 
 
 from inject import exc
