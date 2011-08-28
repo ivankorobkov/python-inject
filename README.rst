@@ -5,10 +5,6 @@ dependencies, and scopes to specify objects life-cycles.
 ``python-inject`` has been created to provide the `pythonic` way of dependency 
 injection, utilizing specific Python functionality.
 
-License
-=======
-MIT License, see LICENSE.
-
 Links
 =====
 - Project's site: http://code.google.com/p/python-inject
@@ -16,6 +12,26 @@ Links
 - Tutorial:       http://code.google.com/p/python-inject/wiki/Tutorial
 - API:            http://api.python-inject.googlecode.com/hg/html/index.html
 - Source code:    http://github.com/ivan-korobkov/python-inject
+
+Key features
+============
+- Fast and easy to use.
+- Attribute and argument injections::
+
+    class My(object):
+        attr = inject.attr(A)
+        attr2 = inject.named_attr('attr2', B)
+        attr3 = inject.class_attr(C)
+    
+    @inject.param('param', D):
+    def myfunc(param):
+        pass
+
+- Normal way of instantiating objects, ``Class(*args, **kwargs)``.
+- Autobinding.
+- Application, thread and request scopes.
+- Request scope middleware for WSGI and Django applications.
+- Easy integration into existing projects.
 
 Example
 =======
@@ -129,23 +145,6 @@ You can find this file in ``examples/simple.py``::
         user.greet()
 
 
-Key features
-============
-- Fast and easy to use.
-- Attribute and argument injections::
-
-    class My(object):
-        attr = inject.attr(A)
-        attr2 = inject.named_attr('attr2', B)
-        attr3 = inject.class_attr(C)
-    
-    @inject.param('param', D):
-    def myfunc(param):
-        pass
-
-- Normal way of instantiating objects, ``Class(*args, **kwargs)``.
-- Autobinding.
-- Application, thread and request scopes.
-- Request scope middleware for WSGI and Django applications.
-
-- Easy integration into existing projects.
+License
+=======
+MIT License, see LICENSE.
