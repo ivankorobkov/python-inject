@@ -27,10 +27,8 @@ class LazyImport(object):
     __slots__ = ('name', 'imp', '_obj')
     
     def __init__(self, name):
-        globals = _get_caller_globals()
-        
         self.name = name
-        self.imp = lazy_import(name, globals)
+        self.imp = lazy_import(name, _get_caller_globals())
         self._obj = None
     
     def __repr__(self):

@@ -3,12 +3,7 @@ include LICENSE
 include MANIFEST.in
 include README.rst
 
-include API/*
-include Examples/tutorial.py
-include Examples/wsgi.py
-include Examples/django_example/*.py
-include Examples/django_example/README
- 
-recursive-include Docs *
-recursive-include Logos *
-recursive-include Source/inject_tests *.py
+recursive-include api *
+recursive-include docs *
+recursive-include examples *
+recursive-include src/inject_tests *.py
