@@ -46,7 +46,11 @@ class DjangoInjectMiddleware(object):
     
     def process_request(self, request):
         '''Register a request scope for a request.'''
-        self.scope.start()
+        from django.http import HttpRequest
+        
+        scope = self.scope
+        scope.start()
+        scope.bind(HttpRequest, request)
     
     def process_response(self, request, response):
         '''Unregister a request scope.'''
