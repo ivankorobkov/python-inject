@@ -65,12 +65,11 @@ class InjectorTestCase(unittest.TestCase):
         injector.unbind(A)
         self.assertFalse(injector.is_bound(A))
     
-    def testUnbindNotBoundError(self):
-        '''Injector.unbind should raise NotBoundError.'''
+    def testUnbindNotBoundNoError(self):
         class A(object): pass
         
         injector = Injector()
-        self.assertRaises(NotBoundError, injector.unbind, A)
+        injector.unbind(A)
     
     def testGet(self):
         '''Injector.get should return an instance.'''

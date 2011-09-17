@@ -33,6 +33,15 @@ class NotBoundError(Exception):
         super(NotBoundError, self).__init__(msg)
 
 
+class FactoryNotCallable(Exception):
+    
+    '''Factory is not a callable.'''
+    
+    def __init__(self, factory):
+        msg = 'Factory must be callable, got: %r.' % factory
+        super(FactoryNotCallable, self).__init__(msg) 
+
+
 class AutobindingFailed(Exception):
     
     '''Injector has failed to autobind a type.''' 
