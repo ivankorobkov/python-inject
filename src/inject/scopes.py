@@ -1,21 +1,29 @@
 '''Scope is a specific container/context for bindings (any objects) and their
-factories. L{Injector} accesses a stack of scopes to get bindings.
+factories. L{Injector} accesses a stack of scopes when getting a specific binding.
 
-    - L{AbstractScope} implements all bindings and factories methods.
+    - L{AbstractScope} implements all bindings and factroies methods.
     - L{ApplicationScope} stores bindings (singletons) for the whole application.
+    - L{NoScope} stores bindings (singletons) for the whole application,
+        but does not store autobound objects and objects created by factories.
     - L{ThreadScope} stores unique bindings for each thread.
     - L{RequestScope} stores unique bindings for each thread/request.
-    - All scopes share factories between threads.
+
+ApplicationScope vs NoScope
+---------------------------
+
+ApplicationScope stores bindings which are created by factories,
+so that they are created only once. NoScope uses factories
+to create a new object every time a binding is accessed.
 
 '''
 import logging
 import threading
-from inject.exc import NoRequestError
+from inject.exc import NoRequestError, FactoryNotCallable
 
 
 class AbstractScope(object):
     
-    '''Abstract scope which implements all bindings and factories methods.
+    '''Abstract scope implements all bindings and factories methods.
     
     Subclassing:
         - Pass the C{bindings} param to the super constructor, the param
@@ -68,7 +76,7 @@ class AbstractScope(object):
         for each thread/request.
         '''
         if not callable(factory):
-            raise TypeError('Factory must be callable, got: %r' % factory)
+            raise FactoryNotCallable(factory)
         
         if self.is_factory_bound(type):
             self.logger.info('Overriding an existing factory for %r.', type)
@@ -99,6 +107,31 @@ class AbstractScope(object):
             inst = factory()
             self.bind(type, inst)
             return inst
+
+
+class NoScope(AbstractScope):
+    
+    '''NoScope stores bindings (singletons) for the whole application
+    as ApplicationScope, but NoScope does not store autobound objects
+    and objects which are created by factories.
+    '''
+    
+    logger = logging.getLogger('inject.NoScope')
+    
+    def __init__(self):
+        super(NoScope, self).__init__({})
+    
+    def get(self, type):
+        '''Return a bound object for a given type, or instantiate
+        but *do not bind* it using a factory if it is present,
+        or return None.
+        '''
+        if type in self._bindings:
+            return self._bindings.get(type)
+        
+        elif type in self._factories:
+            factory = self._factories[type]
+            return factory()
 
 
 class ApplicationScope(AbstractScope):

@@ -2,7 +2,8 @@ import threading
 import unittest
 
 from inject.scopes import NoRequestError, ApplicationScope, \
-    RequestScope, ThreadScope
+    NoScope, RequestScope, ThreadScope
+from inject.exc import FactoryNotCallable
 
 
 class A(object):
@@ -77,7 +78,8 @@ class ApplicationScopeTestCase(unittest.TestCase):
     
     def testBindFactoryNotCallable(self):
         s = self.new_scope()
-        self.assertRaises(TypeError, s.bind_factory, 'some_key', 'not_callable')
+        self.assertRaises(FactoryNotCallable, s.bind_factory, 'some_key',
+                          'not_callable')
     
     def testUnbindFactory(self):
         s = self.new_scope()
@@ -92,6 +94,40 @@ class ApplicationScopeTestCase(unittest.TestCase):
         s.unbind_factory(A)
         self.assertFalse(s.is_factory_bound(A))
         self.assertTrue(s.is_bound(A))
+
+
+class NoScopeTestCase(ApplicationScopeTestCase):
+    
+    def new_scope(self):
+        return NoScope()
+    
+    def testBindFactory(self):
+        s = self.new_scope()
+        
+        s.bind_factory(A, A)
+        self.assertTrue(s.is_factory_bound(A))
+        self.assertFalse(s.is_bound(A))
+        
+        a = s.get(A)
+        self.assertTrue(isinstance(a, A))
+        self.assertFalse(s.is_bound(A))
+        
+        a2 = s.get(A)
+        self.assertTrue(a2 is not a)
+    
+    def testUnbindFactory(self):
+        s = self.new_scope()
+        
+        s.bind_factory(A, A)
+        self.assertTrue(s.is_factory_bound(A))
+        self.assertFalse(s.is_bound(A))
+        
+        s.get(A)
+        self.assertFalse(s.is_bound(A))
+        
+        s.unbind_factory(A)
+        self.assertFalse(s.is_factory_bound(A))
+        self.assertFalse(s.is_bound(A))
 
 
 class ThreadScopeTestCase(ApplicationScopeTestCase):
