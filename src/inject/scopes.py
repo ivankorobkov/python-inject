@@ -301,9 +301,11 @@ class RequestScope(ThreadScope):
 
 '''
 @var appscope: ApplicationScope alias.
+@var noscope: NoScope alias.
 @var threadscope: ThreadScope alias.
 @var reqscope: RequestScope alias.
 '''
 appscope = ApplicationScope
+noscope = NoScope
 threadscope = ThreadScope
 reqscope = RequestScope
