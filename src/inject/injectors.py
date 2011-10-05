@@ -313,6 +313,11 @@ def get_instance(type, none=False):
     return injector.get(type, none=none)
 
 
+def get_injector():
+    '''Return the current injector.'''
+    return Injector.injector
+
+
 def register(injector):
     '''Register an injector.'''
     Injector.cls_register(injector)
