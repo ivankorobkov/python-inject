@@ -37,6 +37,21 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'django_example.urls'
 
 #==============================================================================
-# Don't forget to import the bindings
+# python-inject configuration
 #==============================================================================
-import bindings #@UnusedImport
+import inject
+
+
+def config_bindings(injector):
+    import bindings
+    bindings.config(injector)
+
+# Settings can be imported multiple times.
+# This condition prevents AnotherInjectorRegisteredException.
+if not inject.is_registered():
+    # Lazy injector is created so that django's settings can be accessed
+    # in the bindings.py file.
+    inject.create_lazy(config_bindings, autobind=False)
+
+
+TEST_PS = '<p><small>Powered by python-inject</small</p>'

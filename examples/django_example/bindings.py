@@ -1,19 +1,14 @@
 '''Example bindings configuration.'''
 import inject
-from datetime import datetime
+from django.conf import settings # To test circular imports.
+# Always include django project name in the import name, because
+# django_example.models and models can be different modules (WTF?)
+# with different classes.
+from django_example.models import Article
 
 
-# Create and REGISTER it!
-injector = inject.Injector()
-inject.register(injector)
-
-# Add all your bindings.
-
-# This dependency is instantiated only once for the whole application.
-injector.bind('app_started_at', to=datetime.now, scope=inject.appscope)
-
-# Once for every request.
-injector.bind('req_started_at', to=datetime.now, scope=inject.reqscope)
-
-# Every time when accessed.
-injector.bind('req_ended_at', to=datetime.now)
+def config(injector):
+    '''Configure injector bindings.'''
+    article = Article('Motto', 'Don\'t worry, just make an effort.' + 
+                      settings.TEST_PS)
+    injector.bind(Article, article)

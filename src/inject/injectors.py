@@ -248,6 +248,81 @@ class Injector(object):
         return is_registered(self)
 
 
+class LazyInjector(object):
+    
+    '''C{LazyInjector} creates, registers and configures a real injector
+    on the first dependency injection. It provides lazy loading of bindings
+    so that C{python-inject} can be used inside C{django}'s C{settings.py}. 
+    
+    C{LazyInjector} is thread-safe.
+    
+    Example::
+        # at the bottom of settings.py
+        def configure_bindings(injector):
+            import bindings
+            bindings.configure(injector)
+        
+        # Django settings can be imported multiple times.
+        # Skip, if another injector is already registered.
+        if not inject.is_registered():
+            inject.create_lazy(configure_bindings)
+        
+        # bindings.py
+        from django.conf import settings
+        
+        def configure(injector):
+            # Access django settings without circular dependency errors.
+            my_inst = MyClass(settings.MY_SETTING)
+            injector.bind(MyClass, my_inst)
+    
+    '''
+    
+    logger = logging.getLogger('inject.LazyInjector')
+    ATTRS = ('config', 'factory', 'args', 'kwargs')
+    
+    def __init__(self, config, factory=Injector, *args, **kwargs):
+        '''Create a new lazy injector.
+        
+        @param config: A callable which takes an injector and configures
+            its bindings.
+        @param factory: An injector factory which is used to create
+            a real injector.
+        @param args: Positional arguments which are passed to the factory.
+        @param kwargs: Keyword arguments which are passed to the factory.
+        '''
+        self.config = config
+        self.factory = factory
+        self.args = args
+        self.kwargs = kwargs
+    
+    def __getattr__(self, key):
+        injector = self._init_real_injector()
+        return getattr(injector, key)
+    
+    def __setattr__(self, key, value):
+        if key in self.ATTRS:
+            return super(LazyInjector, self).__setattr__(key, value)
+        
+        injector = self._init_real_injector()
+        setattr(injector, key, value)
+    
+    def _init_real_injector(self):
+        '''Create, register and configure a real injector.'''
+        global register, _REG_LOCK
+        
+        with _REG_LOCK:
+            self.logger.info('Creating a real injector using %s.', self.factory)
+            injector = self.factory(*self.args, **self.kwargs)
+            
+            unregister(self)
+            register(injector)
+            
+            self.logger.info('Configuring %s with %s.', injector, self.config)
+            self.config(injector)
+            
+            return injector
+
+
 _REG_LOCK = threading.RLock()
 _INJECTOR = None
 
@@ -290,6 +365,15 @@ def create(autobind=True, echo=False):
 
 
 @_synchronized
+def create_lazy(config, factory=Injector, autobind=True, echo=False):
+    '''Create, register and return a new lazy injector.'''
+    injector = LazyInjector(config, factory=factory, autobind=autobind,
+                            echo=echo)
+    register(injector)
+    return injector
+
+
+@_synchronized
 def register(injector):
     '''Register an injector.'''
     global _INJECTOR
@@ -315,7 +399,8 @@ def unregister(injector=None):
 @_synchronized
 def is_registered(injector=None):
     '''Return true if a given injector, or any injector is registered.'''
-    if _INJECTOR:
-        return _INJECTOR is injector
+    registered = _INJECTOR
+    if injector:
+        return registered is injector
     
-    return _INJECTOR is not None
+    return registered is not None

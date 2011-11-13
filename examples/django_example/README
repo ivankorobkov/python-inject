@@ -1,19 +1,7 @@
-Run the example
-===============
-You don't have to install the inject package to run the example.
-
-Run:
+How to run the example:
 	manager.py runserver
 Open http://127.0.0.1:8000/ in a browser.
 
-
-How to add dependency injection to your django project
-======================================================
-See the documentation for more information.
-
-1. Register inject.middleware.DjangoInjectMiddleware in the settings file.
-2. Create bindings.py, instantiate an injector there, add bindings to it,
-   and REGISTER it.
-3. Import bindings in settings.py.
-4. Use dependency injection.
-5. Profit.
+How to add dependency injection to your django project:
+	See example python-inject configuration at the bottom of settings.py
+	and bindings.py.
