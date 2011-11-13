@@ -1,5 +1,6 @@
 import unittest
 
+import inject
 from inject.exc import NotBoundError, InjectorAlreadyRegistered, \
     NoInjectorRegistered
 from inject.injectors import Injector
@@ -184,15 +185,14 @@ class InjectorScopesTestCase(unittest.TestCase):
         self.assertFalse(injector.is_scope_bound(Scope))
 
 
-class InjectorRegisterTestCase(unittest.TestCase):
+class InjectorRegisterationTestCase(unittest.TestCase):
     
     def tearDown(self):
-        Injector.cls_unregister()
+        inject.unregister()
     
     def testCreate(self):
         '''Injector.create should instantiate and register and injector.'''
-        injector = Injector.create()
-        
+        injector = inject.create()
         self.assertTrue(injector.is_registered())
     
     def testRegisterUnregister(self):
@@ -200,24 +200,24 @@ class InjectorRegisterTestCase(unittest.TestCase):
         injector2 = Injector()
         
         injector.register()
-        self.assertTrue(Injector.injector is injector)
+        self.assertTrue(inject.get_injector() is injector)
         
         injector2.unregister()
-        self.assertTrue(Injector.injector is injector)
+        self.assertTrue(inject.get_injector() is injector)
         
         injector.unregister()
-        self.assertTrue(Injector.injector is None)
+        self.assertTrue(inject.get_injector() is None)
         
         injector.register()
-        Injector.cls_unregister()
-        self.assertTrue(Injector.injector is None)
+        inject.unregister()
+        self.assertTrue(inject.get_injector() is None)
     
     def testAlreadyRegistered(self):
-        Injector.create()
-        self.assertRaises(InjectorAlreadyRegistered, Injector.create)
+        inject.create()
+        self.assertRaises(InjectorAlreadyRegistered, inject.create)
     
     def testNoInjectorRegistered(self):
-        self.assertRaises(NoInjectorRegistered, Injector.cls_get_injector)
+        self.assertRaises(NoInjectorRegistered, inject.get_instance, None)
     
     def testIsRegistered(self):
         injector = Injector()

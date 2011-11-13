@@ -140,6 +140,6 @@ from inject import exc
 from inject.injections import attr, named_attr, class_attr, param, \
     super_param as super
 from inject.imports import lazy
-from inject.injectors import Injector, create, get_injector, get_instance, \
+from inject.injectors import Injector, get_injector, create, get_instance, \
     register, unregister, is_registered
 from inject.scopes import appscope, noscope, threadscope, reqscope

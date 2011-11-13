@@ -4,6 +4,7 @@
 *.pyo
 .project
 .pydevproject
+.settings
 build
 MANIFEST
 api/html/

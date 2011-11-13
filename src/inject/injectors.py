@@ -38,11 +38,16 @@ they are accessed in this order: [application, thread, request].
 
 '''
 import logging
+import threading
+from functools import update_wrapper
 
 from inject.exc import InjectorAlreadyRegistered, NoInjectorRegistered, \
     NotBoundError, AutobindingFailed
 from inject.log import configure_stdout_handler
 from inject.scopes import ApplicationScope, ThreadScope, RequestScope
+
+
+logger = logging.getLogger('inject')
 
 
 class Injector(object):
@@ -54,62 +59,6 @@ class Injector(object):
     '''
     
     logger = logging.getLogger('inject.Injector')
-    injector = None
-    
-    @classmethod
-    def create(cls, autobind=True, echo=False):
-        '''Create and register a new injector, and return it.
-    
-        @raise InjectorAlreadyRegistered: if another injector is already
-            registered.
-        '''
-        injector = cls(autobind=autobind, echo=echo)
-        injector.register()
-        return injector
-    
-    @classmethod
-    def cls_get_injector(cls):
-        '''Return a registered injector or raise an exception.
-        
-        @raise NoInjectorRegistered: if no injector is registered.
-        '''
-        injector = cls.injector
-        if injector is None:
-            raise NoInjectorRegistered()
-        
-        return injector
-    
-    @classmethod
-    def cls_register(cls, injector):
-        '''Register an injector.
-        
-        @raise InjectorAlreadyRegistered: if another injector is already
-            registered.
-        '''
-        another = cls.injector
-        if another is not None:
-            raise InjectorAlreadyRegistered(another)
-        
-        cls.injector = injector
-        cls.logger.info('Registered %r.', injector)
-    
-    @classmethod
-    def cls_unregister(cls, injector=None):
-        '''Unregister a given injector, or any injector.'''
-        if injector and cls.injector is not injector:
-            return
-        
-        latter = cls.injector
-        cls.injector = None
-        cls.logger.info('Unregistered %r.', latter)
-    
-    @classmethod
-    def cls_is_registered(cls, injector=None):
-        '''Return true if a given injector, or any injector is registered.'''
-        if injector:
-            return cls.injector is injector
-        
-        return cls.injector is not None
     
     def __init__(self, autobind=True, echo=False):
         '''Create a new injector instance.
@@ -285,23 +234,27 @@ class Injector(object):
         @raise InjectorAlreadyRegistered: if another injector is already
             registered.
         '''
-        self.cls_register(self)
-    
+        global register
+        register(self)
+
     def unregister(self):
         '''Unregister this injector.'''
-        self.cls_unregister(self)
-    
+        global unregister
+        unregister(self)
+     
     def is_registered(self):
         '''Return whether this injector is registered.'''
-        return self.cls_is_registered(self)
+        global is_registered
+        return is_registered(self)
 
 
-def create(autobind=True, echo=False):
-    '''Create and register a new injector, and return it.
-    
-    @raise InjectorAlreadyRegistered: if another injector is already registered.
-    '''
-    return Injector.create(autobind=autobind, echo=echo)
+_REG_LOCK = threading.RLock()
+_INJECTOR = None
+
+
+def get_injector():
+    '''Return the current registered injector.'''
+    return _INJECTOR
 
 
 def get_instance(type, none=False):
@@ -309,25 +262,60 @@ def get_instance(type, none=False):
     
     @raise NoInjectorRegistered: if no injector is registered.
     '''
-    injector = Injector.cls_get_injector()
+    injector = _INJECTOR
+    if injector is None:
+        raise NoInjectorRegistered()
+    
     return injector.get(type, none=none)
 
 
-def get_injector():
-    '''Return the current injector.'''
-    return Injector.injector
+def _synchronized(func):
+    def wrapper(*args, **kwargs):
+        with _REG_LOCK:
+            return func(*args, **kwargs)
+    
+    update_wrapper(wrapper, func)
+    return wrapper
 
 
+@_synchronized
+def create(autobind=True, echo=False):
+    '''Create, register and return a new injector.
+    
+    @raise InjectorAlreadyRegistered: if another injector is already registered.
+    '''
+    injector = Injector(autobind=autobind, echo=echo)
+    register(injector)
+    return injector
+
+
+@_synchronized
 def register(injector):
     '''Register an injector.'''
-    Injector.cls_register(injector)
+    global _INJECTOR
+    if _INJECTOR is not None:
+        raise InjectorAlreadyRegistered(_INJECTOR)
+    
+    _INJECTOR = injector
+    logger.info('Registered %r.', injector)
 
 
+@_synchronized
 def unregister(injector=None):
     '''Unregister an injector if given, or any injector.'''
-    Injector.cls_unregister(injector)
+    global _INJECTOR
+    if injector and _INJECTOR is not injector:
+        return
+    
+    latter = _INJECTOR
+    _INJECTOR = None
+    logger.info('Unregistered %r.', latter)
 
 
+@_synchronized
 def is_registered(injector=None):
     '''Return true if a given injector, or any injector is registered.'''
-    return Injector.cls_is_registered(injector)
+    if _INJECTOR:
+        return _INJECTOR is injector
+    
+    return _INJECTOR is not None
