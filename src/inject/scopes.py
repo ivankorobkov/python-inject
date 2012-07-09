@@ -19,6 +19,7 @@ to create a new object every time a binding is accessed.
 import logging
 import threading
 from inject.exc import NoRequestError, FactoryNotCallable
+import collections
 
 
 class AbstractScope(object):
@@ -75,7 +76,7 @@ class AbstractScope(object):
         but only one factory for a type. However, the factory is instantiated
         for each thread/request.
         '''
-        if not callable(factory):
+        if not isinstance(factory, collections.Callable):
             raise FactoryNotCallable(factory)
         
         if self.is_factory_bound(type):

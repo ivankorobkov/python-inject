@@ -24,7 +24,7 @@ class WsgiTestCase(unittest.TestCase):
         def app(environ, start_response, scope):
             @inject.param('user', User)
             def greet_user(user):
-                return u'Hello, %s' % user.name
+                return 'Hello, %s' % user.name
             
             @inject.param('user', User)
             def foo(user):
@@ -44,9 +44,9 @@ class WsgiTestCase(unittest.TestCase):
         
         self.assertEqual(User.i, 3)
         
-        self.assertEqual(greet1, u'Hello, user1')
-        self.assertEqual(greet2, u'Hello, user2')
-        self.assertEqual(greet3, u'Hello, user3')
+        self.assertEqual(greet1, 'Hello, user1')
+        self.assertEqual(greet2, 'Hello, user2')
+        self.assertEqual(greet3, 'Hello, user3')
 
 
 class DjangoTestCase(unittest.TestCase):

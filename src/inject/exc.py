@@ -47,7 +47,7 @@ class AutobindingFailed(Exception):
     '''Injector has failed to autobind a type.''' 
     
     def __init__(self, type, caused_by):
-        msg = u'Autobinding of %r failed because of %r' % (type, caused_by)
+        msg = 'Autobinding of %r failed because of %r' % (type, caused_by)
         return super(AutobindingFailed, self).__init__(msg)
 
 

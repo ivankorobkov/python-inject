@@ -7,6 +7,6 @@ class Article(object):
         self.text = text
     
     def __unicode__(self):
-        s = u'<h1>%s</h1>' % self.title
-        s += u'<p>%s</p>' % self.text
+        s = '<h1>%s</h1>' % self.title
+        s += '<p>%s</p>' % self.text
         return s
