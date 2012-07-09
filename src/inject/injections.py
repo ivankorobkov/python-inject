@@ -291,7 +291,7 @@ class ParamInjection(object):
     @classmethod
     def add_injection(cls, wrapper, name, injection):
         func = wrapper.func
-        func_code = func.func_code
+        func_code = func.__code__
         flags = func_code.co_flags
         
         if not flags & 0x04 and not flags & 0x08:

@@ -43,7 +43,7 @@ import inject
 
 
 def config_bindings(injector):
-    import bindings
+    from . import bindings
     bindings.config(injector)
 
 # Settings can be imported multiple times.

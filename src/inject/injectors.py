@@ -45,6 +45,7 @@ from inject.exc import InjectorAlreadyRegistered, NoInjectorRegistered, \
     NotBoundError, AutobindingFailed
 from inject.log import configure_stdout_handler
 from inject.scopes import ApplicationScope, ThreadScope, RequestScope
+import collections
 
 
 logger = logging.getLogger('inject')
@@ -150,10 +151,10 @@ class Injector(object):
             if scope.is_bound(type) or scope.is_factory_bound(type):
                 return scope.get(type)
         
-        if self.autobind and callable(type):
+        if self.autobind and isinstance(type, collections.Callable):
             try:
                 inst = type()
-            except Exception, e:
+            except Exception as e:
                 raise AutobindingFailed(type, e)
             
             self.bind(type, inst)
