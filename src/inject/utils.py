@@ -42,7 +42,7 @@ def get_attrname_by_value(obj, attrvalue):
         
         return attrname
     
-    attrname = _get(obj.__dict__.iteritems())
+    attrname = _get(iter(obj.__dict__.items()))
     if attrname is not None:
         return attrname
     

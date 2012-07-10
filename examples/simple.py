@@ -20,7 +20,7 @@ except ImportError:
 class Memcached(object):
     """Dummy memcached backend, always returns None."""
     def __init__(self, host, port):
-        print 'Connected memcached to %s:%s' % (host, port)
+        print('Connected memcached to %s:%s' % (host, port))
     
     def get(self, key):
         """Always return None."""
@@ -30,7 +30,7 @@ class Memcached(object):
 class Redis(object):
     """Redis backend, always returns a new User instance for any key."""
     def __init__(self, host, port):
-        print 'Connected redis to %s:%s' % (host, port)
+        print('Connected redis to %s:%s' % (host, port))
     
     def get(self, key):
         return User("Ivan Korobkov", "ivan.korobkov@gmail.com")
@@ -40,7 +40,7 @@ class MailService(object):
     """Sends emails."""
     def send(self, email, text):
         """send an email."""
-        print "Sent an email to %s, text=%s." % (email, text)
+        print("Sent an email to %s, text=%s." % (email, text))
 
 
 class User(object):
@@ -64,7 +64,7 @@ class User(object):
         if user:
             return user
         user = cls.redis.get(key)
-        print 'Loaded %s from redis.' % user
+        print('Loaded %s from redis.' % user)
         return user
     
     def __init__(self, name, email):
