@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
       name='python-inject',
-      version='2.0-beta',
+      version='2.0',
       url='http://code.google.com/p/python-inject/',
       author='Ivan Korobkov',
       author_email='ivan.korobkov@gmail.com',
