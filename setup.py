@@ -3,25 +3,27 @@ from distutils.core import setup
 
 setup(
       name='python-inject',
-      version='2.0',
-      url='http://code.google.com/p/python-inject/',
+      version='3.0.0',
+      url='https://github.com/ivan-korobkov/python-inject',
+      license='Apache License 2.0',
+
       author='Ivan Korobkov',
       author_email='ivan.korobkov@gmail.com',
+
       description='Python dependency injection framework',
-      license='MIT License',
+      long_description=open('README.rst', 'r').read(),
+
       package_dir={'': 'src'},
       packages=['inject'],
-      keywords=['injection', 'ioc', 'inversion of control',
-                'dependency injection', 'loose coupling'],
+
       classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Apache License 2.0',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.4',
-        'Programming Language :: Python :: 2.5',
-        'Programming Language :: Python :: 2.6',
-        'Topic :: Software Development :: Libraries :: Python Modules'],
-      long_description=open('README.rst', 'r').read()
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+        'Topic :: Software Development :: Libraries :: Python Modules']
 )
+

@@ -1,1 +1,0 @@
-epydoc --config config.ini

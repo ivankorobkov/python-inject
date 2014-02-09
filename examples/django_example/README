@@ -1,7 +1,0 @@
-How to run the example:
-	manager.py runserver
-Open http://127.0.0.1:8000/ in a browser.
-
-How to add dependency injection to your django project:
-	See example python-inject configuration at the bottom of settings.py
-	and bindings.py.

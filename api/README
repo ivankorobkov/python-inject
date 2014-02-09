@@ -1,7 +1,0 @@
-Get generated API from the project's site. If you want to create it yourself,
-epydoc is required. See http://epydoc.sourceforge.net/.
-
-On Windows run:
-	generate.bat
-On unix platforms run:
-	./generate.sh
