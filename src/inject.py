@@ -1,7 +1,6 @@
 """
 Python dependency injection framework.
 """
-import collections
 import logging
 import threading
 
@@ -44,9 +43,23 @@ def clear():
         logging.debug('Cleared an injector')
 
 
+def instance(cls):
+    """Inject an instance of a class."""
+    return get_injector_or_die().get_instance(cls)
+
+
 def get_injector():
     """Return the current injector or None."""
     return _INJECTOR
+
+
+def get_injector_or_die():
+    """Return the current injector or raise an InjectorException."""
+    injector = _INJECTOR
+    if not injector:
+        raise InjectorException('No injector is configured')
+
+    return injector
 
 
 class Binder(object):

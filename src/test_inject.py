@@ -114,3 +114,11 @@ class TestInject(TestCase):
         assert injector1
         assert injector1 is not injector0
 
+    def test_get_injector_or_die(self):
+        self.assertRaisesRegexp(InjectorException, 'No injector is configured',
+                                inject.get_injector_or_die)
+
+    def test_instance(self):
+        inject.configure(lambda binder: binder.bind(int, 123))
+        instance = inject.instance(int)
+        assert instance == 123
