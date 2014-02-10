@@ -1,7 +1,9 @@
+python-inject
+=============
 Dependency injection the python way, the good way. Not a port of Guice or Spring.
 
 Key features
-============
+------------
 - Simple to use.
 - Extremely fast.
 - Thread-safe.
@@ -13,7 +15,7 @@ Key features
 - Supports Python 2.7 and Python 3.3+.
 
 Usage
-=====
+-----
 Install from PyPI::
 
     pip install inject
@@ -54,7 +56,7 @@ Code::
     user.save()
 
 Testing
-=======
+-------
 In tests use ``inject.clear_and_configure(callable)`` to create a new injector on setup,
 and optionally ``inject.clear()`` to clean up on tear down::
     
@@ -69,11 +71,11 @@ and optionally ``inject.clear()`` to clean up on tear down::
 
 
 Thread-safety
-=============
+-------------
 After configuration the injector is thread-safe and can be safely reused by multiple threads.
 
 Binding types
-=============
+-------------
 - Instance bindings which always return the same instance::
     
     redis = RedisCache(address='localhost:1234')
@@ -120,7 +122,7 @@ Binding types
     user = User.load(10)
 
 Why no scopes?
-==============
+--------------
 I've used Guice and Spring in Java for a lot of years, and I don't like their scopes.
 ``python-inject`` by default creates objects as singletons. It does not need a prototype scope
 as in Spring or NO_SCOPE as in Guice because ``python-inject`` does not steal your class 
@@ -131,10 +133,10 @@ and are difficult to test. In ``python-inject`` write custom providers which can
 request-local, etc.
 
 Links
-=====
+-----
 - Project: https://github.com/ivan-korobkov/python-inject
 - Google Groups: https://groups.google.com/d/forum/python-inject
 
 License
-=======
+-------
 Apache License 2.0
