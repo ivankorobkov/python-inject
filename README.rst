@@ -10,6 +10,7 @@ Key features
 - Injects dependencies everywhere via ``inject.instance(MyClass)``.
 - Injects dependencies as class attributes via ``inject.attr(MyClass)``.
 - Transparently integrates into tests.
+- Supports Python 2.7 and Python 3.3+.
 
 Usage
 =====
