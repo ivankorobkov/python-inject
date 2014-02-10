@@ -48,6 +48,23 @@ def instance(cls):
     return get_injector_or_die().get_instance(cls)
 
 
+def attr(cls):
+    """Return a attribute injection (descriptor).
+
+    Usage::
+        class MyClass(object):
+            cache = inject.attr(Cache)
+
+            @classmethod
+            def load(cls, id):
+                return cls.cache.load('user', id)
+
+            def save(self):
+                self.cache.save(self)
+    """
+    return _AttributeInjection(cls)
+
+
 def get_injector():
     """Return the current injector or None."""
     return _INJECTOR
@@ -160,3 +177,11 @@ class _ConstructorBinding(object):
             self._instance = self._constructor()
 
         return self._instance
+
+
+class _AttributeInjection(object):
+    def __init__(self, cls):
+        self._cls = cls
+
+    def __get__(self, obj, owner):
+        return instance(self._cls)
