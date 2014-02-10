@@ -2,7 +2,7 @@ from distutils.core import setup
 
 
 setup(
-      name='python-inject',
+      name='Inject',
       version='3.0.0',
       url='https://github.com/ivan-korobkov/python-inject',
       license='Apache License 2.0',
