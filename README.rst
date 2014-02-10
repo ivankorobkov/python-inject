@@ -65,18 +65,30 @@ After configuration the injector is thread-safe and can be safely reused by mult
 
 Binding types
 =============
-- Instance bindings configured via `bind(cls, instance) which always return the same instance.
-- Constructor bindings `bind_to_constructor(cls, callable)` which create a singleton
-  on first access.
-- Provider bindings `bind_to_provider(cls, callable)` which call the provider
-  for each injection.
-- Runtime bindings which automatically create class singletons.
+- Instance bindings which always return the same instance::
+    
+    redis = RedisCache(address='localhost:1234')
+    def config(binder):
+        binder.bind(Cache, redis)
+    
+- Constructor bindings which create a singleton on first access::
+    
+    def config(binder):
+        # Creates a redis cache singleton on first injection.
+        binder.bind_to_constructor(Cache, lambda: RedisCache(address='localhost:1234'))
 
-Runtime bindings
-================
-Runtime bindings greatly reduce the required configuration by automatically creating singletons
-on first access. For example, below only the ``Config`` class requires binding configuration, 
-all other classes are runtime bindings::
+- Provider bindings which call the provider for each injection::
+
+    def get_my_thread_local_cache():
+        pass
+
+    def config(binder):
+        # Executes the provider on each injection.
+        binder.bind_to_provider(Cache, get_my_thread_local_cache) 
+
+- Runtime bindings which automatically create class singletons and greatly reduce required 
+  configuration. For example, below only the ``Config`` class requires binding configuration, 
+  all other classes are instantiated as singletons on injection::
 
     class Config(object):
         pass
@@ -95,10 +107,7 @@ all other classes are runtime bindings::
         def load(cls, user_id):
             return cls.cache.load('users', user_id) or cls.db.load('users', user_id)
      
-    def my_config(binder):
-        binder.bind(Config, load_config_file())
-    
-    inject.configure(my_config)
+    inject.configure(lambda binder: binder.bind(Config, load_config_file()))
     user = User.load(10)
 
 Why no scopes?
