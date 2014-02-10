@@ -47,7 +47,7 @@ Use ``inject.instance`` or ``inject.attr`` to inject dependencies::
 Testing
 =======
 In tests use ``inject.clear_and_configure(callable)`` to create a new injector on setup,
-and optionally ``inject.clear()`` to clean-up on tear down::
+and optionally ``inject.clear()`` to clean up on tear down::
     
     class MyTest(unittest.TestCase):
         def setUp(self):
@@ -111,6 +111,11 @@ constructors. Create instances the way you like and then inject dependencies int
 Other scopes such as a request scope or a session scope are fragile, introduce high coupling,
 and are difficult to test. In ``python-inject`` write custom providers which can be thread-local, 
 request-local, etc.
+
+Links
+=====
+- Project: https://github.com/ivan-korobkov/python-inject
+- Google Groups: https://groups.google.com/d/forum/python-inject
 
 License
 =======
