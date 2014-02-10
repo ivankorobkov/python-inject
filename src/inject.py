@@ -1,6 +1,79 @@
 """
 Python dependency injection framework.
+
+Usage:
+- Create an optional configuration::
+    def my_config(binder):
+        binder.bind(Cache, RedisCache('localhost:1234'))
+        binder.bind_to_provider(CurrentUser, get_current_user)
+    
+- Create a shared injector::
+    inject.configure(my_config)
+
+- Use `inject.instance` or `inject.attr` to inject dependencies::
+    class User(object):
+        cache = inject.attr(Cache)
+
+        @classmethod
+        def load(cls, id):
+            return cls.cache.load('user', id)
+
+        def save(self):
+            self.cache.save(self)
+
+    def foo(bar):
+        cache = inject.instance(Cache)
+        cache.save('bar', bar)
+
+Binding types:
+- Instance bindings configured via `bind(cls, instance) which always return the same instance.
+- Constructor bindings `bind_to_constructor(cls, callable)` which create a singleton
+  on first access.
+- Provider bindings `bind_to_provider(cls, callable)` which call the provider
+  for each injection.
+- Runtime bindings which automatically create class singletons.
+
+Thread-safety:
+After configuration the injector is thread-safe and can be safely reused by multiple threads.
+
+Unit testing:
+In tests use `inject.clear_and_configure(callable)` to create a new injector on setup,
+and `inject.clear()` to clean-up on tear down.
+
+Runtime bindings greatly reduce the required configuration by automatically creating singletons
+on first access. For example, below only the Config class requires binding configuration, 
+all other classes are runtime bindings::
+    class Cache(object):
+        config = inject.attr(Config)
+        
+        def __init__(self):
+            self._redis = connect(self.config.redis_address)
+    
+    class Db(object):
+        pass
+    
+    class UserRepo(object):
+        cache = inject.attr(Cache)
+        db = inject.attr(Db)
+        
+        def load(self, user_id):
+            return cache.load('user', user_id) or db.load('user', user_id)
+    
+    class Config(object):
+        def __init__(self, redis_address):
+            self.redis_address = redis_address
+    
+    def my_config(binder):
+        binder.bind(Config, load_config_file())
+    
+    inject.configure(my_config)
+
 """
+__version__ = '3.0.0'
+__author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
+__license__ = 'Apache License 2.0'
+__url__ = 'https://github.com/ivan-korobkov/python-inject'
+
 import logging
 import threading
 
@@ -49,19 +122,7 @@ def instance(cls):
 
 
 def attr(cls):
-    """Return a attribute injection (descriptor).
-
-    Usage::
-        class MyClass(object):
-            cache = inject.attr(Cache)
-
-            @classmethod
-            def load(cls, id):
-                return cls.cache.load('user', id)
-
-            def save(self):
-                self.cache.save(self)
-    """
+    """Return a attribute injection (descriptor)."""
     return _AttributeInjection(cls)
 
 
