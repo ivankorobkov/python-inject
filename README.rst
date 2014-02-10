@@ -7,31 +7,13 @@ Key features
 - Thread-safe.
 - Does not steal class constructors.
 - Does not try to manage your application object graph.
-- Injects dependencies everywhere:
-    
-    def hello(user_name):
-        config = inject.instance(Config)
-        return '%s, %s' % (config.greetings, user_name)
-
-- Injects dependencies as attributes:
-
-    class User(object):
-        db = inject.attr(Db)
-        cache = inject.attr(Cache)
-        
-        @classmethod
-        def load(cls, user_id):
-            return cls.cache.get('users', user_id) or cls.db.load('users', user_id)
-        
-        def save(self):
-            self.db.set('users', self)
-            self.cache.save('users', self)
-
+- Injects dependencies everywhere via ``inject.instance(MyClass)``.
+- Injects dependencies as class attributes via ``inject.attr(MyClass)``.
 - Transparently integrates into tests.
 
 Usage
 =====
-Install from PyPi::
+Install from PyPI::
 
     pip install inject
 
@@ -71,6 +53,9 @@ and optionally ``inject.clear()`` to clean-up on tear down::
             inject.clear_and_configure(lambda binder: binder
                 .bind(Cache, Mock() \
                 .bind(Validator, TestValidator())
+        
+        def tearDown(self):
+            inject.clear()
 
 
 Thread-safety

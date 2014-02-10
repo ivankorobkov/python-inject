@@ -14,7 +14,7 @@ setup(
       long_description=open('README.rst', 'r').read(),
 
       package_dir={'': 'src'},
-      packages=['inject'],
+      py_modules=['inject'],
 
       classifiers=[
         'Development Status :: 4 - Beta',
