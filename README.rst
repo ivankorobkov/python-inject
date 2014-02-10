@@ -18,18 +18,20 @@ Install from PyPI::
 
     pip install inject
 
-Create an optional configuration::
+Code::
 
+    # Import the inject module
+    import inject
+    
+    # Create an optional configuration
     def my_config(binder):
         binder.bind(Cache, RedisCache('localhost:1234'))
         binder.bind_to_provider(CurrentUser, get_current_user)
 
-Create a shared injector::
-
+    # Create a shared injector
     inject.configure(my_config)
 
-Use ``inject.instance`` or ``inject.attr`` to inject dependencies::
-
+    # Use ``inject.instance`` or ``inject.attr`` to inject dependencies
     class User(object):
         cache = inject.attr(Cache)
 
