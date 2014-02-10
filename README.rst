@@ -35,10 +35,13 @@ Code::
     # Use ``inject.instance`` or ``inject.attr`` to inject dependencies.
     class User(object):
         cache = inject.attr(Cache)
-
+        
         @classmethod
         def load(cls, id):
             return cls.cache.load('user', id)
+        
+        def __init__(self, id):
+            self.id = id
 
         def save(self):
             self.cache.save(self)
@@ -46,6 +49,9 @@ Code::
     def foo(bar):
         cache = inject.instance(Cache)
         cache.save('bar', bar)
+    
+    user = User(10)
+    user.save()
 
 Testing
 =======
