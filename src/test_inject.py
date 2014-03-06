@@ -15,14 +15,15 @@ class TestBinder(TestCase):
     def test_bind__class_required(self):
         binder = Binder()
 
-        self.assertRaisesRegexp(InjectorException, 'Binding class cannot be none',
+        self.assertRaisesRegexp(InjectorException, 'Binding key cannot be None',
                                 binder.bind, None, None)
 
     def test_bind__duplicate_binding(self):
         binder = Binder()
         binder.bind(int, 123)
 
-        self.assertRaisesRegexp(InjectorException, 'Duplicate binding', binder.bind, int, 456)
+        self.assertRaisesRegexp(InjectorException, "Duplicate binding, key=<type 'int'>", 
+                                binder.bind, int, 456)
 
     def test_bind_provider(self):
         provider = lambda: 123
@@ -33,7 +34,7 @@ class TestBinder(TestCase):
 
     def test_bind_provider__provider_required(self):
         binder = Binder()
-        self.assertRaisesRegexp(InjectorException, 'Provider cannot be none',
+        self.assertRaisesRegexp(InjectorException, "Provider cannot be None, key=<type 'int'>",
                                 binder.bind_to_provider, int, None)
 
     def test_bind_constructor(self):
@@ -45,7 +46,7 @@ class TestBinder(TestCase):
 
     def test_bind_constructor__constructor_required(self):
         binder = Binder()
-        self.assertRaisesRegexp(InjectorException, 'Constructor cannot be none',
+        self.assertRaisesRegexp(InjectorException, "Constructor cannot be None, key=<type 'int'>",
                                 binder.bind_to_constructor, int, None)
 
 
@@ -82,8 +83,9 @@ class TestInjector(TestCase):
 
     def test_runtime_binding__not_callable(self):
         injector = Injector()
-        self.assertRaisesRegexp(InjectorException, 'Cannot create a runtime binding',
-                                injector.get_instance, 'hello')
+        self.assertRaisesRegexp(InjectorException, 
+                               'Cannot create a runtime binding, the key is not callable, key=123',
+                                injector.get_instance, 123)
 
 
 class TestInject(TestCase):

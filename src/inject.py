@@ -163,14 +163,14 @@ class Binder(object):
         """Bind a class to an instance."""
         self._check_class(cls)
         self._bindings[cls] = lambda: instance
-        logging.debug('Bound %s to a instance %s', cls, instance)
+        logging.debug('Bound %s to an instance %s', cls, instance)
         return self
 
     def bind_to_constructor(self, cls, constructor):
         """Bind a class to a callable singleton constructor."""
         self._check_class(cls)
         if constructor is None:
-            raise InjectorException('Constructor cannot be none for %s', cls)
+            raise InjectorException('Constructor cannot be None, key=%s' % cls)
 
         self._bindings[cls] = _ConstructorBinding(constructor)
         logging.debug('Bound %s to a constructor %s', cls, constructor)
@@ -180,7 +180,7 @@ class Binder(object):
         """Bind a class to a callable instance provider executed for each injection."""
         self._check_class(cls)
         if provider is None:
-            raise InjectorException('Provider cannot be none for %s', cls)
+            raise InjectorException('Provider cannot be None, key=%s' % cls)
 
         self._bindings[cls] = provider
         logging.debug('Bound %s to a provider %s', cls, provider)
@@ -188,10 +188,10 @@ class Binder(object):
 
     def _check_class(self, cls):
         if cls is None:
-            raise InjectorException('Binding class cannot be none')
+            raise InjectorException('Binding key cannot be None')
 
         if cls in self._bindings:
-            raise InjectorException('Duplicate binding for %s', cls)
+            raise InjectorException('Duplicate binding, key=%s' % cls)
 
 
 class Injector(object):
@@ -217,12 +217,12 @@ class Injector(object):
 
             if not callable(cls):
                 raise InjectorException(
-                    'Cannot create a runtime binding for %s, it\'s not callable', cls)
+                    'Cannot create a runtime binding, the key is not callable, key=%s' % cls)
 
             instance = cls()
             self._bindings[cls] = lambda: instance
 
-            logging.debug('Created a runtime binding for %s, instance %s', cls, instance)
+            logging.debug('Created a runtime binding for key=%s, instance=%s', cls, instance)
             return instance
 
 
