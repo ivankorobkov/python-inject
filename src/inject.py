@@ -76,6 +76,7 @@ __url__ = 'https://github.com/ivan-korobkov/python-inject'
 
 import logging
 import threading
+from functools import wraps
 
 logger = logging.getLogger('inject')
 
@@ -124,6 +125,11 @@ def instance(cls):
 def attr(cls):
     """Return a attribute injection (descriptor)."""
     return _AttributeInjection(cls)
+
+
+def param(name, cls=None):
+    """Return a parameter injection decorator"""
+    return _ParameterInjection(name, cls)
 
 
 def get_injector():
@@ -246,3 +252,19 @@ class _AttributeInjection(object):
 
     def __get__(self, obj, owner):
         return instance(self._cls)
+
+
+class _ParameterInjection(object):
+    __slots__ = ('_name', '_cls')
+
+    def __init__(self, name, cls=None):
+        self._name = name
+        self._cls = cls
+
+    def __call__(self, func):
+        @wraps(func)
+        def injection_wrapper(*args, **kwargs):
+            if not self._name in kwargs:
+                kwargs[self._name] = instance(self._cls or self._name)
+            return func(*args, **kwargs)
+        return injection_wrapper
