@@ -8,7 +8,7 @@ def read_description():
 
 setup(
       name='Inject',
-      version='3.0.0',
+      version='3.1.0',
       url='https://github.com/ivan-korobkov/python-inject',
       license='Apache License 2.0',
 

@@ -4,13 +4,10 @@ Dependency injection the python way, the good way. Not a port of Guice or Spring
 
 Key features
 ------------
-- Simple to use.
-- Extremely fast.
+- Fast and simple to use.
 - Thread-safe.
 - Does not steal class constructors.
 - Does not try to manage your application object graph.
-- Injects dependencies everywhere via ``inject.instance(MyClass)``.
-- Injects dependencies as class attributes via ``inject.attr(MyClass)``.
 - Transparently integrates into tests.
 - Supports Python 2.7 and Python 3.3+.
 
@@ -150,7 +147,7 @@ For example, a thread-local current user provider::
     def set_current_user(user):
         _LOCAL.user = user
     
-    # Bind a user to a custom provider.
+    # Bind User to a custom provider.
     inject.configure(lambda binder: binder.bind_to_provider(User, get_current_user))
     
     # Inject the current user.
