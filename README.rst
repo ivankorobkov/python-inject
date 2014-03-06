@@ -31,7 +31,7 @@ Code::
     # Create a shared injector.
     inject.configure(my_config)
 
-    # Use ``inject.instance`` or ``inject.attr`` to inject dependencies.
+    # Use `inject.instance`, `inject.attr` or `inject.param` to inject dependencies.
     class User(object):
         cache = inject.attr(Cache)
         
@@ -49,6 +49,11 @@ Code::
         cache = inject.instance(Cache)
         cache.save('bar', bar)
     
+    @inject.param('cache', Cache)
+    def bar(foo, cache=None):
+        cache.save('foo', foo)
+    
+    # Create a user instance, the dependencies are injected on first access.
     user = User(10)
     user.save()
 
