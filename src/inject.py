@@ -10,7 +10,7 @@ Usage:
 - Create a shared injector::
     inject.configure(my_config)
 
-- Use `inject.instance` or `inject.attr` to inject dependencies::
+- Use `inject.instance`, `inject.attr` or `inject.param` to inject dependencies::
     class User(object):
         cache = inject.attr(Cache)
 
@@ -24,6 +24,10 @@ Usage:
     def foo(bar):
         cache = inject.instance(Cache)
         cache.save('bar', bar)
+
+    @inject.param('cache', Cache)
+    def bar(foo, cache=None):
+        cache.save('foo', foo)
 
 Binding types:
 - Instance bindings configured via `bind(cls, instance) which always return the same instance.
