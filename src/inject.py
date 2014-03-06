@@ -264,6 +264,7 @@ class _ParameterInjection(object):
     def __call__(self, func):
         @wraps(func)
         def injection_wrapper(*args, **kwargs):
-            kwargs[self._name] = instance(self._cls or self._name)
+            if not self._name in kwargs:
+                kwargs[self._name] = instance(self._cls or self._name)
             return func(*args, **kwargs)
         return injection_wrapper
