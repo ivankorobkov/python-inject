@@ -1,6 +1,11 @@
 from distutils.core import setup
 
 
+def read_description():
+    with open('README.rst', 'r') as f:
+        return f.read()
+
+
 setup(
       name='Inject',
       version='3.0.0',
@@ -11,7 +16,7 @@ setup(
       author_email='ivan.korobkov@gmail.com',
 
       description='Python dependency injection framework',
-      long_description=open('README.rst', 'r').read(),
+      long_description=read_description(),
 
       package_dir={'': 'src'},
       py_modules=['inject'],

@@ -132,6 +132,33 @@ Other scopes such as a request scope or a session scope are fragile, introduce h
 and are difficult to test. In ``python-inject`` write custom providers which can be thread-local, 
 request-local, etc.
 
+For example, a thread-local current user provider::
+
+    import inject
+    import threading
+    
+    # Given a user class.
+    class User(object):
+        pass
+    
+    # Create a thread-local current user storage.
+    _LOCAL = threading.local()
+    
+    def get_current_user():
+        return getattr(_LOCAL, 'user', None)
+    
+    def set_current_user(user):
+        _LOCAL.user = user
+    
+    # Bind a user to a custom provider.
+    inject.configure(lambda binder: binder.bind_to_provider(User, get_current_user))
+    
+    # Inject the current user.
+    @inject.param('user', User)
+    def foo(user):
+        pass
+
+
 Links
 -----
 - Project: https://github.com/ivan-korobkov/python-inject
