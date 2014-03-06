@@ -22,7 +22,7 @@ class TestBinder(TestCase):
         binder = Binder()
         binder.bind(int, 123)
 
-        self.assertRaisesRegexp(InjectorException, "Duplicate binding, key=<type 'int'>", 
+        self.assertRaisesRegexp(InjectorException, "Duplicate binding", 
                                 binder.bind, int, 456)
 
     def test_bind_provider(self):
@@ -34,7 +34,7 @@ class TestBinder(TestCase):
 
     def test_bind_provider__provider_required(self):
         binder = Binder()
-        self.assertRaisesRegexp(InjectorException, "Provider cannot be None, key=<type 'int'>",
+        self.assertRaisesRegexp(InjectorException, "Provider cannot be None",
                                 binder.bind_to_provider, int, None)
 
     def test_bind_constructor(self):
@@ -46,7 +46,7 @@ class TestBinder(TestCase):
 
     def test_bind_constructor__constructor_required(self):
         binder = Binder()
-        self.assertRaisesRegexp(InjectorException, "Constructor cannot be None, key=<type 'int'>",
+        self.assertRaisesRegexp(InjectorException, "Constructor cannot be None",
                                 binder.bind_to_constructor, int, None)
 
 
