@@ -4,58 +4,67 @@ Dependency injection the python way, the good way. Not a port of Guice or Spring
 
 Key features
 ------------
-- Fast and simple to use.
+- Fast.
 - Thread-safe.
+- Simple to use.
 - Does not steal class constructors.
 - Does not try to manage your application object graph.
 - Transparently integrates into tests.
 - Supports Python 2.7 and Python 3.3+.
 
+
 Usage
 -----
-Install from PyPI::
+Installation::
 
     pip install inject
 
-Code::
+Example::
 
     # Import the inject module.
     import inject
+    
+    # `inject.param` injects dependencies as keyword arguments.
+    @inject.param('cache', Cache)
+    def bar(foo, cache=None):
+        cache.save('foo', foo)
+    
+    # `inject.instance` requests dependencies from the injector.
+    def foo(bar):
+        cache = inject.instance(Cache)
+        cache.save('bar', bar)
+    
+    # `inject.attr` creates properties (descriptors) which request dependencies on access.
+    class User(object):
+        cache = inject.attr(Cache)
+                
+        def __init__(self, id):
+            self.id = id
+
+        def save(self):
+            self.cache.save('users', self)
+        
+        @classmethod
+        def load(cls, id):
+            return cls.cache.load('users', id)
+    
     
     # Create an optional configuration.
     def my_config(binder):
         binder.install(my_config2)  # Add bindings from another config.
         binder.bind(Cache, RedisCache('localhost:1234'))
-        binder.bind_to_provider(CurrentUser, get_current_user)
-
-    # Create a shared injector.
+    
+    # Configure a shared injector.
     inject.configure(my_config)
-
-    # Use `inject.instance`, `inject.attr` or `inject.param` to inject dependencies.
-    class User(object):
-        cache = inject.attr(Cache)
-        
-        @classmethod
-        def load(cls, id):
-            return cls.cache.load('user', id)
-        
-        def __init__(self, id):
-            self.id = id
-
-        def save(self):
-            self.cache.save(self)
-
-    def foo(bar):
-        cache = inject.instance(Cache)
-        cache.save('bar', bar)
     
-    @inject.param('cache', Cache)
-    def bar(foo, cache=None):
-        cache.save('foo', foo)
     
-    # Create a user instance, the dependencies are injected on first access.
+    # Instantiate User as a normal class. Its `cache` dependency is injected when accessed.
     user = User(10)
     user.save()
+    
+    # Call the functions, the dependencies are automatically injected.
+    foo('Hello')
+    bar('world')
 
 Testing
 -------
@@ -78,19 +87,19 @@ After configuration the injector is thread-safe and can be safely reused by mult
 
 Binding types
 -------------
-- Instance bindings which always return the same instance::
+- Instance bindings always return the same instance::
     
     redis = RedisCache(address='localhost:1234')
     def config(binder):
         binder.bind(Cache, redis)
     
-- Constructor bindings which create a singleton on first access::
+- Constructor bindings create a singleton on injection::
     
     def config(binder):
         # Creates a redis cache singleton on first injection.
         binder.bind_to_constructor(Cache, lambda: RedisCache(address='localhost:1234'))
 
-- Provider bindings which call the provider for each injection::
+- Provider bindings call the provider on injection::
 
     def get_my_thread_local_cache():
         pass
@@ -99,9 +108,8 @@ Binding types
         # Executes the provider on each injection.
         binder.bind_to_provider(Cache, get_my_thread_local_cache) 
 
-- Runtime bindings which automatically create class singletons and greatly reduce required 
-  configuration. For example, below only the ``Config`` class requires binding configuration, 
-  all other classes are instantiated as singletons on injection::
+- Runtime bindings automatically create singletons on injection, require no configuration.
+  For example, only the ``Config`` class binding is present, other bindings are runtime::
 
     class Config(object):
         pass
