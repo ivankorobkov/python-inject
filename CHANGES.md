@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 3.1.1 (2014-03-14)
+- Switch from root logger to module logger, #8.
+
 ### 3.1.0 (2014-03-07)
 - `inject.param` decorator.
 - Small fixes in exceptions.
