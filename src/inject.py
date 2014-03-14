@@ -98,7 +98,7 @@ def configure(config=None):
             raise InjectorException('Injector is already configured')
 
         _INJECTOR = Injector(config)
-        logging.debug('Created and configured an injector, config=%s', config)
+        logger.debug('Created and configured an injector, config=%s', config)
         return _INJECTOR
 
 
@@ -118,7 +118,7 @@ def clear():
             return
 
         _INJECTOR = None
-        logging.debug('Cleared an injector')
+        logger.debug('Cleared an injector')
 
 
 def instance(cls):
@@ -163,7 +163,7 @@ class Binder(object):
         """Bind a class to an instance."""
         self._check_class(cls)
         self._bindings[cls] = lambda: instance
-        logging.debug('Bound %s to an instance %s', cls, instance)
+        logger.debug('Bound %s to an instance %s', cls, instance)
         return self
 
     def bind_to_constructor(self, cls, constructor):
@@ -173,7 +173,7 @@ class Binder(object):
             raise InjectorException('Constructor cannot be None, key=%s' % cls)
 
         self._bindings[cls] = _ConstructorBinding(constructor)
-        logging.debug('Bound %s to a constructor %s', cls, constructor)
+        logger.debug('Bound %s to a constructor %s', cls, constructor)
         return self
 
     def bind_to_provider(self, cls, provider):
@@ -183,7 +183,7 @@ class Binder(object):
             raise InjectorException('Provider cannot be None, key=%s' % cls)
 
         self._bindings[cls] = provider
-        logging.debug('Bound %s to a provider %s', cls, provider)
+        logger.debug('Bound %s to a provider %s', cls, provider)
         return self
 
     def _check_class(self, cls):
@@ -222,7 +222,7 @@ class Injector(object):
             instance = cls()
             self._bindings[cls] = lambda: instance
 
-            logging.debug('Created a runtime binding for key=%s, instance=%s', cls, instance)
+            logger.debug('Created a runtime binding for key=%s, instance=%s', cls, instance)
             return instance
 
 
