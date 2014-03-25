@@ -131,6 +131,18 @@ Binding types
     inject.configure(lambda binder: binder.bind(Config, load_config_file()))
     user = User.load(10)
 
+Keys
+----
+It is possible to use any hashable object as a binding key.
+For example::
+    
+    import inject
+    
+    inject.configure(lambda binder: \
+        binder.bind('host', 'localhost') \
+        binder.bind('port', 1234))
+
+
 Why no scopes?
 --------------
 I've used Guice and Spring in Java for a lot of years, and I don't like their scopes.
