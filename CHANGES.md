@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 3.2.0 (2014-08-04)
+- Added `inject.configure_once` and `inject.is_configured`, #11. 
+
 ### 3.1.1 (2014-03-14)
 - Switch from root logger to module logger, #8.
 
