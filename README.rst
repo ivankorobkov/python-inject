@@ -66,6 +66,17 @@ Example::
     foo('Hello')
     bar('world')
 
+
+Usage with Django
+-----------------
+Django can load some modules multiple times which can lead to 
+`InjectorException: Injector is already configured`. You can use `configure_once` which
+is guaranteed to run only once when the injector is absent::
+
+    import inject
+    inject.configure_once(my_config)
+
+
 Testing
 -------
 In tests use ``inject.clear_and_configure(callable)`` to create a new injector on setup,

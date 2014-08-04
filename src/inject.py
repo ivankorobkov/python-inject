@@ -102,11 +102,26 @@ def configure(config=None):
         return _INJECTOR
 
 
+def configure_once(config=None):
+    """Create an injector with a callable config if not present, otherwise, do nothing."""
+    with _INJECTOR_LOCK:
+        if _INJECTOR:
+            return _INJECTOR
+        
+        return configure(config)
+
+
 def clear_and_configure(config=None):
     """Clear an existing injector and create another one with a callable config."""
     with _INJECTOR_LOCK:
         clear()
         return configure(config)
+
+
+def is_configured():
+    """Return true if an injector is already configured."""
+    with _INJECTOR_LOCK:
+        return _INJECTOR is not None
 
 
 def clear():
