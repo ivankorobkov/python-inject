@@ -34,6 +34,19 @@ Example::
         cache = inject.instance(Cache)
         cache.save('bar', bar)
     
+    # `inject.params` injects dependencies as keyword arguments or positional argument.
+    @inject.params(cache: Cache, user: CurrentUser)
+    def baz(foo, cache=None, user=None):
+        cache.save('foo', foo, user)
+ 
+    # this can be called in different ways:
+    # with injected arguments
+    baz('foo')
+    # with positional arguments
+    baz('foo', my_cache)
+    # with keyword arguments
+    baz('foo', my_cache, user=current_user)
+    
     # `inject.attr` creates properties (descriptors) which request dependencies on access.
     class User(object):
         cache = inject.attr(Cache)
