@@ -80,6 +80,7 @@ __url__ = 'https://github.com/ivan-korobkov/python-inject'
 
 import logging
 import threading
+import inspect
 from functools import wraps
 
 logger = logging.getLogger('inject')
@@ -150,6 +151,9 @@ def param(name, cls=None):
     """Return a parameter injection decorator"""
     return _ParameterInjection(name, cls)
 
+def params(**kwargs):
+    """Return a parameter injection decorator"""
+    return _ParametersInjection(**kwargs)
 
 def get_injector():
     """Return the current injector or None."""
@@ -285,5 +289,39 @@ class _ParameterInjection(object):
         def injection_wrapper(*args, **kwargs):
             if not self._name in kwargs:
                 kwargs[self._name] = instance(self._cls or self._name)
+            return func(*args, **kwargs)
+        return injection_wrapper
+
+class _ParametersInjection(object):
+    __slots__ = ('_params')
+
+    def __init__(self, **kwargs):
+        self._params = kwargs
+
+    def __call__(self, func):
+        arg_names = inspect.getargspec(func).args
+        
+        @wraps(func)
+        def injection_wrapper(*args, **kwargs):
+            # arguments injected
+            additional_args=[]
+            # iterate over the positional arguments of the function definition
+            i = len(args)
+            while i < len(arg_names):
+                arg_name = arg_names[i]
+                # stop when we do not have a parameter for the positional argument
+                # or stop at the first keyword argument 
+                if arg_name not in self._params or arg_name in kwargs:
+                    break
+                # this parameter will be injected into the *args
+                additional_args.append(instance(self._params[arg_name]))
+                i += 1
+            if additional_args:
+                args += tuple(additional_args)
+            # a list of all positional args that we have injected
+            used_args = arg_names[:i]
+            for name,cls in self._params.items():
+                if not name in kwargs and not name in used_args:
+                    kwargs[name] = instance(cls)
             return func(*args, **kwargs)
         return injection_wrapper
