@@ -25,7 +25,7 @@ Usage:
         cache = inject.instance(Cache)
         cache.save('bar', bar)
 
-    @inject.param('cache', Cache)
+    @inject.params(cache=Cache)
     def bar(foo, cache=None):
         cache.save('foo', foo)
 
@@ -85,9 +85,9 @@ from functools import wraps
 
 logger = logging.getLogger('inject')
 
-_INJECTOR = None                    # Shared injector instance.
+_INJECTOR = None  # Shared injector instance.
 _INJECTOR_LOCK = threading.RLock()  # Guards injector initialization. 
-_BINDING_LOCK = threading.RLock()   # Guards runtime bindings.
+_BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
 
 def configure(config=None):
@@ -108,7 +108,7 @@ def configure_once(config=None):
     with _INJECTOR_LOCK:
         if _INJECTOR:
             return _INJECTOR
-        
+
         return configure(config)
 
 
@@ -148,12 +148,21 @@ def attr(cls):
 
 
 def param(name, cls=None):
-    """Return a parameter injection decorator"""
+    """Deprecated, use @inject.params. Return a decorator which injects an arg into a function."""
     return _ParameterInjection(name, cls)
 
-def params(**kwargs):
-    """Return a parameter injection decorator"""
-    return _ParametersInjection(**kwargs)
+
+def params(**args_to_classes):
+    """Return a decorator which injects args into a function.
+    
+    For example::
+    
+        @inject.params(cache=RedisCache, db=DbInterface)
+        def sign_up(name, email, cache, db):
+            pass
+    """
+    return _ParametersInjection(**args_to_classes)
+
 
 def get_injector():
     """Return the current injector or None."""
@@ -290,38 +299,47 @@ class _ParameterInjection(object):
             if not self._name in kwargs:
                 kwargs[self._name] = instance(self._cls or self._name)
             return func(*args, **kwargs)
+
         return injection_wrapper
 
+
 class _ParametersInjection(object):
-    __slots__ = ('_params')
+    __slots__ = ('_params', )
 
     def __init__(self, **kwargs):
         self._params = kwargs
 
     def __call__(self, func):
         arg_names = inspect.getargspec(func).args
-        
+        params = self._params
+
         @wraps(func)
         def injection_wrapper(*args, **kwargs):
             # arguments injected
-            additional_args=[]
+            additional_args = []
+
             # iterate over the positional arguments of the function definition
             i = len(args)
             while i < len(arg_names):
                 arg_name = arg_names[i]
+
                 # stop when we do not have a parameter for the positional argument
-                # or stop at the first keyword argument 
-                if arg_name not in self._params or arg_name in kwargs:
+                # or stop at the first keyword argument
+                if arg_name not in params or arg_name in kwargs:
                     break
+
                 # this parameter will be injected into the *args
-                additional_args.append(instance(self._params[arg_name]))
+                additional_args.append(instance(params[arg_name]))
                 i += 1
+
             if additional_args:
                 args += tuple(additional_args)
+
             # a list of all positional args that we have injected
             used_args = arg_names[:i]
-            for name,cls in self._params.items():
+            for name, cls in params.items():
                 if not name in kwargs and not name in used_args:
                     kwargs[name] = instance(cls)
             return func(*args, **kwargs)
+
         return injection_wrapper

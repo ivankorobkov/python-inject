@@ -24,28 +24,34 @@ Example::
     # Import the inject module.
     import inject
     
-    # `inject.param` injects dependencies as keyword arguments.
-    @inject.param('cache', Cache)
-    def bar(foo, cache=None):
-        cache.save('foo', foo)
     
     # `inject.instance` requests dependencies from the injector.
     def foo(bar):
         cache = inject.instance(Cache)
         cache.save('bar', bar)
     
+    
     # `inject.params` injects dependencies as keyword arguments or positional argument.
-    @inject.params(cache: Cache, user: CurrentUser)
+    @inject.params(cache=Cache, user=CurrentUser)
     def baz(foo, cache=None, user=None):
         cache.save('foo', foo, user)
  
     # this can be called in different ways:
     # with injected arguments
     baz('foo')
+    
     # with positional arguments
     baz('foo', my_cache)
+    
     # with keyword arguments
     baz('foo', my_cache, user=current_user)
+    
+    
+    # `inject.param` is deprecated, use `inject.params` instead.
+    @inject.param('cache', Cache)
+    def bar(foo, cache=None):
+        cache.save('foo', foo)
+    
     
     # `inject.attr` creates properties (descriptors) which request dependencies on access.
     class User(object):
@@ -200,7 +206,7 @@ For example, a thread-local current user provider::
     inject.configure(lambda binder: binder.bind_to_provider(User, get_current_user))
     
     # Inject the current user.
-    @inject.param('user', User)
+    @inject.params(user=User)
     def foo(user):
         pass
 

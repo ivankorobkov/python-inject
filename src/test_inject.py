@@ -198,7 +198,7 @@ class TestInject(TestCase):
 
     def test_params_multi(self):
         @inject.params(a='A', b='B', c='C')
-        def test_func(a,b,c):
+        def test_func(a, b, c):
             return a, b, c
 
         def config(binder):
