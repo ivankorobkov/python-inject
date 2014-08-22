@@ -213,8 +213,7 @@ For example, a thread-local current user provider::
 
 Links
 -----
-- Project: https://github.com/ivan-korobkov/python-inject
-- Google Groups: https://groups.google.com/d/forum/python-inject
+- Project: https://github.com/ivankorobkov/python-inject
 
 License
 -------
