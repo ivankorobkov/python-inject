@@ -7,21 +7,21 @@ def read_description():
 
 
 setup(
-      name='Inject',
-      version='3.2.0',
-      url='https://github.com/ivan-korobkov/python-inject',
-      license='Apache License 2.0',
+    name='Inject',
+    version='3.3.0',
+    url='https://github.com/ivankorobkov/python-inject',
+    license='Apache License 2.0',
 
-      author='Ivan Korobkov',
-      author_email='ivan.korobkov@gmail.com',
+    author='Ivan Korobkov',
+    author_email='ivan.korobkov@gmail.com',
 
-      description='Python dependency injection framework',
-      long_description=read_description(),
+    description='Python dependency injection framework',
+    long_description=read_description(),
 
-      package_dir={'': 'src'},
-      py_modules=['inject'],
+    package_dir={'': 'src'},
+    py_modules=['inject'],
 
-      classifiers=[
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',

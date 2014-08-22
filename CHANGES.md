@@ -1,6 +1,11 @@
 python-inject changes
 =====================
 
+
+### 3.3.0 (2014-08-22)
+- Added `inject.params(arg1=cls1, arg2=cls2)`, deprecated `inject.param`, #12 
+  (thanks [@scharf](https://github.com/scharf)).
+
 ### 3.2.0 (2014-08-04)
 - Added `inject.configure_once` and `inject.is_configured`, #11. 
 

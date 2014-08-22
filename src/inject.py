@@ -73,7 +73,7 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-__version__ = '3.1.1'
+__version__ = '3.3.0'
 __author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
 __license__ = 'Apache License 2.0'
 __url__ = 'https://github.com/ivan-korobkov/python-inject'
