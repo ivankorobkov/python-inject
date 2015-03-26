@@ -2,8 +2,12 @@ python-inject changes
 =====================
 
 
+### 3.3.1 (2015-03-28)
+- Fixed race condition in bind_to_constructor, #14
+  [@peick](https://github.com/peick).
+
 ### 3.3.0 (2014-08-22)
-- Added `inject.params(arg1=cls1, arg2=cls2)`, deprecated `inject.param`, #12 
+- Added `inject.params(arg1=cls1, arg2=cls2)`, deprecated `inject.param`, #12
   (thanks [@scharf](https://github.com/scharf)).
 
 ### 3.2.0 (2014-08-04)
