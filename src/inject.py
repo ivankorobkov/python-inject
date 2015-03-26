@@ -73,7 +73,7 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-__version__ = '3.3.0'
+__version__ = '3.3.1'
 __author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
 __license__ = 'Apache License 2.0'
 __url__ = 'https://github.com/ivan-korobkov/python-inject'
@@ -272,8 +272,8 @@ class _ConstructorBinding(object):
             if self._created:
                 return self._instance
 
-            self._created = True
             self._instance = self._constructor()
+            self._created = True
 
         return self._instance
 
