@@ -81,6 +81,7 @@ __url__ = 'https://github.com/ivan-korobkov/python-inject'
 import logging
 import threading
 import inspect
+import sys
 from functools import wraps
 
 logger = logging.getLogger('inject')
@@ -310,7 +311,10 @@ class _ParametersInjection(object):
         self._params = kwargs
 
     def __call__(self, func):
-        arg_names = inspect.getargspec(func).args
+        if sys.version_info.major == 2:
+            arg_names = inspect.getargspec(func).args
+        else:
+            arg_names = inspect.getfullargspec(func).args
         params = self._params
 
         @wraps(func)
