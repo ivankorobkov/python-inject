@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 3.3.2 (2017-09-14)
+- Use getfullargspec when executing in Python3, #17
+  [@jaimewyant](https://github.com/jaimewyant).
 
 ### 3.3.1 (2015-03-28)
 - Fixed race condition in bind_to_constructor, #14
