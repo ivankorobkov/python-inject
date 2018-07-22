@@ -1,3 +1,4 @@
+import sys
 from distutils.core import setup
 
 
@@ -20,6 +21,16 @@ setup(
 
     package_dir={'': 'src'},
     py_modules=['inject'],
+    data_files=[
+        (
+            'lib/python{}.{}/site-packages'.format(*sys.version_info[:2]),
+            ['src/inject.pyi']
+        ),
+        (
+            'shared/typehints/python{}.{}'.format(*sys.version_info[:2]),
+            ['src/inject.pyi']
+        )
+    ],
 
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -29,5 +40,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules']
 )
