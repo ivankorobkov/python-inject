@@ -165,6 +165,37 @@ def params(**args_to_classes):
     return _ParametersInjection(**args_to_classes)
 
 
+def autoparams(*selected_args):
+    """Return a decorator which automatically injects arguments into a function using type annotations.
+    This is supported only in Python >= 3.5.
+
+    For example::
+
+        @inject.autoparams()
+        def refresh_cache(cache: RedisCache, db: DbInterface):
+            pass
+
+    There is an option to specify which arguments we want to inject without attempts of injecting everything:
+
+    For example::
+
+        @inject.autoparams('cache', 'db')
+        def sign_up(name, email, cache, db):
+            pass
+    """
+    def autoparams_decorator(func):
+        if sys.version_info[:2] < (3, 5):
+            raise InjectorException('autoparams are supported from Python 3.5 onwards')
+        args_to_classes = dict(func.__annotations__)
+        if selected_args:
+            keys_to_remove = set(args_to_classes.keys()) - set(selected_args)
+            for key in keys_to_remove:
+                del args_to_classes[key]
+        return _ParametersInjection(**args_to_classes)(func)
+
+    return autoparams_decorator
+
+
 def get_injector():
     """Return the current injector or None."""
     return _INJECTOR
