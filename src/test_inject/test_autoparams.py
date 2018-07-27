@@ -2,21 +2,21 @@ import inject
 from test_inject import BaseTestInject
 
 
-class TestInjectParams(BaseTestInject):
-    def test_params(self):
-        @inject.params(val=int)
-        def test_func(val):
+class TestInjectAutoparams(BaseTestInject):
+
+    def test_autoparams_by_class(self):
+        @inject.autoparams()
+        def test_func(val: int = None):
             return val
 
         inject.configure(lambda binder: binder.bind(int, 123))
 
         assert test_func() == 123
-        assert test_func(321) == 321
-        assert test_func(val=42) == 42
+        assert test_func(val=321) == 321
 
-    def test_params_multi(self):
-        @inject.params(a='A', b='B', c='C')
-        def test_func(a, b, c):
+    def test_autoparams_multi(self):
+        @inject.autoparams()
+        def test_func(a: 'A', b: 'B', c: 'C'):
             return a, b, c
 
         def config(binder):
@@ -37,10 +37,9 @@ class TestInjectParams(BaseTestInject):
         assert test_func(c=30, b=20, a=10) == (10, 20, 30)
         assert test_func(10, b=20) == (10, 20, 3)
 
-    def test_params_with_defaults(self):
-        # note the inject overrides default parameters
-        @inject.params(b='B', c='C')
-        def test_func(a=1, b=None, c=300):
+    def test_autoparams_with_defaults(self):
+        @inject.autoparams()
+        def test_func(a=1, b: 'B' = None, c: 'C' = 300):
             return a, b, c
 
         def config(binder):
@@ -60,10 +59,10 @@ class TestInjectParams(BaseTestInject):
         assert test_func(c=30, b=20, a=10) == (10, 20, 30)
         assert test_func(10, b=20) == (10, 20, 3)
 
-    def test_params_on_method(self):
+    def test_autoparams_on_method(self):
         class Test:
-            @inject.params(b='B', c='C')
-            def func(self, a=1, b=None, c=None):
+            @inject.autoparams()
+            def func(self, a=1, b: 'B' = None, c: 'C' = None):
                 return self, a, b, c
 
         def config(binder):
@@ -84,12 +83,12 @@ class TestInjectParams(BaseTestInject):
         assert test.func(c=30, b=20, a=10) == (test, 10, 20, 30)
         assert test.func(10, b=20) == (test, 10, 20, 3)
 
-    def test_params_on_classmethod(self):
+    def test_autoparams_on_classmethod(self):
         class Test:
             # note inject must be *before* classmethod!
             @classmethod
-            @inject.params(b='B', c='C')
-            def func(cls, a=1, b=None, c=None):
+            @inject.autoparams()
+            def func(cls, a=1, b: 'B' = None, c: 'C' = None):
                 return cls, a, b, c
 
         def config(binder):
@@ -109,12 +108,12 @@ class TestInjectParams(BaseTestInject):
         assert Test.func(c=30, b=20, a=10) == (Test, 10, 20, 30)
         assert Test.func(10, b=20) == (Test, 10, 20, 3)
 
-    def test_params_on_classmethod_ob_object(self):
+    def test_autoparams_on_classmethod_ob_object(self):
         class Test:
             # note inject must be *before* classmethod!
             @classmethod
-            @inject.params(b='B', c='C')
-            def func(cls, a=1, b=None, c=None):
+            @inject.autoparams()
+            def func(cls, a=1, b: 'B' = None, c: 'C' = None):
                 return cls, a, b, c
 
         def config(binder):
@@ -134,3 +133,18 @@ class TestInjectParams(BaseTestInject):
         assert test.func(a=10, c=30) == (Test, 10, 2, 30)
         assert test.func(c=30, b=20, a=10) == (Test, 10, 20, 30)
         assert test.func(10, b=20) == (Test, 10, 20, 3)
+
+    def test_autoparams_only_selected(self):
+        @inject.autoparams('a', 'c')
+        def test_func(a: 'A', b: 'B', c: 'C'):
+            return a, b, c
+
+        def config(binder):
+            binder.bind('A', 1)
+            binder.bind('B', 2)
+            binder.bind('C', 3)
+
+        inject.configure(config)
+
+        self.assertRaises(TypeError, test_func)
+        self.assertRaises(TypeError, test_func, a=1, c=3)

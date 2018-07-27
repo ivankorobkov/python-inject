@@ -5,7 +5,14 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+matrix:
+  include:
+    - python: '2.7'
+      env: EXTRA_ARGS='-I test_autoparams.py'
+    - python: '3.3'
+      env: EXTRA_ARGS='-I test_autoparams.py'
+    - python: '3.4'
+      env: EXTRA_ARGS='-I test_autoparams.py'
 install:
   - python setup.py -q install
-script: nosetests
-
+script: nosetests $EXTRA_ARGS
