@@ -166,8 +166,7 @@ def params(**args_to_classes):
 
 
 def autoparams(*selected_args):
-    """Return a decorator which automatically injects arguments into a function that uses type annotations.
-    This is supported only in Python >= 3.5.
+    """Return a decorator that will inject args into a function using type annotations, Python >= 3.5 only.
 
     For example::
 
