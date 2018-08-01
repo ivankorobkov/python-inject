@@ -148,3 +148,15 @@ class TestInjectAutoparams(BaseTestInject):
 
         self.assertRaises(TypeError, test_func)
         self.assertRaises(TypeError, test_func, a=1, c=3)
+
+    def test_autoparams_omits_return_type(self):
+        @inject.autoparams()
+        def test_func(a: str) -> int:
+            return a
+
+        def config(binder):
+            binder.bind(str, 'bazinga')
+
+        inject.configure(config)
+
+        assert test_func() == 'bazinga'
