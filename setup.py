@@ -9,7 +9,7 @@ def read_description():
 
 setup(
     name='Inject',
-    version='3.3.2',
+    version='3.4.0',
     url='https://github.com/ivankorobkov/python-inject',
     license='Apache License 2.0',
 
@@ -18,6 +18,7 @@ setup(
 
     description='Python dependency injection framework',
     long_description=read_description(),
+    long_description_content_type="text/markdown",
 
     package_dir={'': 'src'},
     py_modules=['inject'],

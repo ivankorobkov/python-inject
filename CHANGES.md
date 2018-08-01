@@ -1,6 +1,12 @@
 python-inject changes
 =====================
 
+### 3.4.0 (2018-08-01)
+- Type hinting in Python 3, #20
+  [@Enforcer](https://github.com/Enforcer).
+- Autoparams leveraging types annotations, #21
+  [@Enforcer](https://github.com/Enforcer).
+
 ### 3.3.2 (2017-09-14)
 - Use getfullargspec when executing in Python3, #17
   [@jaimewyant](https://github.com/jaimewyant).
