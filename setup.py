@@ -3,7 +3,7 @@ from distutils.core import setup
 
 
 def read_description():
-    with open('README.rst', 'r') as f:
+    with open('README.md', 'r') as f:
         return f.read()
 
 
