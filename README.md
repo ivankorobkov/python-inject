@@ -1,4 +1,4 @@
-# python-inject
+# python-inject [![Build Status](https://travis-ci.org/ivankorobkov/python-inject.svg?branch=master)](https://travis-ci.org/ivankorobkov/python-inject)
 Dependency injection the python way, the good way. Not a port of Guice or Spring.
 
 ## Key features
