@@ -185,12 +185,18 @@ def autoparams(*selected_args):
     def autoparams_decorator(func):
         if sys.version_info[:2] < (3, 5):
             raise InjectorException('autoparams are supported from Python 3.5 onwards')
-        args_to_classes = dict(func.__annotations__)
+
+        full_args_spec = inspect.getfullargspec(func)
+        annotations_items = full_args_spec.annotations.items()
+        args_annotated_types = {
+            arg_name: annotated_type for arg_name, annotated_type in annotations_items
+            if arg_name in full_args_spec.args
+        }
         if selected_args:
-            keys_to_remove = set(args_to_classes.keys()) - set(selected_args)
+            keys_to_remove = set(args_annotated_types.keys()) - set(selected_args)
             for key in keys_to_remove:
-                del args_to_classes[key]
-        return _ParametersInjection(**args_to_classes)(func)
+                del args_annotated_types[key]
+        return _ParametersInjection(**args_annotated_types)(func)
 
     return autoparams_decorator
 
