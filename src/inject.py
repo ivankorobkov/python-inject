@@ -91,7 +91,7 @@ _INJECTOR_LOCK = threading.RLock()  # Guards injector initialization.
 _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
 
-def configure(config=None):
+def configure(config=None, bind_in_runtime=True):
     """Create an injector with a callable config or raise an exception when already configured."""
     global _INJECTOR
 
@@ -99,25 +99,25 @@ def configure(config=None):
         if _INJECTOR:
             raise InjectorException('Injector is already configured')
 
-        _INJECTOR = Injector(config)
+        _INJECTOR = Injector(config, bind_in_runtime=bind_in_runtime)
         logger.debug('Created and configured an injector, config=%s', config)
         return _INJECTOR
 
 
-def configure_once(config=None):
+def configure_once(config=None, bind_in_runtime=True):
     """Create an injector with a callable config if not present, otherwise, do nothing."""
     with _INJECTOR_LOCK:
         if _INJECTOR:
             return _INJECTOR
 
-        return configure(config)
+        return configure(config, bind_in_runtime=bind_in_runtime)
 
 
-def clear_and_configure(config=None):
+def clear_and_configure(config=None, bind_in_runtime=True):
     """Clear an existing injector and create another one with a callable config."""
     with _INJECTOR_LOCK:
         clear()
-        return configure(config)
+        return configure(config, bind_in_runtime=bind_in_runtime)
 
 
 def is_configured():
@@ -260,7 +260,8 @@ class Binder(object):
 
 
 class Injector(object):
-    def __init__(self, config=None):
+    def __init__(self, config=None, bind_in_runtime=True):
+        self._bind_in_runtime = bind_in_runtime
         if config:
             binder = Binder()
             config(binder)
@@ -279,6 +280,9 @@ class Injector(object):
             binding = self._bindings.get(cls)
             if binding:
                 return binding()
+
+            if not self._bind_in_runtime:
+                raise InjectorException('No binding was found for key=%s' % cls)
 
             if not callable(cls):
                 raise InjectorException(

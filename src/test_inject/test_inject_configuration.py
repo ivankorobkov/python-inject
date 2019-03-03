@@ -50,3 +50,9 @@ class TestInjectConfiguration(BaseTestInject):
     def test_get_injector_or_die(self):
         self.assertRaisesRegexp(InjectorException, 'No injector is configured',
                                 inject.get_injector_or_die)
+
+    def test_configure__runtime_binding_disabled(self):
+        injector = inject.configure(bind_in_runtime=False)
+        self.assertRaisesRegexp(InjectorException,
+                                "No binding was found for key=<.* 'int'>",
+                                injector.get_instance, int)
