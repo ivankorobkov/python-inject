@@ -183,6 +183,17 @@ class User(object):
 inject.configure(lambda binder: binder.bind(Config, load_config_file()))
 user = User.load(10)
 ```
+## Disabling runtime binding
+Sometimes runtime binding leads to unexpected behaviour.  Say if you forget
+to bind an instance to a class, `inject` will try to implicitly instantiate it.
+
+If an instance is unintentionally created with default arguments it may lead to
+hard-to-debug bugs.  To disable runtime binding and make sure that only 
+explicitly bound instances are injected, pass `bind_in_runtime=False` 
+to `inject.configure`, `inject.configure_once` or `inject.clear_and_configure`.
+
+In this case `inject` immediately raises `InjectorException` when the code
+tries to get an unbound instance.
 
 ## Keys
 It is possible to use any hashable object as a binding key. For example:
