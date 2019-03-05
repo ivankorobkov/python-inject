@@ -40,3 +40,9 @@ class TestInjector(TestCase):
         self.assertRaisesRegexp(InjectorException,
                                'Cannot create a runtime binding, the key is not callable, key=123',
                                 injector.get_instance, 123)
+
+    def test_runtime_binding__disabled(self):
+        injector = Injector(bind_in_runtime=False)
+        self.assertRaisesRegexp(InjectorException,
+                                "No binding was found for key=<.* 'int'>",
+                                injector.get_instance, int)
