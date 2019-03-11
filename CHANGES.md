@@ -1,6 +1,10 @@
 python-inject changes
 =====================
 
+### 3.5.0 (2019-03-11)
+- Configurable auto-initialization, #23
+  [@Fedorof](https://github.com/Fedorof).
+
 ### 3.4.0 (2018-08-01)
 - Type hinting in Python 3, #20
   [@Enforcer](https://github.com/Enforcer).

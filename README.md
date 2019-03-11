@@ -21,7 +21,8 @@ pip install inject
 ```
 
 ## Autoparams example
-`@inject.autoparams` returns a decorator which automatically injects arguments into a function that uses type annotations. This is supported only in Python >= 3.5.
+`@inject.autoparams` returns a decorator which automatically injects arguments into a function 
+that uses type annotations. This is supported only in Python >= 3.5.
 
 ```python
 @inject.autoparams()
@@ -29,7 +30,8 @@ def refresh_cache(cache: RedisCache, db: DbInterface):
     pass
 ```
 
-There is an option to specify which arguments we want to inject without attempts of injecting everything:
+There is an option to specify which arguments we want to inject without attempts of 
+injecting everything:
 
 ```python
 @inject.autoparams('cache', 'db')
@@ -49,7 +51,8 @@ def foo(bar):
     cache.save('bar', bar)
 
 
-# `inject.params` injects dependencies as keyword arguments or positional argument. Alose you can use @inject.autoparams in Python 3.5, see the example above.
+# `inject.params` injects dependencies as keyword arguments or positional argument. 
+# Also you can use @inject.autoparams in Python 3.5, see the example above.
 @inject.params(cache=Cache, user=CurrentUser)
 def baz(foo, cache=None, user=None):
     cache.save('foo', foo, user)
@@ -254,3 +257,4 @@ Apache License 2.0
 * Ivan Korobkov [@ivankorobkov](https://github.com/ivankorobkov)
 * Jaime Wyant [@jaimewyant](https://github.com/jaimewyant)
 * Sebastian Buczyński [@Enforcer](https://github.com/Enforcer)
+* Oleksandr Fedorov [@Fedorof](https://github.com/Fedorof)
