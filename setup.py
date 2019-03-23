@@ -1,5 +1,5 @@
-import sys
 from distutils.core import setup
+import sys
 
 
 def read_description():
@@ -9,7 +9,7 @@ def read_description():
 
 setup(
     name='Inject',
-    version='3.5.0',
+    version='3.5.1dev0',
     url='https://github.com/ivankorobkov/python-inject',
     license='Apache License 2.0',
 

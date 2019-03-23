@@ -6,7 +6,7 @@ Usage:
     def my_config(binder):
         binder.bind(Cache, RedisCache('localhost:1234'))
         binder.bind_to_provider(CurrentUser, get_current_user)
-    
+
 - Create a shared injector::
     inject.configure(my_config)
 
@@ -45,49 +45,50 @@ In tests use `inject.clear_and_configure(callable)` to create a new injector on 
 and `inject.clear()` to clean-up on tear down.
 
 Runtime bindings greatly reduce the required configuration by automatically creating singletons
-on first access. For example, below only the Config class requires binding configuration, 
+on first access. For example, below only the Config class requires binding configuration,
 all other classes are runtime bindings::
     class Cache(object):
         config = inject.attr(Config)
-        
+
         def __init__(self):
             self._redis = connect(self.config.redis_address)
-    
+
     class Db(object):
         pass
-    
+
     class UserRepo(object):
         cache = inject.attr(Cache)
         db = inject.attr(Db)
-        
+
         def load(self, user_id):
             return cache.load('user', user_id) or db.load('user', user_id)
-    
+
     class Config(object):
         def __init__(self, redis_address):
             self.redis_address = redis_address
-    
+
     def my_config(binder):
         binder.bind(Config, load_config_file())
-    
+
     inject.configure(my_config)
 
 """
-__version__ = '3.3.2'
+__version__ = '3.5.1dev0'
 __author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
 __license__ = 'Apache License 2.0'
 __url__ = 'https://github.com/ivan-korobkov/python-inject'
 
-import logging
-import threading
-import inspect
-import sys
 from functools import wraps
+import inspect
+import logging
+import sys
+import threading
+
 
 logger = logging.getLogger('inject')
 
 _INJECTOR = None  # Shared injector instance.
-_INJECTOR_LOCK = threading.RLock()  # Guards injector initialization. 
+_INJECTOR_LOCK = threading.RLock()  # Guards injector initialization.
 _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
 
@@ -155,9 +156,9 @@ def param(name, cls=None):
 
 def params(**args_to_classes):
     """Return a decorator which injects args into a function.
-    
+
     For example::
-    
+
         @inject.params(cache=RedisCache, db=DbInterface)
         def sign_up(name, email, cache, db):
             pass
@@ -188,14 +189,12 @@ def autoparams(*selected_args):
 
         full_args_spec = inspect.getfullargspec(func)
         annotations_items = full_args_spec.annotations.items()
+        all_arg_names = frozenset(full_args_spec.args + full_args_spec.kwonlyargs)
+        args_to_check = frozenset(selected_args) or all_arg_names
         args_annotated_types = {
             arg_name: annotated_type for arg_name, annotated_type in annotations_items
-            if arg_name in full_args_spec.args
+            if arg_name in args_to_check
         }
-        if selected_args:
-            keys_to_remove = set(args_annotated_types.keys()) - set(selected_args)
-            for key in keys_to_remove:
-                del args_annotated_types[key]
         return _ParametersInjection(**args_annotated_types)(func)
 
     return autoparams_decorator
@@ -337,7 +336,7 @@ class _ParameterInjection(object):
     def __call__(self, func):
         @wraps(func)
         def injection_wrapper(*args, **kwargs):
-            if not self._name in kwargs:
+            if self._name not in kwargs:
                 kwargs[self._name] = instance(self._cls or self._name)
             return func(*args, **kwargs)
 
@@ -355,35 +354,16 @@ class _ParametersInjection(object):
             arg_names = inspect.getargspec(func).args
         else:
             arg_names = inspect.getfullargspec(func).args
-        params = self._params
+        params_to_provide = self._params
 
         @wraps(func)
         def injection_wrapper(*args, **kwargs):
-            # arguments injected
-            additional_args = []
 
-            # iterate over the positional arguments of the function definition
-            i = len(args)
-            while i < len(arg_names):
-                arg_name = arg_names[i]
+            provided_params = frozenset(arg_names[:len(args)]) | frozenset(kwargs.keys())
+            for param, cls in params_to_provide.items():
+                if param not in provided_params:
+                    kwargs[param] = instance(cls)
 
-                # stop when we do not have a parameter for the positional argument
-                # or stop at the first keyword argument
-                if arg_name not in params or arg_name in kwargs:
-                    break
-
-                # this parameter will be injected into the *args
-                additional_args.append(instance(params[arg_name]))
-                i += 1
-
-            if additional_args:
-                args += tuple(additional_args)
-
-            # a list of all positional args that we have injected
-            used_args = arg_names[:i]
-            for name, cls in params.items():
-                if not name in kwargs and not name in used_args:
-                    kwargs[name] = instance(cls)
             return func(*args, **kwargs)
 
         return injection_wrapper
