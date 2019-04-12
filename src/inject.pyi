@@ -2,6 +2,7 @@ import typing
 
 
 T = typing.TypeVar('T')
+Binder = typing.TypeVar('Binder')
 Injector = typing.TypeVar('Injector')
 
 
