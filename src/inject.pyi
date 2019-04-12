@@ -13,7 +13,8 @@ class Binder(object):
         config: Callable[[Binder], None]
     ) -> Binder: ...
 
-    def bind(self,
+    def bind(
+        self,
         cls: Type[T],
         instance: T
     ) -> Binder: ...
