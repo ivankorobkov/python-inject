@@ -258,3 +258,5 @@ Apache License 2.0
 * Jaime Wyant [@jaimewyant](https://github.com/jaimewyant)
 * Sebastian Buczyński [@Enforcer](https://github.com/Enforcer)
 * Oleksandr Fedorov [@Fedorof](https://github.com/Fedorof)
+* cselvaraj [@cselvaraj](https://github.com/cselvaraj)
+* 陆雨晴 [@SixExtreme](https://github.com/SixExtreme)

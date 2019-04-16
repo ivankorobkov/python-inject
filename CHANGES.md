@@ -1,6 +1,10 @@
 python-inject changes
 =====================
 
+### 3.5.1 (2019-04-16)
+- Export Binder and Injector in pyi, #29.
+- Make autoparams work with keyword-only parameters, #26.
+
 ### 3.5.0 (2019-03-11)
 - Configurable auto-initialization, #23
   [@Fedorof](https://github.com/Fedorof).
