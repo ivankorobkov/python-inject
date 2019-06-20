@@ -1,7 +1,9 @@
-from typing import Type, TypeVar, Callable, Optional
-
+from typing import Type, TypeVar, Callable, Optional, Union, Hashable
 
 T = TypeVar('T')
+Binding = Union[Type[T], Hashable]
+Constructor = Provider = Callable[[], T]
+BinderCallable = Callable[['Binder'], None]
 
 
 class Binder(object):
@@ -10,54 +12,54 @@ class Binder(object):
 
     def install(
         self,
-        config: Callable[[Binder], None]
+        config: BinderCallable
     ) -> Binder: ...
 
     def bind(
         self,
-        cls: Type[T],
+        cls: Binding,
         instance: T
     ) -> Binder: ...
 
     def bind_to_constructor(
         self,
-        cls: Type[T],
-        constructor: Callable
+        cls: Binding,
+        constructor: Constructor
     ) -> Binder: ...
 
     def bind_to_provider(
         self,
-        cls: Type[T],
-        provider: Callable
+        cls: Binding,
+        provider: Provider
     ) -> Binder: ...
 
-    def _check_class(self, cls: Type[T]) -> None: ...
+    def _check_class(self, cls: Binding) -> None: ...
 
 
 class Injector(object):
 
     def __init__(
         self,
-        config: Optional[Callable[[Binder], None]] = None,
+        config: Optional[BinderCallable] = None,
         bind_in_runtime: bool = True
     ) -> None: ...
 
-    def get_instance(self, cls: Type[T]) -> T: ...
+    def get_instance(self, cls: Binding) -> T: ...
 
 
 def configure(
-    config: Optional[Callable], bind_in_runtime: bool = True
-) -> None: ...
+    config: Optional[BinderCallable], bind_in_runtime: bool = True
+) -> Injector: ...
 
 
 def configure_once(
-    config: Optional[Callable], bind_in_runtime: bool = True
-) -> None: ...
+    config: Optional[BinderCallable], bind_in_runtime: bool = True
+) -> Injector: ...
 
 
 def clear_and_configure(
-    config: Optional[Callable], bind_in_runtime: bool = True
-) -> None: ...
+    config: Optional[BinderCallable], bind_in_runtime: bool = True
+) -> Injector: ...
 
 
 def is_configured() -> bool: ...
@@ -66,16 +68,16 @@ def is_configured() -> bool: ...
 def clear() -> None: ...
 
 
-def params(**args_to_classes: Type[T]) -> Callable: ...
+def params(**args_to_classes: Binding) -> Callable: ...
 
 
 def autoparams(*selected_args: str) -> Callable: ...
 
 
-def instance(cls: Type[T]) -> T: ...
+def instance(cls: Binding) -> T: ...
 
 
-def attr(cls: Type[T]) -> T: ...
+def attr(cls: Binding) -> T: ...
 
 
 def get_injector() -> Optional[Injector]: ...
