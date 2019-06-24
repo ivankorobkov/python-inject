@@ -1,5 +1,5 @@
 import sys
-from distutils.core import setup
+from setuptools import setup
 
 
 def read_description():
@@ -9,7 +9,7 @@ def read_description():
 
 setup(
     name='Inject',
-    version='3.5.1-dev',
+    version='3.5.1.dev0',
     url='https://github.com/ivankorobkov/python-inject',
     license='Apache License 2.0',
 
@@ -25,13 +25,11 @@ setup(
     data_files=[
         (
             'lib/python{}.{}/site-packages'.format(*sys.version_info[:2]),
-            ['src/inject.pyi']
-        ),
-        (
-            'shared/typehints/python{}.{}'.format(*sys.version_info[:2]),
-            ['src/inject.pyi']
+            ['src/inject.py']
         )
     ],
+
+    install_requires=['typing'],
 
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -40,7 +38,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
