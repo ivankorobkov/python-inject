@@ -1,4 +1,6 @@
+# encoding: utf-8
 import sys
+
 from setuptools import setup
 
 
@@ -9,7 +11,7 @@ def read_description():
 
 setup(
     name='Inject',
-    version='3.5.1.dev0',
+    version='3.5.2',
     url='https://github.com/ivankorobkov/python-inject',
     license='Apache License 2.0',
 
@@ -38,7 +40,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules']

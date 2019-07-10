@@ -1,6 +1,10 @@
 python-inject changes
 =====================
 
+### 3.5.2 (2019-07-10)
+- Modify type-hints to support Hashable bindings and other improvements,  #33.
+- Merge these type-hints into the .py file instead of having a .pyi file, #33.
+
 ### 3.5.1 (2019-04-16)
 - Export Binder and Injector in pyi, #29.
 - Make autoparams work with keyword-only parameters, #26.
