@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 3.5.3 (2019-07-24)
+- AttributeError: type object 'Callable' has no attribute '_abc_registry' #34
+
 ### 3.5.2 (2019-07-10)
 - Modify type-hints to support Hashable bindings and other improvements,  #33.
 - Merge these type-hints into the .py file instead of having a .pyi file, #33.
