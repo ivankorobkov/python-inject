@@ -1,3 +1,4 @@
+dist: xenial
 language: python
 matrix:
   include:
@@ -7,6 +8,7 @@ matrix:
       env: EXTRA_ARGS='-I test_autoparams.py'
     - python: '3.5'
     - python: '3.6'
+    - python: '3.7'
 install:
   - python setup.py -q install
 script: nosetests $EXTRA_ARGS
