@@ -31,7 +31,7 @@ setup(
         )
     ],
 
-    install_requires=["typing; python_version<'3.5'"],
+    install_requires=['typing; python_version<"3.5"'],
 
     classifiers=[
         'Development Status :: 5 - Production/Stable',
