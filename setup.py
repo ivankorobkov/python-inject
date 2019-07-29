@@ -22,14 +22,10 @@ setup(
     long_description=read_description(),
     long_description_content_type="text/markdown",
 
-    package_dir={'': 'src'},
-    py_modules=['inject'],
-    data_files=[
-        (
-            'lib/python{}.{}/site-packages'.format(*sys.version_info[:2]),
-            ['src/inject.py']
-        )
-    ],
+    packages=['inject'],
+    package_data={'inject': ['py.typed']},
+    include_package_data=True,
+    zip_safe=False,
 
     install_requires=['typing; python_version<"3.5"'],
 

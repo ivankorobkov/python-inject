@@ -1,6 +1,6 @@
 import inject
-from inject import Binder, InjectorException
-from test_inject import BaseTestInject
+from inject import InjectorException
+from test import BaseTestInject
 
 
 class TestInjectConfiguration(BaseTestInject):
