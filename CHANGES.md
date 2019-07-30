@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 3.5.4 (2019-07-30)
+- MyPy compatibility #36.
+
 ### 3.5.3 (2019-07-24)
 - AttributeError: type object 'Callable' has no attribute '_abc_registry' #34
 
