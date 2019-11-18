@@ -97,7 +97,7 @@ Constructor = Provider = Callable[[], T]
 BinderCallable = Callable[['Binder'], None]
 
 
-def configure(config=None, bind_in_runtime=True):
+def configure(config=None, bind_in_runtime=True) -> Injector:
     # type: (Optional[BinderCallable], bool) -> Injector
     """Create an injector with a callable config or raise an exception when already configured."""
     global _INJECTOR
@@ -111,7 +111,7 @@ def configure(config=None, bind_in_runtime=True):
         return _INJECTOR
 
 
-def configure_once(config=None, bind_in_runtime=True):
+def configure_once(config=None, bind_in_runtime=True) -> Injector:
     # type: (Optional[BinderCallable], bool) -> Injector
     """Create an injector with a callable config if not present, otherwise, do nothing."""
     with _INJECTOR_LOCK:
@@ -121,23 +121,21 @@ def configure_once(config=None, bind_in_runtime=True):
         return configure(config, bind_in_runtime=bind_in_runtime)
 
 
-def clear_and_configure(config=None, bind_in_runtime=True):
-    # type: (Optional[BinderCallable], bool) -> Injector
+def clear_and_configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
+    # type: (, bool) -> Injector
     """Clear an existing injector and create another one with a callable config."""
     with _INJECTOR_LOCK:
         clear()
         return configure(config, bind_in_runtime=bind_in_runtime)
 
 
-def is_configured():
-    # type: () -> bool
+def is_configured() -> bool:
     """Return true if an injector is already configured."""
     with _INJECTOR_LOCK:
         return _INJECTOR is not None
 
 
-def clear():
-    # type: () -> None
+def clear() -> None:
     """Clear an existing injector if present."""
     global _INJECTOR
 
@@ -149,20 +147,19 @@ def clear():
         logger.debug('Cleared an injector')
 
 
-def instance(cls):
+def instance(cls: T) -> T:
     # type: (Binding) -> T
     """Inject an instance of a class."""
     return get_injector_or_die().get_instance(cls)
 
 
-def attr(cls):
+def attr(cls: T) -> T:
     # type: (Binding) -> T
     """Return a attribute injection (descriptor)."""
     return _AttributeInjection(cls)
 
 
-def param(name, cls=None):
-    # type: (str, Binding) -> Callable
+def param(name: str, cls: Binding = None) -> Callable:
     """Deprecated, use @inject.params. Return a decorator which injects an arg into a function."""
     return _ParameterInjection(name, cls)
 
@@ -180,7 +177,7 @@ def params(**args_to_classes):
     return _ParametersInjection(**args_to_classes)
 
 
-def autoparams(*selected_args):
+def autoparams(*selected_args: str) -> Callable:
     # type: (str) -> Callable
     """Return a decorator that will inject args into a function using type annotations, Python >= 3.5 only.
 
@@ -200,11 +197,13 @@ def autoparams(*selected_args):
     """
     def autoparams_decorator(func):
         if sys.version_info[:2] < (3, 5):
-            raise InjectorException('autoparams are supported from Python 3.5 onwards')
+            raise InjectorException(
+                'autoparams are supported from Python 3.5 onwards')
 
         full_args_spec = inspect.getfullargspec(func)
         annotations_items = full_args_spec.annotations.items()
-        all_arg_names = frozenset(full_args_spec.args + full_args_spec.kwonlyargs)
+        all_arg_names = frozenset(
+            full_args_spec.args + full_args_spec.kwonlyargs)
         args_to_check = frozenset(selected_args) or all_arg_names
         args_annotated_types = {
             arg_name: annotated_type for arg_name, annotated_type in annotations_items
@@ -215,13 +214,13 @@ def autoparams(*selected_args):
     return autoparams_decorator
 
 
-def get_injector():
+def get_injector() -> Injector:
     # type: () -> Injector
     """Return the current injector or None."""
     return _INJECTOR
 
 
-def get_injector_or_die():
+def get_injector_or_die() -> Injector:
     # type: () -> Injector
     """Return the current injector or raise an InjectorException."""
     injector = _INJECTOR
@@ -235,22 +234,19 @@ class Binder(object):
     def __init__(self):
         self._bindings = {}
 
-    def install(self, config):
-        # type: (BinderCallable) -> Binder
+    def install(self, config: BinderCallable) -> Binder:
         """Install another callable configuration."""
         config(self)
         return self
 
-    def bind(self, cls, instance):
-        # type: (Binding, T) -> Binder
+    def bind(self, cls: Binding, instance: T) -> Binder:
         """Bind a class to an instance."""
         self._check_class(cls)
         self._bindings[cls] = lambda: instance
         logger.debug('Bound %s to an instance %s', cls, instance)
         return self
 
-    def bind_to_constructor(self, cls, constructor):
-        # type: (Binding, Constructor) -> Binder
+    def bind_to_constructor(self, cls: Binding, constructor: Constructor) -> Binder:
         """Bind a class to a callable singleton constructor."""
         self._check_class(cls)
         if constructor is None:
@@ -260,8 +256,7 @@ class Binder(object):
         logger.debug('Bound %s to a constructor %s', cls, constructor)
         return self
 
-    def bind_to_provider(self, cls, provider):
-        # type: (Binding, Provider) -> Binder
+    def bind_to_provider(self, cls: Binding, provider: Provider) -> Binder:
         """Bind a class to a callable instance provider executed for each injection."""
         self._check_class(cls)
         if provider is None:
@@ -271,7 +266,7 @@ class Binder(object):
         logger.debug('Bound %s to a provider %s', cls, provider)
         return self
 
-    def _check_class(self, cls):
+    def _check_class(self, cls: Binding) -> None:
         # type: (Binding) -> None
         if cls is None:
             raise InjectorException('Binding key cannot be None')
@@ -290,8 +285,7 @@ class Injector(object):
         else:
             self._bindings = {}
 
-    def get_instance(self, cls):
-        # type: (Binding) -> T
+    def get_instance(self, cls: T) -> T:
         """Return an instance for a class."""
         binding = self._bindings.get(cls)
         if binding:
@@ -304,7 +298,8 @@ class Injector(object):
                 return binding()
 
             if not self._bind_in_runtime:
-                raise InjectorException('No binding was found for key=%s' % cls)
+                raise InjectorException(
+                    'No binding was found for key=%s' % cls)
 
             if not callable(cls):
                 raise InjectorException(
@@ -313,7 +308,8 @@ class Injector(object):
             instance = cls()
             self._bindings[cls] = lambda: instance
 
-            logger.debug('Created a runtime binding for key=%s, instance=%s', cls, instance)
+            logger.debug(
+                'Created a runtime binding for key=%s, instance=%s', cls, instance)
             return instance
 
 
@@ -334,10 +330,8 @@ class _ConstructorBinding(object):
         with _BINDING_LOCK:
             if self._created:
                 return self._instance
-
             self._instance = self._constructor()
             self._created = True
-
         return self._instance
 
 
@@ -382,11 +376,10 @@ class _ParametersInjection(object):
         @wraps(func)
         def injection_wrapper(*args, **kwargs):
 
-            provided_params = frozenset(arg_names[:len(args)]) | frozenset(kwargs.keys())
+            provided_params = frozenset(
+                arg_names[:len(args)]) | frozenset(kwargs.keys())
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
                     kwargs[param] = instance(cls)
-
             return func(*args, **kwargs)
-
         return injection_wrapper
