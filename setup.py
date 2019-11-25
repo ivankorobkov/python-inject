@@ -11,7 +11,7 @@ def read_description():
 
 setup(
     name='Inject',
-    version='3.5.5.dev0',
+    version='4.0.0',
     url='https://github.com/ivankorobkov/python-inject',
     license='Apache License 2.0',
 
@@ -26,17 +26,15 @@ setup(
     package_data={'inject': ['py.typed']},
     include_package_data=True,
     zip_safe=False,
-
-    install_requires=['typing; python_version<"3.5"'],
-
+    
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules']
 )

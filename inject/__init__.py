@@ -98,8 +98,6 @@ Constructor = Provider = Callable[[], T]
 BinderCallable = Callable[['Binder'], None]
 
 
-
-
 class Binder(object):
     def __init__(self):
         self._bindings = {}

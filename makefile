@@ -1,4 +1,4 @@
-
+.PHONY: dist test
 
 dist:
 	python3 setup.py sdist
@@ -8,3 +8,6 @@ upload:
 
 clean:
 	rm -rf ./build/*
+
+test:
+	nosetests

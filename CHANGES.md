@@ -1,9 +1,10 @@
 python-inject changes
 =====================
 
-### 4.0.0 (2019-11-15)
-- [feature] Add typed information.
-- [chore] Remov old typing information as it is no longer relevant for v4.0.0
+### 4.0.0 (2019-11-25)
+- Drop Python <3.5 support.
+- [feature] Add typed information, #43.
+- [chore] Remov old typing information as it is no longer relevant for v4.0.0, #43.
 
 ### 3.5.4 (2019-07-30)
 - MyPy compatibility #36.

@@ -8,16 +8,17 @@ Dependency injection the python way, the good way. Not a port of Guice or Spring
 * Does not steal class constructors.
 * Does not try to manage your application object graph.
 * Transparently integrates into tests.
-* Supports Python 2.7 and Python 3.3+.
+* Supports Python 3.5+ (`v4.*`) and Python 2.7–3.5 (`v3.*`).
 * Supports type hinting in Python 3.5+.
 * Autoparams leveraging type annotations.
 
-## Support
+## Python Support
 
 | Python | Inject Version |
 |--------|----------------|
+| 3.5+   | 4.*            |
 | < 3.5  | 3.*            |
-| 3.5    | 4.*            |
+
 
 ## Installation
 Use pip to install the lastest version:
@@ -269,3 +270,4 @@ Apache License 2.0
 * Andrew William Borba [@andrewborba10](https://github.com/andrewborba10)
 * jdmeyer3 [@jdmeyer3](https://github.com/jdmeyer3)
 * Alex Grover [@ajgrover](https://github.com/ajgrover)
+* Harro van der Kroft [@wisepotato](https://github.com/wisepotato)
