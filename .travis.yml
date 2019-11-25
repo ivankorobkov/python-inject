@@ -2,10 +2,6 @@ dist: xenial
 language: python
 matrix:
   include:
-    - python: '2.7'
-      env: EXTRA_ARGS='-I test_autoparams.py'
-    - python: '3.4'
-      env: EXTRA_ARGS='-I test_autoparams.py'
     - python: '3.5'
     - python: '3.6'
     - python: '3.7'

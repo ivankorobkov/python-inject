@@ -12,6 +12,12 @@ Dependency injection the python way, the good way. Not a port of Guice or Spring
 * Supports type hinting in Python 3.5+.
 * Autoparams leveraging type annotations.
 
+## Support
+
+| Python | Inject Version |
+|--------|----------------|
+| < 3.5  | 3.*            |
+| 3.5    | 4.*            |
 
 ## Installation
 Use pip to install the lastest version:
