@@ -144,7 +144,7 @@ class Binder(object):
 
 
 class Injector(object):
-    def __init__(self, config=None, bind_in_runtime=True):
+    def __init__(self, config: Optional[BinderCallable] = None, bind_in_runtime: bool = True):
         self._bind_in_runtime = bind_in_runtime
         if config:
             binder = Binder()
@@ -253,7 +253,8 @@ class _ParametersInjection(object):
         return injection_wrapper
 
 
-def configure(config=None, bind_in_runtime=True) -> Injector:
+def configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
+    # type: (Optional[BinderCallable], bool) -> Injector
     """Create an injector with a callable config or raise an exception when already configured."""
     global _INJECTOR
 
@@ -266,7 +267,7 @@ def configure(config=None, bind_in_runtime=True) -> Injector:
         return _INJECTOR
 
 
-def configure_once(config=None, bind_in_runtime=True) -> Injector:
+def configure_once(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
     # type: (Optional[BinderCallable], bool) -> Injector
     """Create an injector with a callable config if not present, otherwise, do nothing."""
     with _INJECTOR_LOCK:
@@ -277,7 +278,7 @@ def configure_once(config=None, bind_in_runtime=True) -> Injector:
 
 
 def clear_and_configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
-    # type: (, bool) -> Injector
+    # type: (Optional[BinderCallable], bool) -> Injector
     """Clear an existing injector and create another one with a callable config."""
     with _INJECTOR_LOCK:
         clear()
@@ -302,13 +303,13 @@ def clear() -> None:
         logger.debug('Cleared an injector')
 
 
-def instance(cls: T) -> T:
+def instance(cls: Binding) -> T:
     # type: (Binding) -> T
     """Inject an instance of a class."""
     return get_injector_or_die().get_instance(cls)
 
 
-def attr(cls: T) -> T:
+def attr(cls: Binding) -> T:
     # type: (Binding) -> T
     """Return a attribute injection (descriptor)."""
     return _AttributeInjection(cls)
@@ -319,7 +320,7 @@ def param(name: str, cls: Binding = None) -> Callable:
     return _ParameterInjection(name, cls)
 
 
-def params(**args_to_classes):
+def params(**args_to_classes: Binding) -> Callable:
     # type: (Binding) -> Callable
     """Return a decorator which injects args into a function.
 
