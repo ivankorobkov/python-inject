@@ -84,7 +84,7 @@ import logging
 import sys
 import threading
 from functools import wraps
-from typing import Callable, Hashable, Optional, Type, TypeVar, Union
+from typing import Callable, Hashable, Optional, Type, TypeVar, Union, overload, Dict, Any, Generic
 
 logger = logging.getLogger('inject')
 
@@ -92,14 +92,18 @@ _INJECTOR = None  # Shared injector instance.
 _INJECTOR_LOCK = threading.RLock()  # Guards injector initialization.
 _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
-T = TypeVar('T')
-Binding = Union[Type[T], Hashable]
-Constructor = Provider = Callable[[], T]
+Injectable = Union[object, Any]
+T = TypeVar('T', bound=Injectable)
+Binding = Union[Type[Injectable], Hashable]
+Constructor = Callable[[], Injectable]
+Provider = Constructor
 BinderCallable = Callable[['Binder'], None]
 
 
 class Binder(object):
-    def __init__(self):
+    _bindings: Dict[Binding, Constructor]
+
+    def __init__(self) -> None:
         self._bindings = {}
 
     def install(self, config: BinderCallable) -> 'Binder':
@@ -135,7 +139,6 @@ class Binder(object):
         return self
 
     def _check_class(self, cls: Binding) -> None:
-        # type: (Binding) -> None
         if cls is None:
             raise InjectorException('Binding key cannot be None')
 
@@ -144,16 +147,24 @@ class Binder(object):
 
 
 class Injector(object):
+    _bindings: Dict[Binding, Constructor]
+
     def __init__(self, config: Optional[BinderCallable] = None, bind_in_runtime: bool = True):
         self._bind_in_runtime = bind_in_runtime
         if config:
             binder = Binder()
             config(binder)
-            self._bindings = dict(binder._bindings)
+            self._bindings = binder._bindings
         else:
             self._bindings = {}
 
-    def get_instance(self, cls: T) -> T:
+    @overload
+    def get_instance(self, cls: Type[T]) -> T: ...
+
+    @overload
+    def get_instance(self, cls: Hashable) -> Injectable: ...
+
+    def get_instance(self, cls: Binding) -> Injectable:
         """Return an instance for a class."""
         binding = self._bindings.get(cls)
         if binding:
@@ -185,18 +196,20 @@ class InjectorException(Exception):
     pass
 
 
-class _ConstructorBinding(object):
-    def __init__(self, constructor):
+class _ConstructorBinding(Generic[T]):
+    _instance: Optional[T]
+
+    def __init__(self, constructor: Callable[[], T]) -> None:
         self._constructor = constructor
         self._created = False
         self._instance = None
 
-    def __call__(self):
-        if self._created:
+    def __call__(self) -> T:
+        if self._created and self._instance:
             return self._instance
 
         with _BINDING_LOCK:
-            if self._created:
+            if self._created and self._instance:
                 return self._instance
             self._instance = self._constructor()
             self._created = True
@@ -204,23 +217,23 @@ class _ConstructorBinding(object):
 
 
 class _AttributeInjection(object):
-    def __init__(self, cls):
+    def __init__(self, cls: Binding) -> None:
         self._cls = cls
 
-    def __get__(self, obj, owner):
+    def __get__(self, obj: Any, owner: Any) -> Injectable:
         return instance(self._cls)
 
 
-class _ParameterInjection(object):
+class _ParameterInjection(Generic[T]):
     __slots__ = ('_name', '_cls')
 
-    def __init__(self, name, cls=None):
+    def __init__(self, name: str, cls: Optional[Binding] = None) -> None:
         self._name = name
         self._cls = cls
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        def injection_wrapper(*args, **kwargs):
+        def injection_wrapper(*args: Any, **kwargs: Any) -> T:
             if self._name not in kwargs:
                 kwargs[self._name] = instance(self._cls or self._name)
             return func(*args, **kwargs)
@@ -228,13 +241,13 @@ class _ParameterInjection(object):
         return injection_wrapper
 
 
-class _ParametersInjection(object):
+class _ParametersInjection(Generic[T]):
     __slots__ = ('_params', )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self._params = kwargs
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         if sys.version_info.major == 2:
             arg_names = inspect.getargspec(func).args
         else:
@@ -242,7 +255,7 @@ class _ParametersInjection(object):
         params_to_provide = self._params
 
         @wraps(func)
-        def injection_wrapper(*args, **kwargs):
+        def injection_wrapper(*args: Any, **kwargs: Any) -> T:
 
             provided_params = frozenset(
                 arg_names[:len(args)]) | frozenset(kwargs.keys())
@@ -254,7 +267,6 @@ class _ParametersInjection(object):
 
 
 def configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
-    # type: (Optional[BinderCallable], bool) -> Injector
     """Create an injector with a callable config or raise an exception when already configured."""
     global _INJECTOR
 
@@ -268,7 +280,6 @@ def configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = T
 
 
 def configure_once(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
-    # type: (Optional[BinderCallable], bool) -> Injector
     """Create an injector with a callable config if not present, otherwise, do nothing."""
     with _INJECTOR_LOCK:
         if _INJECTOR:
@@ -278,7 +289,6 @@ def configure_once(config: Optional[BinderCallable] = None, bind_in_runtime: boo
 
 
 def clear_and_configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
-    # type: (Optional[BinderCallable], bool) -> Injector
     """Clear an existing injector and create another one with a callable config."""
     with _INJECTOR_LOCK:
         clear()
@@ -302,26 +312,33 @@ def clear() -> None:
         _INJECTOR = None
         logger.debug('Cleared an injector')
 
+@overload
+def instance(cls: Type[T]) -> T: ...
 
-def instance(cls: Binding) -> T:
-    # type: (Binding) -> T
+@overload
+def instance(cls: Hashable) -> Injectable: ...
+
+def instance(cls: Binding) -> Injectable:
     """Inject an instance of a class."""
     return get_injector_or_die().get_instance(cls)
 
+@overload
+def attr(cls: Type[T]) -> T: ...
 
-def attr(cls: Binding) -> T:
-    # type: (Binding) -> T
+@overload
+def attr(cls: Hashable) -> Injectable: ...
+
+def attr(cls: Binding) -> Injectable:
     """Return a attribute injection (descriptor)."""
     return _AttributeInjection(cls)
 
 
-def param(name: str, cls: Binding = None) -> Callable:
+def param(name: str, cls: Optional[Binding] = None) -> Callable:
     """Deprecated, use @inject.params. Return a decorator which injects an arg into a function."""
     return _ParameterInjection(name, cls)
 
 
 def params(**args_to_classes: Binding) -> Callable:
-    # type: (Binding) -> Callable
     """Return a decorator which injects args into a function.
 
     For example::
@@ -334,7 +351,6 @@ def params(**args_to_classes: Binding) -> Callable:
 
 
 def autoparams(*selected_args: str) -> Callable:
-    # type: (str) -> Callable
     """Return a decorator that will inject args into a function using type annotations, Python >= 3.5 only.
 
     For example::
@@ -351,7 +367,7 @@ def autoparams(*selected_args: str) -> Callable:
         def sign_up(name, email, cache, db):
             pass
     """
-    def autoparams_decorator(func):
+    def autoparams_decorator(func: Callable[..., T]) -> Callable[..., T]:
         if sys.version_info[:2] < (3, 5):
             raise InjectorException(
                 'autoparams are supported from Python 3.5 onwards')
@@ -365,19 +381,18 @@ def autoparams(*selected_args: str) -> Callable:
             arg_name: annotated_type for arg_name, annotated_type in annotations_items
             if arg_name in args_to_check
         }
-        return _ParametersInjection(**args_annotated_types)(func)
+        wrapper: _ParametersInjection[T] = _ParametersInjection(**args_annotated_types)
+        return wrapper(func)
 
     return autoparams_decorator
 
 
-def get_injector() -> Injector:
-    # type: () -> Injector
+def get_injector() -> Optional[Injector]:
     """Return the current injector or None."""
     return _INJECTOR
 
 
 def get_injector_or_die() -> Injector:
-    # type: () -> Injector
     """Return the current injector or raise an InjectorException."""
     injector = _INJECTOR
     if not injector:
