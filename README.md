@@ -16,7 +16,8 @@ Dependency injection the python way, the good way. Not a port of Guice or Spring
 
 | Python | Inject Version |
 |--------|----------------|
-| 3.5+   | 4.*            |
+| 3.6+   | 4.1+           |
+| 3.5    | 4.0            |
 | < 3.5  | 3.*            |
 
 
@@ -260,7 +261,7 @@ def foo(user):
 ## License
 Apache License 2.0
 
-## Contributers
+## Contributors
 * Ivan Korobkov [@ivankorobkov](https://github.com/ivankorobkov)
 * Jaime Wyant [@jaimewyant](https://github.com/jaimewyant)
 * Sebastian Buczyński [@Enforcer](https://github.com/Enforcer)
@@ -271,3 +272,5 @@ Apache License 2.0
 * jdmeyer3 [@jdmeyer3](https://github.com/jdmeyer3)
 * Alex Grover [@ajgrover](https://github.com/ajgrover)
 * Harro van der Kroft [@wisepotato](https://github.com/wisepotato)
+* Samiur Rahman [@samiur](https://github.com/samiur)
+* 45deg [@45deg](https://github.com/45deg)

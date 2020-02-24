@@ -1,6 +1,10 @@
 python-inject changes
 =====================
 
+### 4.1.0 (2020-02-24)
+- More precise typing #47.
+- Removed Python 3.5 support.
+
 ### 4.0.0 (2019-11-25)
 - Drop Python <3.5 support.
 - [feature] Add typed information, #43.
