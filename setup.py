@@ -5,13 +5,13 @@ from setuptools import setup
 
 
 def read_description():
-    with open('README.md', 'r') as f:
+    with open('README.md', 'r', encoding='utf-8') as f:
         return f.read()
 
 
 setup(
     name='Inject',
-    version='4.1.0',
+    version='4.1.1',
     url='https://github.com/ivankorobkov/python-inject',
     license='Apache License 2.0',
 
