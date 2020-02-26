@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 4.1.1 (2020-02-25)
+- UTF8 encoding for readme in setup.py, #48.
+
 ### 4.1.0 (2020-02-24)
 - More precise typing #47.
 - Removed Python 3.5 support.
