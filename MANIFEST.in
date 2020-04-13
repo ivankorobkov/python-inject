@@ -1,0 +1,5 @@
+include CHANGES.md
+include LICENSE
+include README.md
+
+recursive-include inject *.py py.typed
