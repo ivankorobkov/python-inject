@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 4.1.2 (2020-04-13)
+- Include py.typed and manifest in dist, #50.
+
 ### 4.1.1 (2020-02-25)
 - UTF8 encoding for readme in setup.py, #48.
 
