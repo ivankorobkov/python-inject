@@ -24,7 +24,6 @@ setup(
 
     packages=['inject'],
     package_data={'inject': ['py.typed']},
-    include_package_data=True,
     zip_safe=False,
     
     classifiers=[
