@@ -73,7 +73,7 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-__version__ = '3.5.1dev0'
+__version__ = '4.1.3'
 __author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
 __license__ = 'Apache License 2.0'
 __url__ = 'https://github.com/ivan-korobkov/python-inject'
@@ -85,7 +85,8 @@ import sys
 import threading
 import typing
 from functools import wraps
-from typing import Callable, Hashable, Optional, Type, TypeVar, Union, overload, Dict, Any, Generic
+from typing import Callable, Hashable, Optional, Type, TypeVar, Union, overload, Dict, Any, Generic, \
+    ForwardRef
 
 logger = logging.getLogger('inject')
 
@@ -114,34 +115,34 @@ class Binder(object):
 
     def bind(self, cls: Binding, instance: T) -> 'Binder':
         """Bind a class to an instance."""
-        if isinstance(cls, str):
-            cls = typing.ForwardRef(cls)
         self._check_class(cls)
         self._bindings[cls] = lambda: instance
+        if isinstance(cls, str):
+            self._bindings[ForwardRef(cls)] = self._bindings[cls]
         logger.debug('Bound %s to an instance %s', cls, instance)
         return self
 
     def bind_to_constructor(self, cls: Binding, constructor: Constructor) -> 'Binder':
         """Bind a class to a callable singleton constructor."""
-        if isinstance(cls, str):
-            cls = typing.ForwardRef(cls)
         self._check_class(cls)
         if constructor is None:
             raise InjectorException('Constructor cannot be None, key=%s' % cls)
 
         self._bindings[cls] = _ConstructorBinding(constructor)
+        if isinstance(cls, str):
+            self._bindings[ForwardRef(cls)] = self._bindings[cls]
         logger.debug('Bound %s to a constructor %s', cls, constructor)
         return self
 
     def bind_to_provider(self, cls: Binding, provider: Provider) -> 'Binder':
         """Bind a class to a callable instance provider executed for each injection."""
-        if isinstance(cls, str):
-            cls = typing.ForwardRef(cls)
         self._check_class(cls)
         if provider is None:
             raise InjectorException('Provider cannot be None, key=%s' % cls)
 
         self._bindings[cls] = provider
+        if isinstance(cls, str):
+            self._bindings[ForwardRef(cls)] = self._bindings[cls]
         logger.debug('Bound %s to a provider %s', cls, provider)
         return self
 
@@ -380,13 +381,17 @@ def autoparams(*selected_args: str) -> Callable:
                 'autoparams are supported from Python 3.5 onwards')
 
         full_args_spec = inspect.getfullargspec(func)
-        annotations_items = full_args_spec.annotations.items()
-        new_annotations = typing.get_type_hints(func).items()
+        old_annos = full_args_spec.annotations
+        localns = {v: None for v in old_annos.values() if isinstance(v, str) and v[0] == '\''}
+        if len(localns) > 0:
+            annotations_items = typing.get_type_hints(func, localns=localns).items()
+        else:
+            annotations_items = old_annos.items()
         all_arg_names = frozenset(
             full_args_spec.args + full_args_spec.kwonlyargs)
         args_to_check = frozenset(selected_args) or all_arg_names
         args_annotated_types = {
-            arg_name: annotated_type for arg_name, annotated_type in new_annotations
+            arg_name: annotated_type for arg_name, annotated_type in annotations_items
             if arg_name in args_to_check
         }
         wrapper: _ParametersInjection[T] = _ParametersInjection(**args_annotated_types)
