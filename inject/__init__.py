@@ -84,7 +84,8 @@ import logging
 import sys
 import threading
 import typing
-from functools import wraps
+from functools import wraps, reduce
+from pydoc import locate
 from typing import Callable, Hashable, Optional, Type, TypeVar, Union, overload, Dict, Any, Generic, \
     ForwardRef
 
@@ -381,12 +382,19 @@ def autoparams(*selected_args: str) -> Callable:
                 'autoparams are supported from Python 3.5 onwards')
 
         full_args_spec = inspect.getfullargspec(func)
-        old_annos = full_args_spec.annotations
-        localns = {v: None for v in old_annos.values() if isinstance(v, str) and v[0] == '\''}
+        old_annotations = full_args_spec.annotations
+        localns = {}
+        for annotation in old_annotations.values():
+            if isinstance(annotation, str):
+                if annotation[0] == '\'':
+                    localns[annotation] = None
+                anno_type = locate(annotation)
+                if anno_type is not None:
+                    localns[annotation] = anno_type
         if len(localns) > 0:
             annotations_items = typing.get_type_hints(func, localns=localns).items()
         else:
-            annotations_items = old_annos.items()
+            annotations_items = old_annotations.items()
         all_arg_names = frozenset(
             full_args_spec.args + full_args_spec.kwonlyargs)
         args_to_check = frozenset(selected_args) or all_arg_names
