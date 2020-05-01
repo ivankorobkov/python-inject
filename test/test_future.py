@@ -1,27 +1,22 @@
-from __future__ import annotations
+# from __future__ import annotations
 
 import inject
 from test import BaseTestInject
 
-
-class Something:
-    def return_self(self) -> Something:
-        return self
-
-    @inject.autoparams()
-    def test_func(self, val: int):
-        return val
-
-
-class AnotherThing:
-    @inject.autoparams()
-    def test_func(self, val: int):
-        return val
-
-
 class TestFutureSupport(BaseTestInject):
     def test_future_support(self):
-        inject.configure(lambda binder: binder.bind(int, 123), bind_in_runtime=False)
+        # @inject.autoparams()
+        # def func1(val: int):
+        #     return val
 
-        self.assertRaises(inject.InjectorException, Something().test_func())
-        self.assertRaises(inject.InjectorException, AnotherThing().test_func())
+        @inject.autoparams()
+        def func2(val: 'A'):
+            return val
+
+        def configure(binder: inject.Binder):
+            binder.bind('A', 321)
+
+        inject.configure(configure)
+
+        # assert func1() == 123
+        assert func2() == 321

@@ -83,6 +83,7 @@ import inspect
 import logging
 import sys
 import threading
+import typing
 from functools import wraps
 from typing import Callable, Hashable, Optional, Type, TypeVar, Union, overload, Dict, Any, Generic
 
@@ -113,6 +114,8 @@ class Binder(object):
 
     def bind(self, cls: Binding, instance: T) -> 'Binder':
         """Bind a class to an instance."""
+        if isinstance(cls, str):
+            cls = typing.ForwardRef(cls)
         self._check_class(cls)
         self._bindings[cls] = lambda: instance
         logger.debug('Bound %s to an instance %s', cls, instance)
@@ -120,6 +123,8 @@ class Binder(object):
 
     def bind_to_constructor(self, cls: Binding, constructor: Constructor) -> 'Binder':
         """Bind a class to a callable singleton constructor."""
+        if isinstance(cls, str):
+            cls = typing.ForwardRef(cls)
         self._check_class(cls)
         if constructor is None:
             raise InjectorException('Constructor cannot be None, key=%s' % cls)
@@ -130,6 +135,8 @@ class Binder(object):
 
     def bind_to_provider(self, cls: Binding, provider: Provider) -> 'Binder':
         """Bind a class to a callable instance provider executed for each injection."""
+        if isinstance(cls, str):
+            cls = typing.ForwardRef(cls)
         self._check_class(cls)
         if provider is None:
             raise InjectorException('Provider cannot be None, key=%s' % cls)
@@ -374,11 +381,12 @@ def autoparams(*selected_args: str) -> Callable:
 
         full_args_spec = inspect.getfullargspec(func)
         annotations_items = full_args_spec.annotations.items()
+        new_annotations = typing.get_type_hints(func).items()
         all_arg_names = frozenset(
             full_args_spec.args + full_args_spec.kwonlyargs)
         args_to_check = frozenset(selected_args) or all_arg_names
         args_annotated_types = {
-            arg_name: annotated_type for arg_name, annotated_type in annotations_items
+            arg_name: annotated_type for arg_name, annotated_type in new_annotations
             if arg_name in args_to_check
         }
         wrapper: _ParametersInjection[T] = _ParametersInjection(**args_annotated_types)
