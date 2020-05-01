@@ -84,10 +84,10 @@ import logging
 import sys
 import threading
 import typing
-from functools import wraps, reduce
+from functools import wraps
 from pydoc import locate
-from typing import Callable, Hashable, Optional, Type, TypeVar, Union, overload, Dict, Any, Generic, \
-    ForwardRef
+from typing import Any, Callable, Dict, ForwardRef, Generic, Hashable, Optional, Type, TypeVar, \
+    Union, overload
 
 logger = logging.getLogger('inject')
 
