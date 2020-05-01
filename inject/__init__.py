@@ -83,11 +83,10 @@ import inspect
 import logging
 import sys
 import threading
-import typing
 from functools import wraps
 from pydoc import locate
 from typing import Any, Callable, Dict, ForwardRef, Generic, Hashable, Optional, Type, TypeVar, \
-    Union, overload
+    Union, overload, get_type_hints
 
 logger = logging.getLogger('inject')
 
@@ -392,7 +391,7 @@ def autoparams(*selected_args: str) -> Callable:
                 if anno_type is not None:
                     localns[annotation] = anno_type
         if len(localns) > 0:
-            annotations_items = typing.get_type_hints(func, localns=localns).items()
+            annotations_items = get_type_hints(func, localns=localns).items()
         else:
             annotations_items = old_annotations.items()
         all_arg_names = frozenset(
