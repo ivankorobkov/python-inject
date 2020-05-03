@@ -73,7 +73,7 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-__version__ = '3.5.1dev0'
+__version__ = '4.1.3'
 __author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
 __license__ = 'Apache License 2.0'
 __url__ = 'https://github.com/ivan-korobkov/python-inject'
@@ -84,7 +84,9 @@ import logging
 import sys
 import threading
 from functools import wraps
-from typing import Callable, Hashable, Optional, Type, TypeVar, Union, overload, Dict, Any, Generic
+from pydoc import locate
+from typing import Any, Callable, Dict, ForwardRef, Generic, Hashable, Optional, Type, TypeVar, \
+    Union, overload, get_type_hints
 
 logger = logging.getLogger('inject')
 
@@ -115,6 +117,8 @@ class Binder(object):
         """Bind a class to an instance."""
         self._check_class(cls)
         self._bindings[cls] = lambda: instance
+        if isinstance(cls, str):
+            self._bindings[ForwardRef(cls)] = self._bindings[cls]
         logger.debug('Bound %s to an instance %s', cls, instance)
         return self
 
@@ -125,6 +129,8 @@ class Binder(object):
             raise InjectorException('Constructor cannot be None, key=%s' % cls)
 
         self._bindings[cls] = _ConstructorBinding(constructor)
+        if isinstance(cls, str):
+            self._bindings[ForwardRef(cls)] = self._bindings[cls]
         logger.debug('Bound %s to a constructor %s', cls, constructor)
         return self
 
@@ -135,6 +141,8 @@ class Binder(object):
             raise InjectorException('Provider cannot be None, key=%s' % cls)
 
         self._bindings[cls] = provider
+        if isinstance(cls, str):
+            self._bindings[ForwardRef(cls)] = self._bindings[cls]
         logger.debug('Bound %s to a provider %s', cls, provider)
         return self
 
@@ -373,7 +381,19 @@ def autoparams(*selected_args: str) -> Callable:
                 'autoparams are supported from Python 3.5 onwards')
 
         full_args_spec = inspect.getfullargspec(func)
-        annotations_items = full_args_spec.annotations.items()
+        old_annotations = full_args_spec.annotations
+        localns = {}
+        for annotation in old_annotations.values():
+            if isinstance(annotation, str):
+                if annotation[0] == '\'':
+                    localns[annotation] = None
+                anno_type = locate(annotation)
+                if anno_type is not None:
+                    localns[annotation] = anno_type
+        if len(localns) > 0:
+            annotations_items = get_type_hints(func, localns=localns).items()
+        else:
+            annotations_items = old_annotations.items()
         all_arg_names = frozenset(
             full_args_spec.args + full_args_spec.kwonlyargs)
         args_to_check = frozenset(selected_args) or all_arg_names
