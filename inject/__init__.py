@@ -213,11 +213,11 @@ class _ConstructorBinding(Generic[T]):
         self._instance = None
 
     def __call__(self) -> T:
-        if self._created and self._instance:
+        if self._created and self._instance is not None:
             return self._instance
 
         with _BINDING_LOCK:
-            if self._created and self._instance:
+            if self._created and self._instance is not None:
                 return self._instance
             self._instance = self._constructor()
             self._created = True
