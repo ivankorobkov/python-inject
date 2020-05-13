@@ -86,13 +86,13 @@ import threading
 import types
 from functools import wraps
 from typing import (Any, Callable, Dict, Generic, Hashable, Optional, Type,
-                    TypeVar, get_type_hints, overload)
+                    TypeVar, Union, get_type_hints, overload)
 
 _NEW_TYPING = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
 _RETURN = 'return'
 
 if _NEW_TYPING:
-    from typing import ForwardRef, Union, _GenericAlias
+    from typing import ForwardRef, _GenericAlias
 else:
     from typing import _Union
 
