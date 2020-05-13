@@ -1,4 +1,4 @@
-.PHONY: dist test
+.PHONY: dist test test37
 
 dist:
 	python3 setup.py sdist
@@ -10,4 +10,8 @@ clean:
 	rm -rf ./build/*
 
 test:
-	nosetests
+	nosetests test
+
+test37:
+	nosetests test
+	nosetests test37
