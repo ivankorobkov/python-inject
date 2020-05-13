@@ -35,3 +35,25 @@ class TestFunctional(TestCase):
         user = User('John Doe')
         greeting = user.greet()
         assert greeting == 'Hello, John Doe'
+
+    def test_class_with_restricted_bool_casting(self):
+        class DataFrame(object):
+            def __nonzero__(self):
+                """Python 2"""
+                raise NotImplementedError('Casting to boolean is not allowed')
+
+            def __bool__(self):
+                """Python 3"""
+                raise NotImplementedError('Casting to boolean is not allowed')
+
+        def create_data_frame():
+            return DataFrame()
+
+        def config(binder):
+            binder.bind_to_constructor(DataFrame, create_data_frame)
+
+        inject.configure(config)
+
+        assert type(inject.instance(DataFrame)) is DataFrame
+        # There should not be an error when we fetch created instance
+        assert type(inject.instance(DataFrame)) is DataFrame
