@@ -43,7 +43,7 @@ injecting everything:
 
 ```python
 @inject.autoparams('cache', 'db')
-def sign_up(name, email, cache, db):
+def sign_up(name, email, cache: RedisCache, db: DbInterface):
     pass
 ```
 

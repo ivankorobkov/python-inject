@@ -73,7 +73,7 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-__version__ = '4.1.3'
+__version__ = '4.2.0'
 __author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
 __license__ = 'Apache License 2.0'
 __url__ = 'https://github.com/ivan-korobkov/python-inject'
@@ -83,10 +83,19 @@ import inspect
 import logging
 import sys
 import threading
+import types
 from functools import wraps
-from pydoc import locate
-from typing import Any, Callable, Dict, ForwardRef, Generic, Hashable, Optional, Type, TypeVar, \
-    Union, overload, get_type_hints
+from typing import (Any, Callable, Dict, Generic, Hashable, Optional, Type,
+                    TypeVar, get_type_hints, overload)
+
+_NEW_TYPING = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
+_RETURN = 'return'
+
+if _NEW_TYPING:
+    from typing import ForwardRef, Union, _GenericAlias
+else:
+    from typing import _Union
+
 
 logger = logging.getLogger('inject')
 
@@ -116,9 +125,11 @@ class Binder(object):
     def bind(self, cls: Binding, instance: T) -> 'Binder':
         """Bind a class to an instance."""
         self._check_class(cls)
-        self._bindings[cls] = lambda: instance
-        if isinstance(cls, str):
-            self._bindings[ForwardRef(cls)] = self._bindings[cls]
+
+        b = lambda: instance
+        self._bindings[cls] = b
+        self._maybe_bind_forward(cls, b)
+
         logger.debug('Bound %s to an instance %s', cls, instance)
         return self
 
@@ -127,10 +138,11 @@ class Binder(object):
         self._check_class(cls)
         if constructor is None:
             raise InjectorException('Constructor cannot be None, key=%s' % cls)
+        
+        b = _ConstructorBinding(constructor)
+        self._bindings[cls] = b
+        self._maybe_bind_forward(cls, b)
 
-        self._bindings[cls] = _ConstructorBinding(constructor)
-        if isinstance(cls, str):
-            self._bindings[ForwardRef(cls)] = self._bindings[cls]
         logger.debug('Bound %s to a constructor %s', cls, constructor)
         return self
 
@@ -140,9 +152,10 @@ class Binder(object):
         if provider is None:
             raise InjectorException('Provider cannot be None, key=%s' % cls)
 
-        self._bindings[cls] = provider
-        if isinstance(cls, str):
-            self._bindings[ForwardRef(cls)] = self._bindings[cls]
+        b = provider
+        self._bindings[cls] = b
+        self._maybe_bind_forward(cls, b)
+
         logger.debug('Bound %s to a provider %s', cls, provider)
         return self
 
@@ -152,6 +165,25 @@ class Binder(object):
 
         if cls in self._bindings:
             raise InjectorException('Duplicate binding, key=%s' % cls)
+
+        if self._is_forward_str(cls):
+            ref = ForwardRef(cls)
+            if ref in self._bindings:
+                raise InjectorException('Duplicate forward binding, i.e. "int" and int, key=%s', cls)
+    
+    def _maybe_bind_forward(self, cls: Binding, binding: Any) -> None:
+        """Bind a string forward reference."""
+        if not _NEW_TYPING:
+            return
+        if not isinstance(cls, str):
+            return
+        
+        ref = ForwardRef(cls)
+        self._bindings[ref] = binding
+        logger.debug('Bound forward ref "%s"', cls)
+
+    def _is_forward_str(self, cls: Binding) -> bool:
+        return _NEW_TYPING and isinstance(cls, str)
 
 
 class Injector(object):
@@ -264,7 +296,6 @@ class _ParametersInjection(Generic[T]):
 
         @wraps(func)
         def injection_wrapper(*args: Any, **kwargs: Any) -> T:
-
             provided_params = frozenset(
                 arg_names[:len(args)]) | frozenset(kwargs.keys())
             for param, cls in params_to_provide.items():
@@ -358,7 +389,7 @@ def params(**args_to_classes: Binding) -> Callable:
     return _ParametersInjection(**args_to_classes)
 
 
-def autoparams(*selected_args: str) -> Callable:
+def autoparams(*selected: str) -> Callable:
     """Return a decorator that will inject args into a function using type annotations, Python >= 3.5 only.
 
     For example::
@@ -372,37 +403,29 @@ def autoparams(*selected_args: str) -> Callable:
     For example::
 
         @inject.autoparams('cache', 'db')
-        def sign_up(name, email, cache, db):
+        def sign_up(name, email, cache: RedisCache, db: DbInterface):
             pass
     """
-    def autoparams_decorator(func: Callable[..., T]) -> Callable[..., T]:
-        if sys.version_info[:2] < (3, 5):
-            raise InjectorException(
-                'autoparams are supported from Python 3.5 onwards')
+    def autoparams_decorator(fn: Callable[..., T]) -> Callable[..., T]:
+        spec = inspect.getfullargspec(fn)
+        types = spec.annotations
 
-        full_args_spec = inspect.getfullargspec(func)
-        old_annotations = full_args_spec.annotations
-        localns = {}
-        for annotation in old_annotations.values():
-            if isinstance(annotation, str):
-                if annotation[0] == '\'':
-                    localns[annotation] = None
-                anno_type = locate(annotation)
-                if anno_type is not None:
-                    localns[annotation] = anno_type
-        if len(localns) > 0:
-            annotations_items = get_type_hints(func, localns=localns).items()
-        else:
-            annotations_items = old_annotations.items()
-        all_arg_names = frozenset(
-            full_args_spec.args + full_args_spec.kwonlyargs)
-        args_to_check = frozenset(selected_args) or all_arg_names
-        args_annotated_types = {
-            arg_name: annotated_type for arg_name, annotated_type in annotations_items
-            if arg_name in args_to_check
-        }
-        wrapper: _ParametersInjection[T] = _ParametersInjection(**args_annotated_types)
-        return wrapper(func)
+        # Switch to typing.get_type_hints if Python 3.7+
+        if _NEW_TYPING:
+            types = get_type_hints(fn)
+
+            # Skip the return annotation.
+            types = {name: typ for name, typ in types.items() if name != _RETURN}
+
+            # Convert Union types into single types, i.e. Union[A, None] => A.
+            types = {name: _unwrap_union_arg(typ) for name, typ in types.items()}
+
+        # Filter types if selected args present.
+        if selected:
+            types = {name: typ for name, typ in types.items() if name in selected}
+        
+        wrapper: _ParametersInjection[T] = _ParametersInjection(**types)
+        return wrapper(fn)
 
     return autoparams_decorator
 
@@ -419,3 +442,25 @@ def get_injector_or_die() -> Injector:
         raise InjectorException('No injector is configured')
 
     return injector
+
+
+def _unwrap_union_arg(typ):
+    """Return the first type A in typing.Union[A, B] or typ if not Union."""
+    if not _is_union_type(typ):
+        return typ
+    return typ.__args__[0]
+
+
+def _is_union_type(typ):
+    """Test if the type is a union type. Examples::
+        is_union_type(int) == False
+        is_union_type(Union) == True
+        is_union_type(Union[int, int]) == False
+        is_union_type(Union[T, int]) == True
+    
+    Source: https://github.com/ilevkivskyi/typing_inspect/blob/master/typing_inspect.py
+    """
+    if _NEW_TYPING:
+        return (typ is Union or
+                isinstance(typ, _GenericAlias) and typ.__origin__ is Union)
+    return type(typ) is _Union

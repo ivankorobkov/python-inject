@@ -1,9 +1,14 @@
-import inject
 from test import BaseTestInject
+
+import inject
+
+
+class A: pass
+class B: pass
+class C: pass
 
 
 class TestInjectAutoparams(BaseTestInject):
-
     def test_autoparams_by_class(self):
         @inject.autoparams()
         def test_func(val: int = None):
@@ -16,13 +21,36 @@ class TestInjectAutoparams(BaseTestInject):
 
     def test_autoparams_multi(self):
         @inject.autoparams()
+        def test_func(a: A, b: B, *, c: C):
+            return a, b, c
+
+        def config(binder):
+            binder.bind(A, 1)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
+
+        inject.configure(config)
+
+        assert test_func() == (1, 2, 3)
+        assert test_func(10) == (10, 2, 3)
+        assert test_func(10, 20) == (10, 20, 3)
+        assert test_func(10, 20, c=30) == (10, 20, 30)
+        assert test_func(a='a') == ('a', 2, 3)
+        assert test_func(b='b') == (1, 'b', 3)
+        assert test_func(c='c') == (1, 2, 'c')
+        assert test_func(a=10, c=30) == (10, 2, 30)
+        assert test_func(c=30, b=20, a=10) == (10, 20, 30)
+        assert test_func(10, b=20) == (10, 20, 3)
+
+    def test_autoparams_strings(self):
+        @inject.autoparams()
         def test_func(a: 'A', b: 'B', *, c: 'C'):
             return a, b, c
 
         def config(binder):
-            binder.bind('A', 1)
-            binder.bind('B', 2)
-            binder.bind('C', 3)
+            binder.bind(A, 1)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
 
         inject.configure(config)
 
@@ -43,8 +71,8 @@ class TestInjectAutoparams(BaseTestInject):
             return a, b, c
 
         def config(binder):
-            binder.bind('B', 2)
-            binder.bind('C', 3)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
 
         inject.configure(config)
 
@@ -66,8 +94,8 @@ class TestInjectAutoparams(BaseTestInject):
                 return self, a, b, c
 
         def config(binder):
-            binder.bind('B', 2)
-            binder.bind('C', 3)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
 
         inject.configure(config)
         test = Test()
@@ -92,8 +120,8 @@ class TestInjectAutoparams(BaseTestInject):
                 return cls, a, b, c
 
         def config(binder):
-            binder.bind('B', 2)
-            binder.bind('C', 3)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
 
         inject.configure(config)
 
@@ -117,8 +145,8 @@ class TestInjectAutoparams(BaseTestInject):
                 return cls, a, b, c
 
         def config(binder):
-            binder.bind('B', 2)
-            binder.bind('C', 3)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
 
         inject.configure(config)
         test = Test
@@ -140,9 +168,9 @@ class TestInjectAutoparams(BaseTestInject):
             return a, b, c
 
         def config(binder):
-            binder.bind('A', 1)
-            binder.bind('B', 2)
-            binder.bind('C', 3)
+            binder.bind(A, 1)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
 
         inject.configure(config)
 
