@@ -26,8 +26,6 @@ class TestFutureSupport(BaseTestInject):
 
         inject.configure(configure)
 
-        print('func2', func2())
-
-        # assert func() == 3
+        assert func() == 3
         assert func2() == 2
-        # assert func3() == 4
+        assert func3() == 4

@@ -407,18 +407,13 @@ def autoparams(*selected: str) -> Callable:
             pass
     """
     def autoparams_decorator(fn: Callable[..., T]) -> Callable[..., T]:
-        spec = inspect.getfullargspec(fn)
-        types = spec.annotations
+        types = get_type_hints(fn)
 
-        # Switch to typing.get_type_hints if Python 3.7+
-        if _NEW_TYPING:
-            types = get_type_hints(fn)
+        # Skip the return annotation.
+        types = {name: typ for name, typ in types.items() if name != _RETURN}
 
-            # Skip the return annotation.
-            types = {name: typ for name, typ in types.items() if name != _RETURN}
-
-            # Convert Union types into single types, i.e. Union[A, None] => A.
-            types = {name: _unwrap_union_arg(typ) for name, typ in types.items()}
+        # Convert Union types into single types, i.e. Union[A, None] => A.
+        types = {name: _unwrap_union_arg(typ) for name, typ in types.items()}
 
         # Filter types if selected args present.
         if selected:
