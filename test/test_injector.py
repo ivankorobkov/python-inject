@@ -1,7 +1,7 @@
 from random import random
 from unittest import TestCase
 
-from inject import InjectorException, Injector
+from inject import Injector, InjectorException
 
 
 class TestInjector(TestCase):
@@ -37,12 +37,12 @@ class TestInjector(TestCase):
 
     def test_runtime_binding__not_callable(self):
         injector = Injector()
-        self.assertRaisesRegexp(InjectorException,
+        self.assertRaisesRegex(InjectorException,
                                'Cannot create a runtime binding, the key is not callable, key=123',
-                                injector.get_instance, 123)
+                               injector.get_instance, 123)
 
     def test_runtime_binding__disabled(self):
         injector = Injector(bind_in_runtime=False)
-        self.assertRaisesRegexp(InjectorException,
-                                "No binding was found for key=<.* 'int'>",
-                                injector.get_instance, int)
+        self.assertRaisesRegex(InjectorException,
+                               "No binding was found for key=<.* 'int'>",
+                               injector.get_instance, int)
