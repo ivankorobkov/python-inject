@@ -274,3 +274,5 @@ Apache License 2.0
 * Harro van der Kroft [@wisepotato](https://github.com/wisepotato)
 * Samiur Rahman [@samiur](https://github.com/samiur)
 * 45deg [@45deg](https://github.com/45deg)
+* Alexander Nicholas Costas [@ancostas](https://github.com/ancostas)
+* Dmitry Balabka [@dbalabka](https://github.com/dbalabka)

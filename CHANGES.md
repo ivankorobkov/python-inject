@@ -1,6 +1,11 @@
 python-inject changes
 =====================
 
+### 4.2.0 (2020-05-15)
+- Migrated autoparams and annotations to typing.get_type_hints.
+- Fix boolean casting to make possible to inject DataFrame (#55) #56.
+- Add support for forward references #54.
+
 ### 4.1.2 (2020-04-13)
 - Include py.typed and manifest in dist, #50.
 
