@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import inject
+from inject import autoparams
 
 
 class TestFunctional(TestCase):
@@ -57,3 +58,21 @@ class TestFunctional(TestCase):
         assert type(inject.instance(DataFrame)) is DataFrame
         # There should not be an error when we fetch created instance
         assert type(inject.instance(DataFrame)) is DataFrame
+
+    def test_class_support_in_autoparams_programmaticaly(self):
+        class AnotherClass:
+            pass
+
+        class SomeClass:
+            def __init__(self, another_object: AnotherClass):
+                self.another_object = another_object
+
+        def config(binder):
+            binder.bind_to_constructor(SomeClass, autoparams()(SomeClass))
+            binder.bind_to_constructor(AnotherClass, autoparams()(AnotherClass))
+
+        inject.configure(config)
+
+        some_object = inject.instance(SomeClass)
+        assert type(some_object) is SomeClass
+        assert type(some_object.another_object) is AnotherClass
