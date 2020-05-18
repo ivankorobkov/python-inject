@@ -407,7 +407,10 @@ def autoparams(*selected: str) -> Callable:
             pass
     """
     def autoparams_decorator(fn: Callable[..., T]) -> Callable[..., T]:
-        types = get_type_hints(fn)
+        if inspect.isclass(fn):
+            types = get_type_hints(fn.__init__)
+        else:
+            types = get_type_hints(fn)
 
         # Skip the return annotation.
         types = {name: typ for name, typ in types.items() if name != _RETURN}
