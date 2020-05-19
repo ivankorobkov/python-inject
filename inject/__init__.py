@@ -111,6 +111,11 @@ Provider = Constructor
 BinderCallable = Callable[['Binder'], None]
 
 
+class ConstructorTypeError(TypeError):
+    def __init__(self, constructor: Callable, previous_error: TypeError):
+        super(ConstructorTypeError, self).__init__("%s raised an error: %s" % (constructor, previous_error))
+
+
 class Binder(object):
     _bindings: Dict[Binding, Constructor]
 
@@ -224,7 +229,11 @@ class Injector(object):
                 raise InjectorException(
                     'Cannot create a runtime binding, the key is not callable, key=%s' % cls)
 
-            instance = cls()
+            try:
+                instance = cls()
+            except TypeError as previous_error:
+                raise ConstructorTypeError(cls, previous_error)
+
             self._bindings[cls] = lambda: instance
 
             logger.debug(
@@ -301,7 +310,10 @@ class _ParametersInjection(Generic[T]):
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
                     kwargs[param] = instance(cls)
-            return func(*args, **kwargs)
+            try:
+                return func(*args, **kwargs)
+            except TypeError as previous_error:
+                raise ConstructorTypeError(func, previous_error)
         return injection_wrapper
 
 
