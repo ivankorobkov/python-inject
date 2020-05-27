@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import inject
-from inject import autoparams
+from inject import autoparams, ConstructorTypeError
 
 
 class TestFunctional(TestCase):
@@ -76,3 +76,43 @@ class TestFunctional(TestCase):
         some_object = inject.instance(SomeClass)
         assert type(some_object) is SomeClass
         assert type(some_object.another_object) is AnotherClass
+
+    def test_error_message(self):
+        class SomeClass:
+            def __init__(self, missing_arg):
+                self._missing_arg = missing_arg
+
+        class AnotherClass(SomeClass):
+            pass
+
+        def create_some_class(missing_arg):
+            return AnotherClass(missing_arg)
+
+        def config(binder):
+            binder.bind_to_constructor(SomeClass, autoparams()(SomeClass))
+            binder.bind_to_constructor(AnotherClass, create_some_class)
+
+        inject.configure()
+
+        # covers case when no constructor provided
+        try:
+            inject.instance(SomeClass)
+        except ConstructorTypeError as err:
+            assert 'SomeClass' in str(err)
+            assert 'missing_arg' in str(err)
+
+        inject.clear_and_configure(config)
+
+        # covers case with provided constructor
+        try:
+            inject.instance(SomeClass)
+        except ConstructorTypeError as err:
+            assert 'SomeClass' in str(err)
+            assert 'missing_arg' in str(err)
+
+        try:
+            inject.instance(AnotherClass)
+        except TypeError as err:
+            assert not isinstance(err, ConstructorTypeError)
+            assert 'create_some_class' in str(err)
+            assert 'missing_arg' in str(err)
