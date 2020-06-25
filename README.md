@@ -132,8 +132,8 @@ and optionally `inject.clear()` to clean up on tear down:
 class MyTest(unittest.TestCase):
     def setUp(self):
         inject.clear_and_configure(lambda binder: binder
-            .bind(Cache, Mock() \
-            .bind(Validator, TestValidator())
+            .bind(Cache, Mock()) \
+            .bind(Validator, TestValidator()))
     
     def tearDown(self):
         inject.clear()
