@@ -1,6 +1,7 @@
 import inject
 from test import BaseTestInject
-
+import inspect
+import asyncio
 
 class TestInjectParams(BaseTestInject):
     def test_param_by_name(self):
@@ -21,3 +22,13 @@ class TestInjectParams(BaseTestInject):
         inject.configure(lambda binder: binder.bind(int, 123))
 
         assert test_func() == 123
+    
+    def test_async_param(self):
+        @inject.param('val')
+        async def test_func(val):
+            return val
+        
+        inject.configure(lambda binder: binder.bind('val', 123))
+
+        assert inspect.iscoroutinefunction(test_func)
+        assert self.run_async(test_func()) == 123

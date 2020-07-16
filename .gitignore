@@ -1,10 +1,12 @@
 # Intellij Idea
 .idea/
 *.iml
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+.mypy_cache/
 
 # C extensions
 *.so
@@ -57,3 +59,6 @@ docs/_build/
 
 # macOS files
 .DS_Store
+
+# pyenv virtualenv
+.python-version
