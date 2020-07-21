@@ -86,7 +86,7 @@ import threading
 import types
 from functools import wraps
 from typing import (Any, Callable, Dict, Generic, Hashable, Optional, Type,
-                    TypeVar, Union, get_type_hints, overload)
+                    TypeVar, Union, get_type_hints, overload, Awaitable, cast)
 
 _NEW_TYPING = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
 _RETURN = 'return'
@@ -280,12 +280,22 @@ class _ParameterInjection(Generic[T]):
         self._name = name
         self._cls = cls
 
-    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
+    def __call__(self, func: Callable[..., Union[T, Awaitable[T]]]) -> Callable[..., Union[T, Awaitable[T]]]:
+        if inspect.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_injection_wrapper(*args: Any, **kwargs: Any) -> T:
+                if self._name not in kwargs:
+                    kwargs[self._name] = instance(self._cls or self._name)
+                async_func = cast(Callable[..., Awaitable[T]], func)
+                return await async_func(*args, **kwargs)
+            return async_injection_wrapper
+        
         @wraps(func)
         def injection_wrapper(*args: Any, **kwargs: Any) -> T:
             if self._name not in kwargs:
                 kwargs[self._name] = instance(self._cls or self._name)
-            return func(*args, **kwargs)
+            sync_func = cast(Callable[..., T], func)
+            return sync_func(*args, **kwargs)
 
         return injection_wrapper
 
@@ -296,12 +306,28 @@ class _ParametersInjection(Generic[T]):
     def __init__(self, **kwargs: Any) -> None:
         self._params = kwargs
 
-    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
+    def __call__(self, func: Callable[..., Union[Awaitable[T], T]]) -> Callable[..., Union[Awaitable[T], T]]:
         if sys.version_info.major == 2:
             arg_names = inspect.getargspec(func).args
         else:
             arg_names = inspect.getfullargspec(func).args
         params_to_provide = self._params
+
+        if inspect.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_injection_wrapper(*args: Any, **kwargs: Any) -> T:
+                provided_params = frozenset(
+                    arg_names[:len(args)]) | frozenset(kwargs.keys())
+                for param, cls in params_to_provide.items():
+                    if param not in provided_params:
+                        kwargs[param] = instance(cls)
+                async_func = cast(Callable[..., Awaitable[T]], func)
+                try:
+                    return await async_func(*args, **kwargs)
+                except TypeError as previous_error:
+                    raise ConstructorTypeError(func, previous_error)
+
+            return async_injection_wrapper
 
         @wraps(func)
         def injection_wrapper(*args: Any, **kwargs: Any) -> T:
@@ -310,8 +336,9 @@ class _ParametersInjection(Generic[T]):
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
                     kwargs[param] = instance(cls)
+            sync_func = cast(Callable[..., T], func)
             try:
-                return func(*args, **kwargs)
+                return sync_func(*args, **kwargs)
             except TypeError as previous_error:
                 raise ConstructorTypeError(func, previous_error)
         return injection_wrapper
