@@ -8,6 +8,7 @@ upload:
 
 clean:
 	rm -rf ./build/*
+	rm -rf ./dist/*
 
 test:
 	nosetests test

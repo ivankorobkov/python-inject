@@ -1,6 +1,10 @@
 python-inject changes
 =====================
 
+### 4.3.0 (2020-08-11)
+- Support for classes in autoparams, #59.
+- Support for asyncio, #66.
+
 ### 4.2.0 (2020-05-15)
 - Migrated autoparams and annotations to typing.get_type_hints.
 - Fix boolean casting to make possible to inject DataFrame (#55) #56.

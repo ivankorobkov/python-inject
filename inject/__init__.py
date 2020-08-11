@@ -73,7 +73,7 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-__version__ = '4.2.0'
+__version__ = '4.3.0'
 __author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
 __license__ = 'Apache License 2.0'
 __url__ = 'https://github.com/ivan-korobkov/python-inject'
@@ -85,8 +85,9 @@ import sys
 import threading
 import types
 from functools import wraps
-from typing import (Any, Callable, Dict, Generic, Hashable, Optional, Type,
-                    TypeVar, Union, get_type_hints, overload, Awaitable, cast)
+from typing import (Any, Awaitable, Callable, Dict, Generic, Hashable,
+                    Optional, Type, TypeVar, Union, cast, get_type_hints,
+                    overload)
 
 _NEW_TYPING = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
 _RETURN = 'return'
