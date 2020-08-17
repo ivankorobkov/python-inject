@@ -19,7 +19,7 @@ class TestInjectConfiguration(BaseTestInject):
     def test_configure__already_configured(self):
         inject.configure()
 
-        self.assertRaisesRegexp(InjectorException, 'Injector is already configured',
+        self.assertRaisesRegex(InjectorException, 'Injector is already configured',
                                 inject.configure)
 
     def test_configure_once__should_create_injector(self):
@@ -48,11 +48,11 @@ class TestInjectConfiguration(BaseTestInject):
         assert injector1 is not injector0
 
     def test_get_injector_or_die(self):
-        self.assertRaisesRegexp(InjectorException, 'No injector is configured',
+        self.assertRaisesRegex(InjectorException, 'No injector is configured',
                                 inject.get_injector_or_die)
 
     def test_configure__runtime_binding_disabled(self):
         injector = inject.configure(bind_in_runtime=False)
-        self.assertRaisesRegexp(InjectorException,
+        self.assertRaisesRegex(InjectorException,
                                 "No binding was found for key=<.* 'int'>",
                                 injector.get_instance, int)
