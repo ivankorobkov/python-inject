@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 4.3.1 (2020-08-17)
+- Use assertRaisesRegex instead of assertRaisesRegexp to fix deprecation warnings.
+
 ### 4.3.0 (2020-08-11)
 - Support for classes in autoparams, #59.
 - Support for asyncio, #66.
