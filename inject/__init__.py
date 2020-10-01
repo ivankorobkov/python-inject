@@ -274,6 +274,16 @@ class _AttributeInjection(object):
         return instance(self._cls)
 
 
+class _AttributeInjectionDataclass(Generic[T]):
+    def __init__(self, cls: Binding) -> None:
+        self._cls = cls
+
+    def __get__(self, instance, owner) -> T:
+        if injector := get_injector():
+            return injector.get_instance(self._cls)
+        raise AttributeError
+
+
 class _ParameterInjection(Generic[T]):
     __slots__ = ('_name', '_cls')
 
@@ -410,6 +420,16 @@ def attr(cls: Hashable) -> Injectable: ...
 def attr(cls: Binding) -> Injectable:
     """Return a attribute injection (descriptor)."""
     return _AttributeInjection(cls)
+
+@overload
+def attr_dc(cls: Type[T]) -> T: ...
+
+@overload
+def attr_dc(cls: Hashable) -> Injectable: ...
+
+def attr_dc(cls: Binding) -> Injectable:
+    """Return a attribute injection (descriptor)."""
+    return _AttributeInjectionDataclass(cls)
 
 
 def param(name: str, cls: Optional[Binding] = None) -> Callable:
