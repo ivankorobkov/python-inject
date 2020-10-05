@@ -279,7 +279,8 @@ class _AttributeInjectionDataclass(Generic[T]):
         self._cls = cls
 
     def __get__(self, instance, owner) -> T:
-        if injector := get_injector():
+        injector = get_injector()
+        if injector is not None:
             return injector.get_instance(self._cls)
         raise AttributeError
 
