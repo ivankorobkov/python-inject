@@ -328,7 +328,6 @@ class _ParametersInjection(Generic[T]):
         if inspect.iscoroutinefunction(func):
             @wraps(func)
             async def async_injection_wrapper(*args: Any, **kwargs: Any) -> T:
-                print(args, kwargs)
                 arg_name_tuple = arg_names[:len(args)]
                 provided_params = frozenset(arg_name_tuple) | frozenset(kwargs.keys())
                 for param, cls in params_to_provide.items():
@@ -341,7 +340,6 @@ class _ParametersInjection(Generic[T]):
                         if args[idx] is ...:
                             args = args[:idx] + (instance(cls),) + args[idx + 1:]
                 async_func = cast(Callable[..., Awaitable[T]], func)
-                print(args, kwargs)
                 try:
                     return await async_func(*args, **kwargs)
                 except TypeError as previous_error:
@@ -353,7 +351,6 @@ class _ParametersInjection(Generic[T]):
         def injection_wrapper(*args: Any, **kwargs: Any) -> T:
             arg_name_tuple = arg_names[:len(args)]
             provided_params = frozenset(arg_name_tuple) | frozenset(kwargs.keys())
-            print(args, kwargs)
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
                     kwargs[param] = instance(cls)
@@ -364,7 +361,6 @@ class _ParametersInjection(Generic[T]):
                     if args[idx] is ...:
                         args = args[:idx] + (instance(cls),) + args[idx + 1:]
             sync_func = cast(Callable[..., T], func)
-            print(args, kwargs)
             try:
                 return sync_func(*args, **kwargs)
             except TypeError as previous_error:
