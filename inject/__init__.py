@@ -104,6 +104,14 @@ _INJECTOR = None  # Shared injector instance.
 _INJECTOR_LOCK = threading.RLock()  # Guards injector initialization.
 _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
+MARKER = object()  # A marker object to explicitly set a parameter to be injected
+
+
+def set_marker(new_marker: Any):
+    global MARKER
+    MARKER = new_marker
+
+
 Injectable = Union[object, Any]
 T = TypeVar('T', bound=Injectable)
 Binding = Union[Type[Injectable], Hashable]
@@ -328,11 +336,17 @@ class _ParametersInjection(Generic[T]):
         if inspect.iscoroutinefunction(func):
             @wraps(func)
             async def async_injection_wrapper(*args: Any, **kwargs: Any) -> T:
-                provided_params = frozenset(
-                    arg_names[:len(args)]) | frozenset(kwargs.keys())
+                arg_name_tuple = arg_names[:len(args)]
+                provided_params = frozenset(arg_name_tuple) | frozenset(kwargs.keys())
                 for param, cls in params_to_provide.items():
                     if param not in provided_params:
                         kwargs[param] = instance(cls)
+                    elif param in kwargs and kwargs[param] is MARKER:
+                        kwargs[param] = instance(cls)
+                    elif param in arg_name_tuple:
+                        idx = arg_name_tuple.index(param)
+                        if args[idx] is MARKER:
+                            args = args[:idx] + (instance(cls),) + args[idx + 1:]
                 async_func = cast(Callable[..., Awaitable[T]], func)
                 try:
                     return await async_func(*args, **kwargs)
@@ -343,11 +357,17 @@ class _ParametersInjection(Generic[T]):
 
         @wraps(func)
         def injection_wrapper(*args: Any, **kwargs: Any) -> T:
-            provided_params = frozenset(
-                arg_names[:len(args)]) | frozenset(kwargs.keys())
+            arg_name_tuple = arg_names[:len(args)]
+            provided_params = frozenset(arg_name_tuple) | frozenset(kwargs.keys())
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
                     kwargs[param] = instance(cls)
+                elif param in kwargs and kwargs[param] is MARKER:
+                    kwargs[param] = instance(cls)
+                elif param in arg_name_tuple:
+                    idx = arg_name_tuple.index(param)
+                    if args[idx] is MARKER:
+                        args = args[:idx] + (instance(cls),) + args[idx + 1:]
             sync_func = cast(Callable[..., T], func)
             try:
                 return sync_func(*args, **kwargs)
