@@ -12,7 +12,9 @@ class TestInjectParams(BaseTestInject):
         inject.configure(lambda binder: binder.bind(int, 123))
 
         assert test_func() == 123
+        assert test_func(inject.MARKER) == 123
         assert test_func(321) == 321
+        assert test_func(val=inject.MARKER) == 123
         assert test_func(val=42) == 42
 
     def test_params_multi(self):
@@ -29,8 +31,10 @@ class TestInjectParams(BaseTestInject):
 
         assert test_func() == (1, 2, 3)
         assert test_func(10) == (10, 2, 3)
+        assert test_func(10, inject.MARKER) == (10, 2, 3)
         assert test_func(10, 20) == (10, 20, 3)
         assert test_func(10, 20, 30) == (10, 20, 30)
+        assert test_func(a=inject.MARKER) == (1, 2, 3)
         assert test_func(a='a') == ('a', 2, 3)
         assert test_func(b='b') == (1, 'b', 3)
         assert test_func(c='c') == (1, 2, 'c')
@@ -52,12 +56,14 @@ class TestInjectParams(BaseTestInject):
 
         assert test_func() == (1, 2, 3)
         assert test_func(10) == (10, 2, 3)
+        assert test_func(10, inject.MARKER) == (10, 2, 3)
         assert test_func(10, 20) == (10, 20, 3)
         assert test_func(10, 20, 30) == (10, 20, 30)
         assert test_func(a='a') == ('a', 2, 3)
         assert test_func(b='b') == (1, 'b', 3)
         assert test_func(c='c') == (1, 2, 'c')
         assert test_func(a=10, c=30) == (10, 2, 30)
+        assert test_func(a=10, b=inject.MARKER, c=30) == (10, 2, 30)
         assert test_func(c=30, b=20, a=10) == (10, 20, 30)
         assert test_func(10, b=20) == (10, 20, 3)
 
@@ -78,10 +84,12 @@ class TestInjectParams(BaseTestInject):
         assert test.func(10) == (test, 10, 2, 3)
         assert test.func(10, 20) == (test, 10, 20, 3)
         assert test.func(10, 20, 30) == (test, 10, 20, 30)
+        assert test.func(10, inject.MARKER, inject.MARKER) == (test, 10, 2, 3)
         assert test.func(a='a') == (test, 'a', 2, 3)
         assert test.func(b='b') == (test, 1, 'b', 3)
         assert test.func(c='c') == (test, 1, 2, 'c')
         assert test.func(a=10, c=30) == (test, 10, 2, 30)
+        assert test.func(a=10, b=inject.MARKER, c=30) == (test, 10, 2, 30)
         assert test.func(c=30, b=20, a=10) == (test, 10, 20, 30)
         assert test.func(10, b=20) == (test, 10, 20, 3)
 
@@ -103,10 +111,12 @@ class TestInjectParams(BaseTestInject):
         assert Test.func(10) == (Test, 10, 2, 3)
         assert Test.func(10, 20) == (Test, 10, 20, 3)
         assert Test.func(10, 20, 30) == (Test, 10, 20, 30)
+        assert Test.func(10, inject.MARKER, inject.MARKER) == (Test, 10, 2, 3)
         assert Test.func(a='a') == (Test, 'a', 2, 3)
         assert Test.func(b='b') == (Test, 1, 'b', 3)
         assert Test.func(c='c') == (Test, 1, 2, 'c')
         assert Test.func(a=10, c=30) == (Test, 10, 2, 30)
+        assert Test.func(a=10, b=inject.MARKER, c=30) == (Test, 10, 2, 30)
         assert Test.func(c=30, b=20, a=10) == (Test, 10, 20, 30)
         assert Test.func(10, b=20) == (Test, 10, 20, 3)
 
@@ -129,10 +139,12 @@ class TestInjectParams(BaseTestInject):
         assert test.func(10) == (Test, 10, 2, 3)
         assert test.func(10, 20) == (Test, 10, 20, 3)
         assert test.func(10, 20, 30) == (Test, 10, 20, 30)
+        assert test.func(10, inject.MARKER, inject.MARKER) == (Test, 10, 2, 3)
         assert test.func(a='a') == (Test, 'a', 2, 3)
         assert test.func(b='b') == (Test, 1, 'b', 3)
         assert test.func(c='c') == (Test, 1, 2, 'c')
         assert test.func(a=10, c=30) == (Test, 10, 2, 30)
+        assert test.func(a=10, b=inject.MARKER, c=30) == (Test, 10, 2, 30)
         assert test.func(c=30, b=20, a=10) == (Test, 10, 20, 30)
         assert test.func(10, b=20) == (Test, 10, 20, 3)
 
@@ -145,5 +157,7 @@ class TestInjectParams(BaseTestInject):
 
         assert inspect.iscoroutinefunction(test_func)
         assert self.run_async(test_func()) == 123
+        assert self.run_async(test_func(inject.MARKER)) == 123
         assert self.run_async(test_func(321)) == 321
+        assert self.run_async(test_func(val=inject.MARKER)) == 123
         assert self.run_async(test_func(val=42)) == 42
