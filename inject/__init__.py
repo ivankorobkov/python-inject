@@ -266,6 +266,29 @@ class _ConstructorBinding(Generic[T]):
         return self._instance
 
 
+class _NullInjectedAttribute(object):
+    """
+    Returned for injected attributes that don't have an injection configuration.
+    """
+    pass
+
+
+class _AttributeInjection(object):
+    def __init__(self, cls):
+        self._cls = cls
+
+    def __get__(self, obj, owner):
+        # Some Python internals (starting in 3.8 specifically) may call
+        # getattr() for a class's attributes to do some reflective inspection.
+        # That triggers this codepath, potentially before inject.configure()
+        # has been called, which is why we should silently return a sentinel
+        # type representing a null value instead of raising.
+        try:
+            return instance(self._cls)
+        except InjectorException:
+            return _NullInjectedAttribute()
+
+
 class _AttributeInjection(object):
     def __init__(self, cls: Binding) -> None:
         self._cls = cls
