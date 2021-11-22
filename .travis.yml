@@ -7,8 +7,12 @@ matrix:
       env: TOXENV=py37
     - python: '3.8'
       env: TOXENV=py37
+    - python: '3.9'
+      env: TOXENV=py37
+    - python: '3.10'
+      env: TOXENV=py37
 install:
   - python setup.py -q install
-script: 
+script:
   - nosetests test $EXTRA_ARGS
   - if [ "$TOXENV" = "py37" ]; then nosetests test37; fi
