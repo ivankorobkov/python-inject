@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 5.0.0.dev0 (2023-06-10)
+- Support for PEP0604 for Python>=3.10.
+
 ### 4.3.1 (2020-08-17)
 - Use assertRaisesRegex instead of assertRaisesRegexp to fix deprecation warnings.
 
