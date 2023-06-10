@@ -62,3 +62,7 @@ docs/_build/
 
 # pyenv virtualenv
 .python-version
+
+# Generated files
+_version.py
+_version.pyi
