@@ -14,11 +14,12 @@ Dependency injection the python way, the good way. Not a port of Guice or Spring
 
 ## Python Support
 
-| Python | Inject Version |
-|--------|----------------|
-| 3.6+   | 4.1+           |
-| 3.5    | 4.0            |
-| < 3.5  | 3.*            |
+| Python  | Inject Version |
+|---------|----------------|
+| 3.9+    | 5.0+           |
+| 3.6-3.8 | 4.1+, < 5.0    |
+| 3.5     | 4.0            |
+| < 3.5   | 3.*            |
 
 
 ## Installation
