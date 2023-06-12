@@ -73,26 +73,28 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-__version__ = '4.3.1'
-__author__ = 'Ivan Korobkov <ivan.korobkov@gmail.com>'
-__license__ = 'Apache License 2.0'
-__url__ = 'https://github.com/ivan-korobkov/python-inject'
-
+from inject._version import __version__
 
 import inspect
 import logging
 import sys
 import threading
-import types
 from functools import wraps
 from typing import (Any, Awaitable, Callable, Dict, Generic, Hashable,
                     Optional, Type, TypeVar, Union, cast, get_type_hints,
                     overload)
 
-_NEW_TYPING = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
+_HAS_PEP604_SUPPORT = sys.version_info[:3] >= (3, 10, 0)  # PEP 604
+if _HAS_PEP604_SUPPORT:
+    _HAS_PEP560_SUPPORT = True
+else:
+    _HAS_PEP560_SUPPORT = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
 _RETURN = 'return'
 
-if _NEW_TYPING:
+if _HAS_PEP604_SUPPORT:
+    from types import UnionType
+    from typing import ForwardRef, _GenericAlias
+elif _HAS_PEP560_SUPPORT:
     from typing import ForwardRef, _GenericAlias
 else:
     from typing import _Union
@@ -179,7 +181,7 @@ class Binder(object):
     
     def _maybe_bind_forward(self, cls: Binding, binding: Any) -> None:
         """Bind a string forward reference."""
-        if not _NEW_TYPING:
+        if not _HAS_PEP560_SUPPORT:
             return
         if not isinstance(cls, str):
             return
@@ -189,7 +191,7 @@ class Binder(object):
         logger.debug('Bound forward ref "%s"', cls)
 
     def _is_forward_str(self, cls: Binding) -> bool:
-        return _NEW_TYPING and isinstance(cls, str)
+        return _HAS_PEP560_SUPPORT and isinstance(cls, str)
 
 
 class Injector(object):
@@ -516,10 +518,14 @@ def _is_union_type(typ):
         is_union_type(Union) == True
         is_union_type(Union[int, int]) == False
         is_union_type(Union[T, int]) == True
-    
+
     Source: https://github.com/ilevkivskyi/typing_inspect/blob/master/typing_inspect.py
     """
-    if _NEW_TYPING:
+    if _HAS_PEP604_SUPPORT:
+        return (typ is Union or
+                isinstance(typ, UnionType) or
+                isinstance(typ, _GenericAlias) and typ.__origin__ is Union)
+    elif _HAS_PEP560_SUPPORT:
         return (typ is Union or
                 isinstance(typ, _GenericAlias) and typ.__origin__ is Union)
     return type(typ) is _Union

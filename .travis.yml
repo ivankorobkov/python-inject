@@ -8,7 +8,7 @@ matrix:
     - python: '3.8'
       env: TOXENV=py37
 install:
-  - python setup.py -q install
+  - python -m pip install --upgrade --editable=./
 script: 
   - nosetests test $EXTRA_ARGS
   - if [ "$TOXENV" = "py37" ]; then nosetests test37; fi

@@ -1,3 +1,6 @@
+import sys
+from typing import Optional
+
 from test import BaseTestInject
 
 import inject
@@ -165,6 +168,39 @@ class TestInjectAutoparams(BaseTestInject):
     def test_autoparams_only_selected(self):
         @inject.autoparams('a', 'c')
         def test_func(a: 'A', b: 'B', *, c: 'C'):
+            return a, b, c
+
+        def config(binder):
+            binder.bind(A, 1)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
+
+        inject.configure(config)
+
+        self.assertRaises(TypeError, test_func)
+        self.assertRaises(TypeError, test_func, a=1, c=3)
+
+    def test_autoparams_only_selected_with_optional(self):
+        @inject.autoparams('a', 'c')
+        def test_func(a: 'A', b: 'B', *, c: Optional[C] = None):
+            return a, b, c
+
+        def config(binder):
+            binder.bind(A, 1)
+            binder.bind(B, 2)
+            binder.bind(C, 3)
+
+        inject.configure(config)
+
+        self.assertRaises(TypeError, test_func)
+        self.assertRaises(TypeError, test_func, a=1, c=3)
+
+    def test_autoparams_only_selected_with_optional_pep604_union(self):
+        if not sys.version_info[:3] >= (3, 10, 0):
+            return
+
+        @inject.autoparams('a', 'c')
+        def test_func(a: 'A', b: 'B', *, c: C | None = None):
             return a, b, c
 
         def config(binder):

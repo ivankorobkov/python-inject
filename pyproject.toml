@@ -1,0 +1,188 @@
+[build-system]
+requires = ['hatchling', 'hatch-vcs']
+build-backend = 'hatchling.build'
+
+[project]
+name = 'inject'
+dynamic = ['version']
+description = 'Python dependency injection framework.'
+license='Apache-2.0'
+readme = 'README.md'
+authors = [
+    { name = 'Ivan Korobkov', email = 'ivan.korobkov@gmail.com' },
+]
+maintainers = [
+    { name = 'Ivan Korobkov', email = 'ivan.korobkov@gmail.com' },
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: Apache Software License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
+dependencies = [
+]
+
+[project.scripts]
+
+[project.urls]
+Homepage = 'https://github.com/ivankorobkov/python-inject'
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
+target_version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.github
+  | \.hg
+  | \.idea
+  | \.mypy_cache
+  | \.tox
+  | \.pyre_configuration
+  | \.venv
+  | _build
+  | build
+  | dist
+  | var
+)
+'''
+
+[tool.hatch.build.hooks.vcs]
+version-file = 'src/inject/_version.py'
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    'src/inject',
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+'typeshed/pyi/inject' = 'typeshed/pyi/inject'
+
+[tool.hatch.build.targets.wheel.shared-data]
+
+[tool.hatch.version]
+source = 'vcs'
+
+[tool.isort]
+case_sensitive = true
+include_trailing_comma = true
+line_length = 120
+multi_line_output = 3
+profile = 'black'
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+mypy_path = ['typeshed/pyi']
+no_implicit_optional = true
+python_version = '3.11'
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.pyright]
+defineConstant = { DEBUG = true }
+exclude = []
+executionEnvironments = []
+ignore = []
+include = [
+    'src/inject',
+    'test',
+]
+pythonPlatform = 'Linux'
+pythonVersion = '3.11'
+reportMissingImports = true
+reportMissingTypeStubs = false
+stubPath = 'typeshed/import'
+
+[tool.pytest.ini_options]
+addopts = '-rfEX --strict-markers --tb=long'
+minversion = '7.2'
+python_files = [
+    'test_*.py',
+]
+testpaths = [
+    './test',
+]
+
+[tool.ruff]
+ignore = [
+    # Allow non-abstract empty methods in abstract base classes
+    'B027',
+    # Allow boolean positional values in function calls, like `dict.get(... True)`
+    'FBT003',
+    # Ignore checks for possible passwords
+    'S105', 'S106', 'S107',
+    # Ignore complexity
+    'C901', 'PLR0911', 'PLR0912', 'PLR0913', 'PLR0915',
+    'PLC1901', # empty string comparisons
+    'PLW2901', # `for` loop variable overwritten
+    'SIM114', # Combine `if` branches using logical `or` operator
+]
+line-length = 120
+select = [
+    'A',
+    'B',
+    'C',
+    'DTZ',
+    'E',
+    'EM',
+    'F',
+    'FBT',
+    'I',
+    'ICN',
+    'ISC',
+    'N',
+    'PLC',
+    'PLE',
+    'PLR',
+    'PLW',
+    'Q',
+    'RUF',
+    'S',
+    'SIM',
+    'T',
+    'TID',
+    'UP',
+    'W',
+    'YTT',
+]
+target-version = ['py39', 'py310', 'py311']
+unfixable = [
+    # Don't touch unused imports
+    'F401',
+]
+
+[tool.ruff.flake8-quotes]
+inline-quotes = 'single'
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = 'all'
+
+[tool.ruff.isort]
+known-first-party = [
+    'inject',
+]
+
+[tool.ruff.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+'/**/test_*.py' = ['PLR2004', 'S101', 'TID252']
