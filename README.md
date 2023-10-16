@@ -100,7 +100,6 @@ class User(object):
 
 # Create an optional configuration.
 def my_config(binder):
-    binder.install(my_config2)  # Add bindings from another config.
     binder.bind(Cache, RedisCache('localhost:1234'))
 
 # Configure a shared injector.
@@ -133,11 +132,31 @@ and optionally `inject.clear()` to clean up on tear down:
 class MyTest(unittest.TestCase):
     def setUp(self):
         inject.clear_and_configure(lambda binder: binder
-            .bind(Cache, Mock()) \
+            .bind(Cache, MockCache()) \
             .bind(Validator, TestValidator()))
     
     def tearDown(self):
         inject.clear()
+```
+
+## Composable configurations
+You can reuse configurations and override already registered dependencies to fit the needs in different environments or specific tests.
+```python
+    def base_config(binder):
+        # ... more dependencies registered here
+        binder.bind(Validator, RealValidator())
+        binder.bind(Cache, RedisCache('localhost:1234'))
+
+    def tests_config(binder):
+        # reuse existing configuration
+        binder.install(base_config)
+
+        # override only certain dependencies
+        binder.bind(Validator, TestValidator())
+        binder.bind(Cache, MockCache())
+    
+    inject.clear_and_configure(tests_config, allow_override=True)
+        
 ```
 
 ## Thread-safety

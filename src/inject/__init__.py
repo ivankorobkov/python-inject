@@ -122,8 +122,9 @@ class ConstructorTypeError(TypeError):
 class Binder(object):
     _bindings: Dict[Binding, Constructor]
 
-    def __init__(self) -> None:
+    def __init__(self, allow_override: bool = False) -> None:
         self._bindings = {}
+        self.allow_override = allow_override
 
     def install(self, config: BinderCallable) -> 'Binder':
         """Install another callable configuration."""
@@ -171,7 +172,7 @@ class Binder(object):
         if cls is None:
             raise InjectorException('Binding key cannot be None')
 
-        if cls in self._bindings:
+        if not self.allow_override and cls in self._bindings:
             raise InjectorException('Duplicate binding, key=%s' % cls)
 
         if self._is_forward_str(cls):
@@ -197,10 +198,12 @@ class Binder(object):
 class Injector(object):
     _bindings: Dict[Binding, Constructor]
 
-    def __init__(self, config: Optional[BinderCallable] = None, bind_in_runtime: bool = True):
+    def __init__(
+        self, config: Optional[BinderCallable] = None, bind_in_runtime: bool = True, allow_override: bool = False
+    ):
         self._bind_in_runtime = bind_in_runtime
         if config:
-            binder = Binder()
+            binder = Binder(allow_override)
             config(binder)
             self._bindings = binder._bindings
         else:
@@ -358,7 +361,9 @@ class _ParametersInjection(Generic[T]):
         return injection_wrapper
 
 
-def configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
+def configure(
+    config: Optional[BinderCallable] = None, bind_in_runtime: bool = True, allow_override: bool = False
+) -> Injector:
     """Create an injector with a callable config or raise an exception when already configured."""
     global _INJECTOR
 
@@ -366,25 +371,29 @@ def configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = T
         if _INJECTOR:
             raise InjectorException('Injector is already configured')
 
-        _INJECTOR = Injector(config, bind_in_runtime=bind_in_runtime)
+        _INJECTOR = Injector(config, bind_in_runtime=bind_in_runtime, allow_override=allow_override)
         logger.debug('Created and configured an injector, config=%s', config)
         return _INJECTOR
 
 
-def configure_once(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
+def configure_once(
+    config: Optional[BinderCallable] = None, bind_in_runtime: bool = True, allow_override: bool = False
+) -> Injector:
     """Create an injector with a callable config if not present, otherwise, do nothing."""
     with _INJECTOR_LOCK:
         if _INJECTOR:
             return _INJECTOR
 
-        return configure(config, bind_in_runtime=bind_in_runtime)
+        return configure(config, bind_in_runtime=bind_in_runtime, allow_override=allow_override)
 
 
-def clear_and_configure(config: Optional[BinderCallable] = None, bind_in_runtime: bool = True) -> Injector:
+def clear_and_configure(
+    config: Optional[BinderCallable] = None, bind_in_runtime: bool = True, allow_override: bool = False
+) -> Injector:
     """Clear an existing injector and create another one with a callable config."""
     with _INJECTOR_LOCK:
         clear()
-        return configure(config, bind_in_runtime=bind_in_runtime)
+        return configure(config, bind_in_runtime=bind_in_runtime, allow_override=allow_override)
 
 
 def is_configured() -> bool:
