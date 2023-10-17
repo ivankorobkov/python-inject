@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 5.0.1 (2023-10-16)
+- Optionally allow overriding dependencies.
+
 ### 5.0.0 (2023-06-10)
 - Support for PEP0604 for Python>=3.10.
 
