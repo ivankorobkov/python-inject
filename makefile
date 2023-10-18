@@ -4,7 +4,7 @@ SHELL               :=	bash
 MAKEFLAGS           +=	--no-builtin-rules \
                         --warn-undefined-variables
 
-.PHONY: dist pytest test test37 typeshed
+.PHONY: dist pytest test
 
 dist:
 	if ! python3 -m pip freeze | grep -q build; then python3 -m pip install --upgrade build; fi
@@ -35,8 +35,3 @@ pytest:
 test:
 	if ! command -v nosetests &>/dev/null; then python3 -m pip install --upgrade nose; fi
 	nosetests test
-
-test37:
-	if ! command -v nosetests &>/dev/null; then python3 -m pip install --upgrade nose; fi
-	nosetests test
-	nosetests test37
