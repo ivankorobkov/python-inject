@@ -118,22 +118,23 @@ bar('world')
 
 ## Usage with Django
 Django can load some modules multiple times which can lead to 
-`InjectorException: Injector is already configured`. You can use `configure_once` which
+`InjectorException: Injector is already configured`. You can use `configure(once=True)` which
 is guaranteed to run only once when the injector is absent:
 ```python
 import inject
-inject.configure_once(my_config)
+inject.configure(my_config, once=True)
 ```
 
 ## Testing
-In tests use `inject.clear_and_configure(callable)` to create a new injector on setup,
+In tests use `inject.configure(callable, clear=True)` to create a new injector on setup,
 and optionally `inject.clear()` to clean up on tear down:
 ```python
 class MyTest(unittest.TestCase):
     def setUp(self):
-        inject.clear_and_configure(lambda binder: binder
+        inject.configure(lambda binder: binder
             .bind(Cache, MockCache()) \
-            .bind(Validator, TestValidator()))
+            .bind(Validator, TestValidator()),
+            clear=True)
     
     def tearDown(self):
         inject.clear()
@@ -155,7 +156,7 @@ You can reuse configurations and override already registered dependencies to fit
         binder.bind(Validator, TestValidator())
         binder.bind(Cache, MockCache())
     
-    inject.clear_and_configure(tests_config, allow_override=True)
+    inject.configure(tests_config, allow_override=True, clear=True)
         
 ```
 
@@ -220,8 +221,7 @@ to bind an instance to a class, `inject` will try to implicitly instantiate it.
 
 If an instance is unintentionally created with default arguments it may lead to
 hard-to-debug bugs.  To disable runtime binding and make sure that only 
-explicitly bound instances are injected, pass `bind_in_runtime=False` 
-to `inject.configure`, `inject.configure_once` or `inject.clear_and_configure`.
+explicitly bound instances are injected, pass `bind_in_runtime=False` to `inject.configure`.
 
 In this case `inject` immediately raises `InjectorException` when the code
 tries to get an unbound instance.

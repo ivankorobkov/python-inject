@@ -362,14 +362,26 @@ class _ParametersInjection(Generic[T]):
 
 
 def configure(
-    config: Optional[BinderCallable] = None, bind_in_runtime: bool = True, allow_override: bool = False
+    config: Optional[BinderCallable] = None, 
+    bind_in_runtime: bool = True, 
+    allow_override: bool = False,
+    clear: bool = False,
+    once: bool = False
 ) -> Injector:
     """Create an injector with a callable config or raise an exception when already configured."""
     global _INJECTOR
 
+    if clear and once:
+        raise InjectorException('clear and once are mutually exclusive, only one can be True')
+
     with _INJECTOR_LOCK:
         if _INJECTOR:
-            raise InjectorException('Injector is already configured')
+            if clear:
+                _clear_injector()
+            elif once:
+                return _INJECTOR
+            else:
+                raise InjectorException('Injector is already configured')
 
         _INJECTOR = Injector(config, bind_in_runtime=bind_in_runtime, allow_override=allow_override)
         logger.debug('Created and configured an injector, config=%s', config)
@@ -377,9 +389,14 @@ def configure(
 
 
 def configure_once(
-    config: Optional[BinderCallable] = None, bind_in_runtime: bool = True, allow_override: bool = False
+    config: Optional[BinderCallable] = None, 
+    bind_in_runtime: bool = True, 
+    allow_override: bool = False
 ) -> Injector:
-    """Create an injector with a callable config if not present, otherwise, do nothing."""
+    """Create an injector with a callable config if not present, otherwise, do nothing.
+    
+    Deprecated, use `configure(once=True)` instead.
+    """
     with _INJECTOR_LOCK:
         if _INJECTOR:
             return _INJECTOR
@@ -388,11 +405,16 @@ def configure_once(
 
 
 def clear_and_configure(
-    config: Optional[BinderCallable] = None, bind_in_runtime: bool = True, allow_override: bool = False
+    config: Optional[BinderCallable] = None, 
+    bind_in_runtime: bool = True, 
+    allow_override: bool = False
 ) -> Injector:
-    """Clear an existing injector and create another one with a callable config."""
+    """Clear an existing injector and create another one with a callable config.
+    
+    Deprecated, use configure(clear=True) instead.
+    """
     with _INJECTOR_LOCK:
-        clear()
+        _clear_injector()
         return configure(config, bind_in_runtime=bind_in_runtime, allow_override=allow_override)
 
 
@@ -404,6 +426,11 @@ def is_configured() -> bool:
 
 def clear() -> None:
     """Clear an existing injector if present."""
+    _clear_injector()
+
+
+def _clear_injector() -> None:
+    """Clear an existing injector if present."""
     global _INJECTOR
 
     with _INJECTOR_LOCK:
@@ -412,6 +439,7 @@ def clear() -> None:
 
         _INJECTOR = None
         logger.debug('Cleared an injector')
+
 
 @overload
 def instance(cls: Type[T]) -> T: ...
