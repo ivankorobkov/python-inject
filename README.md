@@ -1,5 +1,5 @@
 # python-inject [![Build Status](https://travis-ci.org/ivankorobkov/python-inject.svg?branch=master)](https://travis-ci.org/ivankorobkov/python-inject)
-Dependency injection the python way, the good way. Not a port of Guice or Spring.
+Dependency injection the python way, the good way.
 
 ## Key features
 * Fast.
@@ -8,9 +8,9 @@ Dependency injection the python way, the good way. Not a port of Guice or Spring
 * Does not steal class constructors.
 * Does not try to manage your application object graph.
 * Transparently integrates into tests.
-* Supports Python 3.5+ (`v4.*`) and Python 2.7–3.5 (`v3.*`).
-* Supports type hinting in Python 3.5+.
 * Autoparams leveraging type annotations.
+* Supports type hinting in Python 3.5+.
+* Supports Python 3.9+ (`v5.*`), 3.5-3.8 (`v4.*`) and Python 2.7–3.5 (`v3.*`).
 
 ## Python Support
 
