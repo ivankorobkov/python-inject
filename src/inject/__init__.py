@@ -342,9 +342,9 @@ class _ParametersInjection(Generic[T]):
                 for param, cls in params_to_provide.items():
                     if param not in provided_params:
                         inst = instance(cls)
-                        if isinstance(inst, contextlib.AbstractContextManager):
+                        if isinstance(inst, contextlib._GeneratorContextManager):
                             ctx_managers[param] = inst
-                        elif isinstance(inst, contextlib.AbstractAsyncContextManager):
+                        elif isinstance(inst, contextlib._AsyncGeneratorContextManager):
                             async_ctx_managers[param] = inst
                         else:
                             kwargs[param] = inst
@@ -372,7 +372,7 @@ class _ParametersInjection(Generic[T]):
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
                     inst = instance(cls)
-                    if isinstance(inst, contextlib.AbstractContextManager):
+                    if isinstance(inst, contextlib._GeneratorContextManager):
                         ctx_managers[param] = inst
                     else:
                         kwargs[param] = inst
