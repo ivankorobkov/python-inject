@@ -73,6 +73,8 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
+import contextlib
+
 from inject._version import __version__
 
 import inspect
@@ -335,12 +337,28 @@ class _ParametersInjection(Generic[T]):
             async def async_injection_wrapper(*args: Any, **kwargs: Any) -> T:
                 provided_params = frozenset(
                     arg_names[:len(args)]) | frozenset(kwargs.keys())
+                ctx_managers = {}
+                async_ctx_managers = {}
                 for param, cls in params_to_provide.items():
                     if param not in provided_params:
-                        kwargs[param] = instance(cls)
+                        inst = instance(cls)
+                        if isinstance(inst, contextlib.AbstractContextManager):
+                            ctx_managers[param] = inst
+                        elif isinstance(inst, contextlib.AbstractAsyncContextManager):
+                            async_ctx_managers[param] = inst
+                        else:
+                            kwargs[param] = inst
                 async_func = cast(Callable[..., Awaitable[T]], func)
                 try:
-                    return await async_func(*args, **kwargs)
+                    with contextlib.ExitStack() as sync_stack:
+                        ctx_kwargs = {param: sync_stack.enter_context(ctx_manager) for param, ctx_manager in
+                                      ctx_managers.items()}
+                        kwargs.update(ctx_kwargs)
+                        async with contextlib.AsyncExitStack() as async_stack:
+                            asynx_ctx_kwargs = {param: await async_stack.enter_async_context(ctx_manager) for param, ctx_manager in
+                                      async_ctx_managers.items()}
+                            kwargs.update(asynx_ctx_kwargs)
+                            return await async_func(*args, **kwargs)
                 except TypeError as previous_error:
                     raise ConstructorTypeError(func, previous_error)
 
@@ -350,12 +368,20 @@ class _ParametersInjection(Generic[T]):
         def injection_wrapper(*args: Any, **kwargs: Any) -> T:
             provided_params = frozenset(
                 arg_names[:len(args)]) | frozenset(kwargs.keys())
+            ctx_managers = {}
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
-                    kwargs[param] = instance(cls)
+                    inst = instance(cls)
+                    if isinstance(inst, contextlib.AbstractContextManager):
+                        ctx_managers[param] = inst
+                    else:
+                        kwargs[param] = inst
             sync_func = cast(Callable[..., T], func)
             try:
-                return sync_func(*args, **kwargs)
+                with contextlib.ExitStack() as stack:
+                    ctx_kwargs = {param: stack.enter_context(ctx_manager) for param, ctx_manager in ctx_managers.items()}
+                    kwargs.update(ctx_kwargs)
+                    return sync_func(*args, **kwargs)
             except TypeError as previous_error:
                 raise ConstructorTypeError(func, previous_error)
         return injection_wrapper
