@@ -158,7 +158,10 @@ class Binder(object):
         return self
 
     def bind_to_provider(self, cls: Binding, provider: Provider) -> 'Binder':
-        """Bind a class to a callable instance provider executed for each injection."""
+        """
+        Bind a class to a callable instance provider executed for each injection.
+        A provider can be a normal function or a context manager. Both sync and async are supported.
+        """
         self._check_class(cls)
         if provider is None:
             raise InjectorException('Provider cannot be None, key=%s' % cls)
@@ -325,6 +328,35 @@ class _ParametersInjection(Generic[T]):
     def __init__(self, **kwargs: Any) -> None:
         self._params = kwargs
 
+    @staticmethod
+    def _aggregate_sync_stack(
+            sync_stack: contextlib.ExitStack,
+            provided_params: frozenset[str],
+            kwargs: dict[str, Any]
+    ) -> None:
+        """Extracts context managers, aggregate them in an ExitStack and swap out the param value with results of
+        running __enter__(). The result is equivalent to using `with` multiple times """
+        executed_kwargs = {
+            param: sync_stack.enter_context(inst)
+            for param, inst in kwargs.items()
+            if param not in provided_params and isinstance(inst, contextlib._GeneratorContextManager)
+        }
+        kwargs.update(executed_kwargs)
+
+    @staticmethod
+    async def _aggregate_async_stack(
+            async_stack: contextlib.AsyncExitStack,
+            provided_params: frozenset[str],
+            kwargs: dict[str, Any]
+    ) -> None:
+        """Similar to _aggregate_sync_stack, but for async context managers"""
+        executed_kwargs = {
+            param: await async_stack.enter_async_context(inst)
+            for param, inst in kwargs.items()
+            if param not in provided_params and isinstance(inst, contextlib._AsyncGeneratorContextManager)
+        }
+        kwargs.update(executed_kwargs)
+
     def __call__(self, func: Callable[..., Union[Awaitable[T], T]]) -> Callable[..., Union[Awaitable[T], T]]:
         if sys.version_info.major == 2:
             arg_names = inspect.getargspec(func).args
@@ -337,27 +369,15 @@ class _ParametersInjection(Generic[T]):
             async def async_injection_wrapper(*args: Any, **kwargs: Any) -> T:
                 provided_params = frozenset(
                     arg_names[:len(args)]) | frozenset(kwargs.keys())
-                ctx_managers = {}
-                async_ctx_managers = {}
                 for param, cls in params_to_provide.items():
                     if param not in provided_params:
-                        inst = instance(cls)
-                        if isinstance(inst, contextlib._GeneratorContextManager):
-                            ctx_managers[param] = inst
-                        elif isinstance(inst, contextlib._AsyncGeneratorContextManager):
-                            async_ctx_managers[param] = inst
-                        else:
-                            kwargs[param] = inst
+                        kwargs[param] = instance(cls)
                 async_func = cast(Callable[..., Awaitable[T]], func)
                 try:
                     with contextlib.ExitStack() as sync_stack:
-                        ctx_kwargs = {param: sync_stack.enter_context(ctx_manager) for param, ctx_manager in
-                                      ctx_managers.items()}
-                        kwargs.update(ctx_kwargs)
                         async with contextlib.AsyncExitStack() as async_stack:
-                            asynx_ctx_kwargs = {param: await async_stack.enter_async_context(ctx_manager) for param, ctx_manager in
-                                      async_ctx_managers.items()}
-                            kwargs.update(asynx_ctx_kwargs)
+                            self._aggregate_sync_stack(sync_stack, provided_params, kwargs)
+                            await self._aggregate_async_stack(async_stack, provided_params, kwargs)
                             return await async_func(*args, **kwargs)
                 except TypeError as previous_error:
                     raise ConstructorTypeError(func, previous_error)
@@ -368,19 +388,13 @@ class _ParametersInjection(Generic[T]):
         def injection_wrapper(*args: Any, **kwargs: Any) -> T:
             provided_params = frozenset(
                 arg_names[:len(args)]) | frozenset(kwargs.keys())
-            ctx_managers = {}
             for param, cls in params_to_provide.items():
                 if param not in provided_params:
-                    inst = instance(cls)
-                    if isinstance(inst, contextlib._GeneratorContextManager):
-                        ctx_managers[param] = inst
-                    else:
-                        kwargs[param] = inst
+                    kwargs[param] = instance(cls)
             sync_func = cast(Callable[..., T], func)
             try:
-                with contextlib.ExitStack() as stack:
-                    ctx_kwargs = {param: stack.enter_context(ctx_manager) for param, ctx_manager in ctx_managers.items()}
-                    kwargs.update(ctx_kwargs)
+                with contextlib.ExitStack() as sync_stack:
+                    self._aggregate_sync_stack(sync_stack, provided_params, kwargs)
                     return sync_func(*args, **kwargs)
             except TypeError as previous_error:
                 raise ConstructorTypeError(func, previous_error)
