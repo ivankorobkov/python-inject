@@ -11,6 +11,7 @@ Dependency injection the python way, the good way.
 * Autoparams leveraging type annotations.
 * Supports type hinting in Python 3.5+.
 * Supports Python 3.9+ (`v5.*`), 3.5-3.8 (`v4.*`) and Python 2.7–3.5 (`v3.*`).
+* Supports context managers.
 
 ## Python Support
 
@@ -116,6 +117,39 @@ bar('world')
 ```
 
 
+## Context managers
+Binding a class to an instance of a context manager (through `bind` or `bind_to_constructor`) 
+or to a function decorated as a context manager leads to the context manager to be used as is, 
+not via with statement.
+
+```python
+@contextlib.contextmanager
+def get_file_sync():
+    obj = MockFiel()
+    yield obj
+    obj.destroy()
+
+@contextlib.asynccontextmanager
+async def get_conn_async():
+    obj = MockConnection()
+    yield obj
+    obj.destroy()
+
+def config(binder):
+    binder.bind_to_provider(MockFile, get_file_sync)
+    binder.bind(int, 100)
+    binder.bind_to_provider(str, lambda: "Hello")
+    binder.bind_to_provider(MockConnection, get_conn_sync)
+
+    inject.configure(config)
+
+@inject.autoparams()
+def example(conn: MockConnection, file: MockFile):
+    # Connection and file will be automatically destroyed on exit.
+    pass
+```
+
+
 ## Usage with Django
 Django can load some modules multiple times which can lead to 
 `InjectorException: Injector is already configured`. You can use `configure(once=True)` which
@@ -141,7 +175,8 @@ class MyTest(unittest.TestCase):
 ```
 
 ## Composable configurations
-You can reuse configurations and override already registered dependencies to fit the needs in different environments or specific tests.
+You can reuse configurations and override already registered dependencies to fit the needs 
+in different environments or specific tests.
 ```python
     def base_config(binder):
         # ... more dependencies registered here
