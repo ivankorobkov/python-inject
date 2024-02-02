@@ -4,7 +4,7 @@ SHELL               :=	bash
 MAKEFLAGS           +=	--no-builtin-rules \
                         --warn-undefined-variables
 
-.PHONY: dist pytest test typeshed
+.PHONY: dist pytest test
 
 dist:
 	if ! python3 -m pip freeze | grep -q build; then python3 -m pip install --upgrade build; fi
@@ -13,11 +13,6 @@ dist:
 install_dev:
 	python3 -m pip install --upgrade pip
 	python3 -m pip install --upgrade --editable=./
-
-typeshed:
-	if ! command -v stubgen &>/dev/null; then python3 -m pip install --upgrade mypy; fi
-	stubgen --output=src/inject --search-path=src src/inject
-	mv -f src/inject/inject.pyi src/inject/__init__.pyi
 
 upload:
 	if ! python3 -m pip freeze | grep -q twine; then python3 -m pip install --upgrade twine; fi
