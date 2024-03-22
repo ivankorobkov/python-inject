@@ -73,7 +73,6 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
-import asyncio
 import contextlib
 
 from inject._version import __version__
