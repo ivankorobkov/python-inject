@@ -281,7 +281,14 @@ class _AttributeInjection(object):
         self._cls = cls
 
     def __get__(self, obj: Any, owner: Any) -> Injectable:
-        return instance(self._cls)
+        inst = instance(self._cls)
+        if isinstance(inst, contextlib._AsyncGeneratorContextManager):
+            raise InjectorException(
+                    'Fail to load _AsyncGeneratorContextManager, Use autoparams, param or params instead of attr funcion')
+        elif isinstance(inst, contextlib._GeneratorContextManager):
+            with contextlib.ExitStack() as sync_stack:
+                inst = sync_stack.enter_context(inst)
+        return inst
 
 
 class _AttributeInjectionDataclass(Generic[T]):
