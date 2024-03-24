@@ -284,7 +284,7 @@ class _AttributeInjection(object):
         inst = instance(self._cls)
         if isinstance(inst, contextlib._AsyncGeneratorContextManager):
             raise InjectorException(
-                    'Fail to load _AsyncGeneratorContextManager, Use autoparams, param or params instead of attr funcion')
+                    'Fail to load _AsyncGeneratorContextManager, use autoparams, param or params instead of attr function')
         elif isinstance(inst, contextlib._GeneratorContextManager):
             with contextlib.ExitStack() as sync_stack:
                 inst = sync_stack.enter_context(inst)

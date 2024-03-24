@@ -1,6 +1,13 @@
 python-inject changes
 =====================
 
+### 5.2.1 (2024-03-24)
+- Remove type stubs as source has type hints, #95.
+- Added context manager condition to attr function, #96, #94.
+
+### 5.2.0 (2023-11-23)
+- Context managers support.
+
 ### 5.1.0 (2023-10-17)
 - Optionally allow overriding dependencies.
 - Unified configure syntax with clear and once flags.
