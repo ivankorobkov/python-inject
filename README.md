@@ -125,7 +125,7 @@ not via with statement.
 ```python
 @contextlib.contextmanager
 def get_file_sync():
-    obj = MockFiel()
+    obj = MockFile()
     yield obj
     obj.destroy()
 
