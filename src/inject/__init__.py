@@ -113,7 +113,7 @@ T = TypeVar('T', bound=Injectable)
 Binding = Union[Type[Injectable], Hashable]
 Constructor = Callable[[], Injectable]
 Provider = Constructor
-BinderCallable = Callable[['Binder'], None]
+BinderCallable = Callable[['Binder'], Optional['Binder']]
 
 
 class ConstructorTypeError(TypeError):
