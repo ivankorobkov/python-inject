@@ -83,7 +83,7 @@ import sys
 import threading
 from functools import wraps
 from typing import (Any, Awaitable, Callable, Dict, Generic, Hashable,
-                    Optional, Type, TypeVar, Union, cast, get_type_hints,
+                    Optional, Set, Type, TypeVar, Union, cast, get_type_hints,
                     overload)
 
 _HAS_PEP604_SUPPORT = sys.version_info[:3] >= (3, 10, 0)  # PEP 604
@@ -553,6 +553,8 @@ def autoparams(*selected: str) -> Callable:
         def sign_up(name, email, cache: RedisCache, db: DbInterface):
             pass
     """
+    only_these: Set[str] = set()
+
     def autoparams_decorator(fn: Callable[..., T]) -> Callable[..., T]:
         if inspect.isclass(fn):
             types = get_type_hints(fn.__init__)
@@ -566,12 +568,17 @@ def autoparams(*selected: str) -> Callable:
         types = {name: _unwrap_union_arg(typ) for name, typ in types.items()}
 
         # Filter types if selected args present.
-        if selected:
-            types = {name: typ for name, typ in types.items() if name in selected}
+        if only_these:
+            types = {name: typ for name, typ in types.items() if name in only_these}
         
         wrapper: _ParametersInjection[T] = _ParametersInjection(**types)
         return wrapper(fn)
 
+    target = selected[0] if selected else None
+    if len(selected) == 1 and callable(target):
+        return autoparams_decorator(target)
+
+    only_these.update(selected)
     return autoparams_decorator
 
 
