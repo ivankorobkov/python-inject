@@ -11,7 +11,10 @@ class B: pass
 class C: pass
 
 
-class TestInjectAutoparams(BaseTestInject):
+class TestInjectEmptyAutoparams(BaseTestInject):
+    def test_autoparams_non_parametrized(self):
+        pass
+
     def test_autoparams_by_class(self):
         @inject.autoparams()
         def test_func(val: int = None):
@@ -165,6 +168,21 @@ class TestInjectAutoparams(BaseTestInject):
         assert test.func(c=30, b=20, a=10) == (Test, 10, 20, 30)
         assert test.func(10, b=20) == (Test, 10, 20, 3)
 
+    def test_autoparams_omits_return_type(self):
+        @inject.autoparams()
+        def test_func(a: str) -> int:
+            return a
+
+        def config(binder):
+            binder.bind(str, 'bazinga')
+
+        inject.configure(config)
+
+        assert test_func() == 'bazinga'
+
+
+class TestInjectSelectedAutoparams(BaseTestInject):
+
     def test_autoparams_only_selected(self):
         @inject.autoparams('a', 'c')
         def test_func(a: 'A', b: 'B', *, c: 'C'):
@@ -212,15 +230,3 @@ class TestInjectAutoparams(BaseTestInject):
 
         self.assertRaises(TypeError, test_func)
         self.assertRaises(TypeError, test_func, a=1, c=3)
-
-    def test_autoparams_omits_return_type(self):
-        @inject.autoparams()
-        def test_func(a: str) -> int:
-            return a
-
-        def config(binder):
-            binder.bind(str, 'bazinga')
-
-        inject.configure(config)
-
-        assert test_func() == 'bazinga'
