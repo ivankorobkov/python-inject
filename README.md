@@ -334,3 +334,4 @@ Apache License 2.0
 * 45deg [@45deg](https://github.com/45deg)
 * Alexander Nicholas Costas [@ancostas](https://github.com/ancostas)
 * Dmitry Balabka [@dbalabka](https://github.com/dbalabka)
+* Dima Burmistrov [@pyctrl](https://github.com/pyctrl)
