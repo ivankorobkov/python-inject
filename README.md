@@ -35,7 +35,7 @@ pip install inject
 that uses type annotations. This is supported only in Python >= 3.5.
 
 ```python
-@inject.autoparams()
+@inject.autoparams
 def refresh_cache(cache: RedisCache, db: DbInterface):
     pass
 ```
@@ -48,6 +48,9 @@ injecting everything:
 def sign_up(name, email, cache: RedisCache, db: DbInterface):
     pass
 ```
+
+It is also acceptable to use explicit curly braces notation (`@inject.autoparams()`)
+for non-parameterized decorations — it will be treated the same as `@inject.autoparams`.
 
 ## Step-by-step example
 ```python

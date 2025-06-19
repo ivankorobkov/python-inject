@@ -541,7 +541,7 @@ def autoparams(*selected: str) -> Callable:
 
     For example::
 
-        @inject.autoparams()
+        @inject.autoparams
         def refresh_cache(cache: RedisCache, db: DbInterface):
             pass
 
