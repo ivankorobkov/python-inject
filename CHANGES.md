@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 5.3.0 (2025-06-20)
+- Handle autoparams usage without braces, #115.
+
 ### 5.2.1 (2024-03-24)
 - Remove type stubs as source has type hints, #95.
 - Added context manager condition to attr function, #96, #94.
