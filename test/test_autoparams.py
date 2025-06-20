@@ -11,9 +11,13 @@ class B: pass
 class C: pass
 
 
-class TestInjectAutoparams(BaseTestInject):
+class TestInjectEmptyAutoparamsWithBraces(BaseTestInject):
+    @staticmethod
+    def _get_decorator():
+        return inject.autoparams()
+
     def test_autoparams_by_class(self):
-        @inject.autoparams()
+        @self._get_decorator()
         def test_func(val: int = None):
             return val
 
@@ -23,7 +27,7 @@ class TestInjectAutoparams(BaseTestInject):
         assert test_func(val=321) == 321
 
     def test_autoparams_multi(self):
-        @inject.autoparams()
+        @self._get_decorator()
         def test_func(a: A, b: B, *, c: C):
             return a, b, c
 
@@ -46,7 +50,7 @@ class TestInjectAutoparams(BaseTestInject):
         assert test_func(10, b=20) == (10, 20, 3)
 
     def test_autoparams_strings(self):
-        @inject.autoparams()
+        @self._get_decorator()
         def test_func(a: 'A', b: 'B', *, c: 'C'):
             return a, b, c
 
@@ -69,7 +73,7 @@ class TestInjectAutoparams(BaseTestInject):
         assert test_func(10, b=20) == (10, 20, 3)
 
     def test_autoparams_with_defaults(self):
-        @inject.autoparams()
+        @self._get_decorator()
         def test_func(a=1, b: 'B' = None, *, c: 'C' = 300):
             return a, b, c
 
@@ -92,7 +96,7 @@ class TestInjectAutoparams(BaseTestInject):
 
     def test_autoparams_on_method(self):
         class Test:
-            @inject.autoparams()
+            @self._get_decorator()
             def func(self, a=1, b: 'B' = None, *, c: 'C' = None):
                 return self, a, b, c
 
@@ -118,7 +122,7 @@ class TestInjectAutoparams(BaseTestInject):
         class Test:
             # note inject must be *before* classmethod!
             @classmethod
-            @inject.autoparams()
+            @self._get_decorator()
             def func(cls, a=1, b: 'B' = None, *, c: 'C' = None):
                 return cls, a, b, c
 
@@ -143,7 +147,7 @@ class TestInjectAutoparams(BaseTestInject):
         class Test:
             # note inject must be *before* classmethod!
             @classmethod
-            @inject.autoparams()
+            @self._get_decorator()
             def func(cls, a=1, b: 'B' = None, *, c: 'C' = None):
                 return cls, a, b, c
 
@@ -164,6 +168,27 @@ class TestInjectAutoparams(BaseTestInject):
         assert test.func(a=10, c=30) == (Test, 10, 2, 30)
         assert test.func(c=30, b=20, a=10) == (Test, 10, 20, 30)
         assert test.func(10, b=20) == (Test, 10, 20, 3)
+
+    def test_autoparams_omits_return_type(self):
+        @self._get_decorator()
+        def test_func(a: str) -> int:
+            return a
+
+        def config(binder):
+            binder.bind(str, 'bazinga')
+
+        inject.configure(config)
+
+        assert test_func() == 'bazinga'
+
+
+class TestInjectEmptyAutoparamsNoBraces(TestInjectEmptyAutoparamsWithBraces):
+    @staticmethod
+    def _get_decorator():
+        return inject.autoparams
+
+
+class TestInjectSelectedAutoparams(BaseTestInject):
 
     def test_autoparams_only_selected(self):
         @inject.autoparams('a', 'c')
@@ -212,15 +237,3 @@ class TestInjectAutoparams(BaseTestInject):
 
         self.assertRaises(TypeError, test_func)
         self.assertRaises(TypeError, test_func, a=1, c=3)
-
-    def test_autoparams_omits_return_type(self):
-        @inject.autoparams()
-        def test_func(a: str) -> int:
-            return a
-
-        def config(binder):
-            binder.bind(str, 'bazinga')
-
-        inject.configure(config)
-
-        assert test_func() == 'bazinga'
