@@ -536,6 +536,11 @@ def params(**args_to_classes: Binding) -> Callable:
     return _ParametersInjection(**args_to_classes)
 
 
+@overload
+def autoparams(fn: Callable[..., T]) -> Callable[..., T]:
+    ...
+
+
 def autoparams(*selected: str) -> Callable:
     """Return a decorator that will inject args into a function using type annotations, Python >= 3.5 only.
 
