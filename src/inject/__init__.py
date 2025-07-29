@@ -276,30 +276,16 @@ class _ConstructorBinding(Generic[T]):
         return self._instance
 
 
-class _AttributeInjection(object):
-    def __init__(self, cls: Binding) -> None:
+class _AttributeInjection(Generic[T]):
+    def __init__(self, cls: Type[T]) -> None:
         self._cls = cls
 
-    def __get__(self, obj: Any, owner: Any) -> Injectable:
+    def __get__(self, obj: Any, owner: Type) -> T:
+        if obj is None:
+            return self
+
         inst = instance(self._cls)
-        if isinstance(inst, contextlib._AsyncGeneratorContextManager):
-            raise InjectorException(
-                    'Fail to load _AsyncGeneratorContextManager, use autoparams, param or params instead of attr function')
-        elif isinstance(inst, contextlib._GeneratorContextManager):
-            with contextlib.ExitStack() as sync_stack:
-                inst = sync_stack.enter_context(inst)
         return inst
-
-
-class _AttributeInjectionDataclass(Generic[T]):
-    def __init__(self, cls: Binding) -> None:
-        self._cls = cls
-
-    def __get__(self, instance, owner) -> T:
-        injector = get_injector()
-        if injector is not None:
-            return injector.get_instance(self._cls)
-        raise AttributeError
 
 
 class _ParameterInjection(Generic[T]):
@@ -499,24 +485,11 @@ def instance(cls: Binding) -> Injectable:
     return get_injector_or_die().get_instance(cls)
 
 @overload
-def attr(cls: Type[T]) -> T: ...
-
-@overload
 def attr(cls: Hashable) -> Injectable: ...
 
-def attr(cls: Binding) -> Injectable:
-    """Return a attribute injection (descriptor)."""
+def attr(cls: Type[T]) -> T:
+    """Return an attribute injection (descriptor)."""
     return _AttributeInjection(cls)
-
-@overload
-def attr_dc(cls: Type[T]) -> T: ...
-
-@overload
-def attr_dc(cls: Hashable) -> Injectable: ...
-
-def attr_dc(cls: Binding) -> Injectable:
-    """Return a attribute injection (descriptor)."""
-    return _AttributeInjectionDataclass(cls)
 
 
 def param(name: str, cls: Optional[Binding] = None) -> Callable:
