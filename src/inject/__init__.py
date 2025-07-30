@@ -84,7 +84,7 @@ import threading
 from functools import wraps
 from typing import (Any, Awaitable, Callable, Dict, Generic, Hashable,
                     Optional, Set, Type, TypeVar, Union, cast, get_type_hints,
-                    overload)
+                    overload, no_type_check, Self)
 
 _HAS_PEP604_SUPPORT = sys.version_info[:3] >= (3, 10, 0)  # PEP 604
 if _HAS_PEP604_SUPPORT:
@@ -277,15 +277,20 @@ class _ConstructorBinding(Generic[T]):
 
 
 class _AttributeInjection(Generic[T]):
-    def __init__(self, cls: Type[T]) -> None:
+    def __init__(self, cls: Type[T] | Hashable) -> None:
         self._cls = cls
 
-    def __get__(self, obj: Any, owner: Type) -> T:
+    @overload
+    def __get__(self, obj: None, owner: Any) -> Self: ...
+
+    @overload
+    def __get__(self, obj: Hashable, owner: Any) -> Injectable: ...
+
+    def __get__(self, obj, owner):
         if obj is None:
             return self
 
-        inst = instance(self._cls)
-        return inst
+        return instance(self._cls)
 
 
 class _ParameterInjection(Generic[T]):
@@ -487,9 +492,16 @@ def instance(cls: Binding) -> Injectable:
 @overload
 def attr(cls: Hashable) -> Injectable: ...
 
-def attr(cls: Type[T]) -> T:
+@overload
+def attr(cls: Type[T]) -> T: ...
+
+def attr(cls):
     """Return an attribute injection (descriptor)."""
     return _AttributeInjection(cls)
+
+
+# Deprecated, use `attr`
+attr_dc = attr
 
 
 def param(name: str, cls: Optional[Binding] = None) -> Callable:
@@ -510,11 +522,13 @@ def params(**args_to_classes: Binding) -> Callable:
 
 
 @overload
-def autoparams(fn: Callable[..., T]) -> Callable[..., T]:
-    ...
+def autoparams[T](fn: Callable[..., T]) -> Callable[..., T]: ...
 
+@overload
+def autoparams[C: Callable](*selected: str) -> Callable[[C], C]: ...
 
-def autoparams(*selected: str) -> Callable:
+@no_type_check
+def autoparams(*selected: str):
     """Return a decorator that will inject args into a function using type annotations, Python >= 3.5 only.
 
     For example::
