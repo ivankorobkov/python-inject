@@ -29,6 +29,17 @@ homepage = 'https://github.com/ivankorobkov/python-inject'
 source = 'https://github.com/ivankorobkov/python-inject'
 issues = 'https://github.com/ivankorobkov/python-inject/issues'
 
+[dependency-groups]
+tests = [
+  'pytest',
+  'pytest-cov',
+]
+
+dev = [
+  'ipython',
+  { include-group = 'tests' },
+]
+
 [build-system]
 requires = ['hatchling', 'hatch-vcs']
 build-backend = 'hatchling.build'
@@ -89,6 +100,8 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true
+#strict = true  # TODO(pyctrl): improve typings and enable strict mode
+exclude = ['test', '.venv']
 
 [tool.pyright]
 defineConstant = { DEBUG = true }
@@ -100,12 +113,6 @@ pythonPlatform = 'Linux'
 pythonVersion = '3.11'
 reportMissingImports = true
 reportMissingTypeStubs = false
-
-[tool.pytest.ini_options]
-addopts = '-rfEX --strict-markers --tb=long'
-minversion = '7.2'
-python_files = ['test_*.py']
-testpaths = ['./test']
 
 [tool.ruff]
 ignore = [
@@ -173,3 +180,75 @@ known-first-party = ['inject']
 [tool.ruff.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 '/**/test_*.py' = ['PLR2004', 'S101', 'TID252']
+
+
+####  Pytest & Coverage  ####
+[tool.pytest.ini_options]
+minversion = '8.4'
+addopts = '-vvv -ra --strict-markers --strict-config'
+testpaths = ['test']
+#filterwarnings = ['error']  # TODO(pyctrl): handle all warnings later
+
+# Coverage configuration
+[tool.coverage.run]
+branch = true
+[tool.coverage.report]
+include_namespace_packages = true
+# Regexes for lines to exclude from consideration
+omit = ['*/.venv/*', '*/.tox/*', '*/.uv-cache/*']
+exclude_also = [
+  # Don't complain if tests don't hit defensive assertion code:
+  'raise NotImplementedError',
+
+  # Don't complain if non-runnable code isn't run:
+  'if __name__ == .__main__.:',
+
+  # Don't complain about abstract methods, they aren't run:
+  '@(abc\\.)?abstractmethod',
+
+  'if TYPE_CHECKING:',
+]
+
+
+# Tox config
+[tool.tox]
+requires = ['tox>=4.23', 'tox-uv>=1.13']
+runner = 'uv-venv-lock-runner'
+skip_missing_interpreters = true
+
+env_list = [
+  'py39',
+  'py310',
+  'py311',
+  'py312',
+  'py313',
+#  'lint-mypy',  # TODO(pyctrl): make it green & uncomment
+  'coverage',
+]
+
+# default env
+[tool.tox.env_run_base]
+description = 'Run unit tests with coverage report ({env_name})'
+use_develop = true
+dependency_groups = ['tests']
+commands = [['pytest', { replace = 'posargs', extend = true }]]
+
+# tox envs
+[tool.tox.env.lint-mypy]
+description = 'Type checking'
+deps = ['mypy']
+commands = [['mypy', { replace = 'posargs', default = ['{tox_root}'], extend = true }]]
+
+[tool.tox.env.coverage]
+description = 'run coverage'
+use_develop = true
+dependency_groups = ['tests']
+commands = [
+  [
+    'pytest',
+    '--cov=.',
+    '--cov-branch',
+    '--cov-report=term-missing:skip-covered',
+    { replace = 'posargs', default = ['--cov-report=xml:coverage.xml'], extend = true },
+  ],
+]
