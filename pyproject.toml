@@ -1,7 +1,3 @@
-[build-system]
-requires = ['hatchling', 'hatch-vcs']
-build-backend = 'hatchling.build'
-
 [project]
 name = 'inject'
 dynamic = ['version']
@@ -16,17 +12,26 @@ classifiers = [
     'License :: OSI Approved :: Apache Software License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'Topic :: Software Development :: Libraries :: Python Modules',
 ]
+
+requires-python = '>=3.9'
 dependencies = []
 
-[project.scripts]
-
 [project.urls]
-Homepage = 'https://github.com/ivankorobkov/python-inject'
+homepage = 'https://github.com/ivankorobkov/python-inject'
+source = 'https://github.com/ivankorobkov/python-inject'
+issues = 'https://github.com/ivankorobkov/python-inject/issues'
+
+[build-system]
+requires = ['hatchling', 'hatch-vcs']
+build-backend = 'hatchling.build'
 
 [tool.black]
 line-length = 120
