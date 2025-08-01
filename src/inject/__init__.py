@@ -182,7 +182,7 @@ class Binder(object):
 
         if self._is_forward_str(cls):
             ref = ForwardRef(cls)
-            if ref in self._bindings:
+            if not self.allow_override and ref in self._bindings:
                 raise InjectorException('Duplicate forward binding, i.e. "int" and int, key=%s', cls)
     
     def _maybe_bind_forward(self, cls: Binding, binding: Any) -> None:
