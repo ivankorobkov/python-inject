@@ -27,6 +27,7 @@ dependencies = []
 [project.urls]
 homepage = 'https://github.com/ivankorobkov/python-inject'
 source = 'https://github.com/ivankorobkov/python-inject'
+#documentation = 'https://inject.readthedocs.io/en/latest/'
 issues = 'https://github.com/ivankorobkov/python-inject/issues'
 
 [dependency-groups]
@@ -38,6 +39,19 @@ tests = [
 dev = [
   'ipython',
   { include-group = 'tests' },
+]
+
+docs = [
+  # base
+  'sphinx',
+  'sphinx-autobuild',
+  # theme
+  'sphinx_rtd_theme',
+  # extensions
+  'sphinx-copybutton',
+#  'sphinx-design',
+  'sphinx-favicon',
+#  'sphinx-togglebutton',
 ]
 
 [build-system]
@@ -250,5 +264,31 @@ commands = [
     '--cov-branch',
     '--cov-report=term-missing:skip-covered',
     { replace = 'posargs', default = ['--cov-report=xml:coverage.xml'], extend = true },
+  ],
+]
+
+[tool.tox.env.docs]
+dependency_groups = ['docs']
+commands = [
+  [
+    'sphinx-build',
+    '-M',
+    'html',
+    '{tox_root}/docs/source',
+    '{tox_root}/docs/build',
+    '--fail-on-warning',
+  ],
+]
+
+[tool.tox.env.docs-serve]
+dependency_groups = ['docs']
+commands = [
+  [
+    'sphinx-autobuild',
+    '-M',
+    'html',
+    '{tox_root}/docs/source',
+    '{tox_root}/docs/build',
+    '--fail-on-warning',
   ],
 ]
