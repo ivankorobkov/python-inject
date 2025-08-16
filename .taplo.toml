@@ -1,0 +1,8 @@
+exclude = [
+  "**/.venv/**/*.toml",
+  "**/.tox/**/*.toml",
+]
+
+[formatting]
+column_width = 88
+array_auto_collapse = false
