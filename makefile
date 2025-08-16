@@ -26,8 +26,8 @@ clean:
 
 pytest:
 	if ! command -v pytest &>/dev/null; then python3 -m pip install --upgrade pytest; fi
-	pytest test
+	pytest tests
 
 test:
 	if ! command -v nosetests &>/dev/null; then python3 -m pip install --upgrade nose; fi
-	nosetests test
+	nosetests tests

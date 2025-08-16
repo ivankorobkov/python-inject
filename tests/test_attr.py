@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import inject
-from test import BaseTestInject
+from tests import BaseTestInject
 
 
 class TestInjectAttr(BaseTestInject):

@@ -101,14 +101,14 @@ warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true
 #strict = true  # TODO(pyctrl): improve typings and enable strict mode
-exclude = ["test", ".venv"]
+exclude = ["tests", ".venv"]
 
 [tool.pyright]
 defineConstant = { DEBUG = true }
 exclude = []
 executionEnvironments = []
 ignore = []
-include = ["src/inject", "test"]
+include = ["src/inject", "tests"]
 pythonPlatform = "Linux"
 pythonVersion = "3.11"
 reportMissingImports = true
@@ -183,7 +183,7 @@ known-first-party = ["inject"]
 [tool.pytest.ini_options]
 minversion = "8.4"
 addopts = "-vvv -ra --strict-markers --strict-config"
-testpaths = ["test"]
+testpaths = ["tests"]
 #filterwarnings = ["error"]  # TODO(pyctrl): handle all warnings later
 
 # Coverage configuration
