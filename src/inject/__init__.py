@@ -73,6 +73,8 @@ all other classes are runtime bindings::
     inject.configure(my_config)
 
 """
+from __future__ import annotations
+
 import contextlib
 
 from inject._version import __version__
@@ -84,7 +86,7 @@ import threading
 from functools import wraps
 from typing import (Any, Awaitable, Callable, Dict, Generic, Hashable,
                     Optional, Set, Type, TypeVar, Union, cast, get_type_hints,
-                    overload, no_type_check, Self)
+                    overload, no_type_check)
 
 _HAS_PEP604_SUPPORT = sys.version_info[:3] >= (3, 10, 0)  # PEP 604
 if _HAS_PEP604_SUPPORT:
@@ -214,8 +216,12 @@ class Injector(object):
         else:
             self._bindings = {}
 
+    # NOTE(pyctrl): only since 3.12
+    # @overload
+    # def get_instance(self, cls: Type[T]) -> T: ...
+
     @overload
-    def get_instance(self, cls: Type[T]) -> T: ...
+    def get_instance(self, cls: Binding) -> T: ...
 
     @overload
     def get_instance(self, cls: Hashable) -> Injectable: ...
@@ -521,11 +527,19 @@ def params(**args_to_classes: Binding) -> Callable:
     return _ParametersInjection(**args_to_classes)
 
 
-@overload
-def autoparams[T](fn: Callable[..., T]) -> Callable[..., T]: ...
+# NOTE(pyctrl): only since 3.12
+# @overload
+# def autoparams[T](fn: Callable[..., T]) -> Callable[..., T]: ...
 
 @overload
-def autoparams[C: Callable](*selected: str) -> Callable[[C], C]: ...
+def autoparams(fn: Callable) -> Callable: ...
+
+# NOTE(pyctrl): only since 3.12
+# @overload
+# def autoparams[C: Callable](*selected: str) -> Callable[[C], C]: ...
+
+@overload
+def autoparams(*selected: str) -> Callable: ...
 
 @no_type_check
 def autoparams(*selected: str):
