@@ -222,7 +222,7 @@ env_list = [
   "fmt-toml",
   #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
   "lint-toml",
-  #"lint-yaml",
+  "lint-yaml",
   "coverage",
 ]
 
@@ -235,7 +235,7 @@ lint = [
   #"lint-py",
   #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
   "lint-toml",
-  #"lint-yaml",
+  "lint-yaml",
   #"lint-git",
 ]
 
@@ -259,6 +259,20 @@ skip_install = true
 commands = [
   ["taplo", "lint", { replace = "posargs", extend = true }],
   ["taplo", "format", "--check", "--diff", { replace = "posargs", extend = true }],
+]
+
+[tool.tox.env.lint-yaml]
+description = "Lint YAML files"
+deps = ["yamllint"]
+skip_install = true
+commands = [
+  [
+    "yamllint",
+    "--strict",
+    { replace = "posargs", default = [
+      "{tox_root}",
+    ], extend = true },
+  ],
 ]
 
 [tool.tox.env.fmt-toml]

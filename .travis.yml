@@ -1,14 +1,15 @@
+---
 dist: xenial
 language: python
 matrix:
   include:
-    - python: '3.6'
-    - python: '3.7'
+    - python: "3.6"
+    - python: "3.7"
       env: TOXENV=py37
-    - python: '3.8'
+    - python: "3.8"
       env: TOXENV=py37
 install:
   - python -m pip install --upgrade --editable=./
-script: 
+script:
   - nosetests test $EXTRA_ARGS
   - if [ "$TOXENV" = "py37" ]; then nosetests test37; fi
