@@ -12,19 +12,20 @@ class TestInjectAttr(BaseTestInject):
         class MyClass:
             field = inject.attr(int)
             field2: int = inject.attr(int)
+            auto_typed_field: int = inject.attr()
 
         inject.configure(lambda binder: binder.bind(int, 123))
         my = MyClass()
         my_dc = MyDataClass()
-        value0 = my.field
-        value1 = my.field
-        value2 = my_dc.field
-        value3 = my_dc.field
 
-        assert value0 == 123
-        assert value1 == 123
-        assert value2 == 123
-        assert value3 == 123
+        assert my.field == 123
+        assert my.field == 123
+        assert my.field2 == 123
+        assert my.field2 == 123
+        assert my.auto_typed_field == 123
+        assert my.auto_typed_field == 123
+        assert my_dc.field == 123
+        assert my_dc.field == 123
 
     def test_invalid_attachment_to_dataclass(self):
         @dataclass
@@ -36,6 +37,7 @@ class TestInjectAttr(BaseTestInject):
 
     def test_class_attr(self):
         descriptor = inject.attr(int)
+        auto_descriptor = inject.attr()
 
         @dataclass
         class MyDataClass:
@@ -43,14 +45,16 @@ class TestInjectAttr(BaseTestInject):
 
         class MyClass(object):
             field = descriptor
+            field2: int = descriptor
+            auto_typed_field: int = auto_descriptor
 
         inject.configure(lambda binder: binder.bind(int, 123))
-        value0 = MyClass.field
-        value1 = MyClass.field
-        value2 = MyDataClass.field
-        value3 = MyDataClass.field
 
-        assert value0 is descriptor
-        assert value1 is descriptor
-        assert value2 is descriptor
-        assert value3 is descriptor
+        assert MyClass.field is descriptor
+        assert MyClass.field is descriptor
+        assert MyClass.field2 is descriptor
+        assert MyClass.field2 is descriptor
+        assert MyClass.auto_typed_field is auto_descriptor
+        assert MyClass.auto_typed_field is auto_descriptor
+        assert MyDataClass.field is descriptor
+        assert MyDataClass.field is descriptor
