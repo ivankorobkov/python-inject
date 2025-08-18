@@ -1,0 +1,70 @@
+---
+name: tests
+
+"on":
+  push:
+  pull_request:
+
+jobs:
+
+#  misc:
+#    name: "Linting configs and git"
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 12
+#
+#      - uses: docker://docker.io/tamasfe/taplo:latest
+#        name: "Lint TOMLs"
+#        with:
+#          args: fmt --check --diff
+#
+#      - uses: actions/setup-python@v5
+#      - name: "Install tox"
+#        run: |
+#          pip install tox
+#      - name: "Lint YAMLs"
+#        run: |
+#          tox -e lint-yaml
+#      - name: "Lint git"
+#        run: |
+#          tox -e lint-git
+
+#  lint:
+#    name: "Linting and type checking"
+#    runs-on: ubuntu-24.04
+#    strategy:
+#      fail-fast: true
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-python@v5
+#        with:
+#          python-version: "3.13"
+#      - name: "Install tox"
+#        run: |
+#          pip install tox
+#      - name: "Lint formatting"
+#        run: |
+#          tox -e lint-py
+#      - name: "Type checking"
+#        run: |
+#          tox -e lint-mypy
+
+  tests:
+    name: "Run unit tests"
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: "Installing tox"
+        run: pip install tox
+      - name: "Executing unit tests"
+        run: |
+          tox run -e ${{ matrix.python-version }}
