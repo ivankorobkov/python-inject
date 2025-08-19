@@ -11,6 +11,7 @@ class TestInjectAttr(BaseTestInject):
 
         class MyClass:
             field = inject.attr(int)
+            field2: int = inject.attr(int)
 
         inject.configure(lambda binder: binder.bind(int, 123))
         my = MyClass()
@@ -24,6 +25,14 @@ class TestInjectAttr(BaseTestInject):
         assert value1 == 123
         assert value2 == 123
         assert value3 == 123
+
+    def test_invalid_attachment_to_dataclass(self):
+        @dataclass
+        class MyDataClass:
+            # dataclasses treat this definition as regular descriptor
+            field: int = inject.attr(int)
+
+        self.assertRaises(AttributeError, MyDataClass)
 
     def test_class_attr(self):
         descriptor = inject.attr(int)

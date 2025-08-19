@@ -282,21 +282,48 @@ class _ConstructorBinding(Generic[T]):
         return self._instance
 
 
-class _AttributeInjection(Generic[T]):
+# NOTE(pyctrl): we MUST inherit `_AttributeInjection` from `property`
+#   0. (personal opinion, based on a bunch of cases including this one)
+#      dataclasses are mess
+#   1. dataclasses treat all non-`property` descriptors by the very specific logic
+#     https://docs.python.org/3/library/dataclasses.html#descriptor-typed-fields
+#   2. and treat `property` descriptors in a special way — like we used to know:
+#      ```
+#          @dataclass
+#          class MyDataclass:
+#              @property
+#              def my_prop(self) -> int:
+#                  return 42
+#          MyDataclass.my_prop    # gives '<property at 0x73055337f150>' on class
+#          MyDataclass().my_prop  # and on instance will show you '42'
+#      ```
+#      it behaves the same in the case of alternative notation:
+#      ```
+#          @dataclass
+#          class MyDataclass2:
+#              my_prop = property(fget=lambda _: 42)
+#          MyDataclass2.my_prop    # gives '<property at 0x73055337ec00>' on class
+#          MyDataclass2().my_prop  # and on instance will show you '42'
+#      ```
+#      which is more relevant to the `inject.attr` case
+#   3. but the behavior around `property`-ies has an exception
+#        - you can't annotate `property` attribute when using the second notation
+#          (this one `my_prop: int = property(fget=lambda _: 42)` will fail)
+#        - so the type hinting the very matters
+#        - in this case dataclasses don't treat class member as property
+#          (even if it's inherited from `property` or used directly)
+#        - dataclasses behave greedy when discover their attributes
+#          and class member annotations are "must have" markers
+#   4. so for `inject.attr`s case we should follow 2 rules:
+#        - `attr` implementation is inherited from `property`
+#        - `attr` class member is not annotated
+class _AttributeInjection(property):
     def __init__(self, cls: Type[T] | Hashable) -> None:
         self._cls = cls
-
-    @overload
-    def __get__(self, obj: None, owner: Any) -> Self: ...
-
-    @overload
-    def __get__(self, obj: Hashable, owner: Any) -> Injectable: ...
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self
-
-        return instance(self._cls)
+        super().__init__(
+            fget=lambda _: instance(self._cls),
+            doc="Return an attribute injection",
+        )
 
 
 class _ParameterInjection(Generic[T]):
