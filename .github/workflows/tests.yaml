@@ -32,22 +32,23 @@ jobs:
 #        run: |
 #          tox -e lint-git
 
-#  lint:
+  lint:
 #    name: "Linting and type checking"
-#    runs-on: ubuntu-24.04
+    name: "Linting"
+    runs-on: ubuntu-24.04
 #    strategy:
 #      fail-fast: true
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/setup-python@v5
-#        with:
-#          python-version: "3.13"
-#      - name: "Install tox"
-#        run: |
-#          pip install tox
-#      - name: "Lint formatting"
-#        run: |
-#          tox -e lint-py
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: "Install tox"
+        run: |
+          pip install tox
+      - name: "Lint formatting"
+        run: |
+          tox -e lint-py
 #      - name: "Type checking"
 #        run: |
 #          tox -e lint-mypy

@@ -12,16 +12,13 @@ class Destroyable:
         self.started = False
 
 
-class MockFile(Destroyable):
-    ...
+class MockFile(Destroyable): ...
 
 
-class MockConnection(Destroyable):
-    ...
+class MockConnection(Destroyable): ...
 
 
-class MockFoo(Destroyable):
-    ...
+class MockFoo(Destroyable): ...
 
 
 @contextlib.contextmanager
@@ -46,21 +43,20 @@ def get_foo_sync():
 
 
 @contextlib.asynccontextmanager
-async def get_file_async():
+async def get_file_async():  # noqa: RUF029
     obj = MockFile()
     yield obj
     obj.destroy()
 
 
 @contextlib.asynccontextmanager
-async def get_conn_async():
+async def get_conn_async():  # noqa: RUF029
     obj = MockConnection()
     yield obj
     obj.destroy()
 
 
 class TestContextManagerFunctional(BaseTestInject):
-
     def test_provider_as_context_manager_sync(self):
         def config(binder):
             binder.bind_to_provider(MockFile, get_file_sync)
@@ -93,7 +89,13 @@ class TestContextManagerFunctional(BaseTestInject):
         inject.configure(config)
 
         @inject.autoparams()
-        async def mock_func(conn: MockConnection, name: str, f: MockFile, number: int, foo: MockFoo):
+        async def mock_func(  # noqa: RUF029
+            conn: MockConnection,
+            name: str,
+            f: MockFile,
+            number: int,
+            foo: MockFoo,
+        ):
             assert f.started
             assert conn.started
             assert foo.started

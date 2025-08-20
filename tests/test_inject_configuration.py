@@ -1,5 +1,4 @@
 import inject
-from inject import InjectorException
 from tests import BaseTestInject
 
 
@@ -18,7 +17,11 @@ class TestInjectConfiguration(BaseTestInject):
     def test_configure__already_configured(self):
         inject.configure()
 
-        self.assertRaisesRegex(InjectorException, 'Injector is already configured', inject.configure)
+        self.assertRaisesRegex(
+            inject.InjectorException,
+            "Injector is already configured",
+            inject.configure,
+        )
 
     def test_configure_once__should_create_injector(self):
         injector = inject.configure_once()
@@ -46,11 +49,20 @@ class TestInjectConfiguration(BaseTestInject):
         assert injector1 is not injector0
 
     def test_get_injector_or_die(self):
-        self.assertRaisesRegex(InjectorException, 'No injector is configured', inject.get_injector_or_die)
+        self.assertRaisesRegex(
+            inject.InjectorException,
+            "No injector is configured",
+            inject.get_injector_or_die,
+        )
 
     def test_configure__runtime_binding_disabled(self):
         injector = inject.configure(bind_in_runtime=False)
-        self.assertRaisesRegex(InjectorException, "No binding was found for key=<.* 'int'>", injector.get_instance, int)
+        self.assertRaisesRegex(
+            inject.InjectorException,
+            "No binding was found for key=<.* 'int'>",
+            injector.get_instance,
+            int,
+        )
 
     def test_configure__install_allow_override(self):
         def base_config(binder):
