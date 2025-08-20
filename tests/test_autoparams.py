@@ -1,7 +1,7 @@
 import sys
 from typing import Optional
 
-from test import BaseTestInject
+from tests import BaseTestInject
 
 import inject
 

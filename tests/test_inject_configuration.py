@@ -1,6 +1,6 @@
 import inject
 from inject import InjectorException
-from test import BaseTestInject
+from tests import BaseTestInject
 
 
 class TestInjectConfiguration(BaseTestInject):

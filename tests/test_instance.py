@@ -1,5 +1,5 @@
 import inject
-from test import BaseTestInject
+from tests import BaseTestInject
 
 
 class TestInjectInstance(BaseTestInject):

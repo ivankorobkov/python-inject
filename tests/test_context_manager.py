@@ -1,7 +1,7 @@
 import contextlib
 
 import inject
-from test import BaseTestInject
+from tests import BaseTestInject
 
 
 class Destroyable:

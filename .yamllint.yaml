@@ -1,0 +1,18 @@
+---
+extends: default
+
+ignore:
+  - "**/.venv/*"
+  - "**/.tox/*"
+
+rules:
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  quoted-strings:
+    quote-type: double
+    required: false
+    check-keys: true
+  line-length:
+    max: 88
