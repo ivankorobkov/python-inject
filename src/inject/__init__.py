@@ -94,6 +94,7 @@ if _HAS_PEP604_SUPPORT:
 else:
     _HAS_PEP560_SUPPORT = sys.version_info[:3] >= (3, 7, 0)  # PEP 560
 _RETURN = 'return'
+_MISSING = object()
 
 if _HAS_PEP604_SUPPORT:
     from types import UnionType
@@ -325,6 +326,10 @@ class _AttributeInjection(property):
             doc="Return an attribute injection",
         )
 
+    def __set_name__(self, owner: Type[T], name: str) -> None:
+        if self._cls is _MISSING:
+            self._cls = _unwrap_cls_annotation(owner, name)
+
 
 class _ParameterInjection(Generic[T]):
     __slots__ = ('_name', '_cls')
@@ -523,12 +528,15 @@ def instance(cls: Binding) -> Injectable:
     return get_injector_or_die().get_instance(cls)
 
 @overload
+def attr() -> Injectable: ...
+
+@overload
 def attr(cls: Hashable) -> Injectable: ...
 
 @overload
 def attr(cls: Type[T]) -> T: ...
 
-def attr(cls):
+def attr(cls=_MISSING):
     """Return an attribute injection (descriptor)."""
     return _AttributeInjection(cls)
 
@@ -653,3 +661,14 @@ def _is_union_type(typ):
         return (typ is Union or
                 isinstance(typ, _GenericAlias) and typ.__origin__ is Union)
     return type(typ) is _Union
+
+
+def _unwrap_cls_annotation(cls: Type, attr_name: str):
+    types = get_type_hints(cls)
+    try:
+        attr_type = types[attr_name]
+    except KeyError:
+        msg = f"Couldn't find type annotation for {attr_name}"
+        raise InjectorException(msg)
+
+    return _unwrap_union_arg(attr_type)
