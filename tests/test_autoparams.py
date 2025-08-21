@@ -242,3 +242,19 @@ class TestInjectSelectedAutoparams(BaseTestInject):
 
         self.assertRaises(TypeError, test_func)
         self.assertRaises(TypeError, test_func, a=1, c=3)
+
+    def test_autoparams_on_cls(self):
+        @inject.autoparams
+        @inject.autoparams(method_name="method")
+        class MyClass:
+            def __init__(self, val: int):
+                self.val = val
+
+            def method(self, val: int):
+                return val
+
+        inject.configure(lambda binder: binder.bind(int, 123))
+        obj = MyClass()
+
+        assert obj.val == 123
+        assert obj.method() == 123
