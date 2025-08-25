@@ -1,13 +1,14 @@
-from dataclasses import dataclass
+import dataclasses
+
 import inject
 from tests import BaseTestInject
 
 
 class TestInjectAttr(BaseTestInject):
     def test_attr(self):
-        @dataclass
+        @dataclasses.dataclass
         class MyDataClass:
-            field = inject.attr(int)
+            field = inject.attr(int)  # noqa: RUF045
 
         class MyClass:
             field = inject.attr(int)
@@ -28,7 +29,7 @@ class TestInjectAttr(BaseTestInject):
         assert my_dc.field == 123
 
     def test_invalid_attachment_to_dataclass(self):
-        @dataclass
+        @dataclasses.dataclass
         class MyDataClass:
             # dataclasses treat this definition as regular descriptor
             field: int = inject.attr(int)
@@ -39,11 +40,11 @@ class TestInjectAttr(BaseTestInject):
         descriptor = inject.attr(int)
         auto_descriptor = inject.attr()
 
-        @dataclass
+        @dataclasses.dataclass
         class MyDataClass:
-            field = descriptor
+            field = descriptor  # noqa: RUF045
 
-        class MyClass(object):
+        class MyClass:
             field = descriptor
             field2: int = descriptor
             auto_typed_field: int = auto_descriptor

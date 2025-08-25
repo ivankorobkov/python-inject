@@ -1,7 +1,7 @@
+import dataclasses
 from unittest import TestCase
 
 import inject
-from inject import autoparams, ConstructorTypeError
 
 
 class TestFunctional(TestCase):
@@ -9,43 +9,38 @@ class TestFunctional(TestCase):
         inject.clear()
 
     def test(self):
-        class Config(object):
+        class Config:
             def __init__(self, greeting):
                 self.greeting = greeting
 
-        class Cache(object):
+        class Cache:
             config = inject.attr(Config)
 
             def load_greeting(self):
                 return self.config.greeting
 
-        class User(object):
+        class User:
             cache = inject.attr(Cache)
 
             def __init__(self, name):
                 self.name = name
 
             def greet(self):
-                return '%s, %s' % (self.cache.load_greeting(), self.name)
+                return f"{self.cache.load_greeting()}, {self.name}"
 
         def config(binder):
-            binder.bind(Config, Config('Hello'))
+            binder.bind(Config, Config("Hello"))
 
         inject.configure(config)
 
-        user = User('John Doe')
+        user = User("John Doe")
         greeting = user.greet()
-        assert greeting == 'Hello, John Doe'
+        assert greeting == "Hello, John Doe"
 
     def test_class_with_restricted_bool_casting(self):
-        class DataFrame(object):
-            def __nonzero__(self):
-                """Python 2"""
-                raise NotImplementedError('Casting to boolean is not allowed')
-
+        class DataFrame:
             def __bool__(self):
-                """Python 3"""
-                raise NotImplementedError('Casting to boolean is not allowed')
+                raise NotImplementedError("Casting to boolean is not allowed")
 
         def create_data_frame():
             return DataFrame()
@@ -63,13 +58,13 @@ class TestFunctional(TestCase):
         class AnotherClass:
             pass
 
+        @dataclasses.dataclass
         class SomeClass:
-            def __init__(self, another_object: AnotherClass):
-                self.another_object = another_object
+            another_object: AnotherClass
 
         def config(binder):
-            binder.bind_to_constructor(SomeClass, autoparams()(SomeClass))
-            binder.bind_to_constructor(AnotherClass, autoparams()(AnotherClass))
+            binder.bind_to_constructor(SomeClass, inject.autoparams()(SomeClass))
+            binder.bind_to_constructor(AnotherClass, inject.autoparams()(AnotherClass))
 
         inject.configure(config)
 
@@ -89,7 +84,7 @@ class TestFunctional(TestCase):
             return AnotherClass(missing_arg)
 
         def config(binder):
-            binder.bind_to_constructor(SomeClass, autoparams()(SomeClass))
+            binder.bind_to_constructor(SomeClass, inject.autoparams()(SomeClass))
             binder.bind_to_constructor(AnotherClass, create_some_class)
 
         inject.configure()
@@ -97,22 +92,22 @@ class TestFunctional(TestCase):
         # covers case when no constructor provided
         try:
             inject.instance(SomeClass)
-        except ConstructorTypeError as err:
-            assert 'SomeClass' in str(err)
-            assert 'missing_arg' in str(err)
+        except inject.ConstructorTypeError as err:
+            assert "SomeClass" in str(err)
+            assert "missing_arg" in str(err)
 
         inject.clear_and_configure(config)
 
         # covers case with provided constructor
         try:
             inject.instance(SomeClass)
-        except ConstructorTypeError as err:
-            assert 'SomeClass' in str(err)
-            assert 'missing_arg' in str(err)
+        except inject.ConstructorTypeError as err:
+            assert "SomeClass" in str(err)
+            assert "missing_arg" in str(err)
 
         try:
             inject.instance(AnotherClass)
         except TypeError as err:
-            assert not isinstance(err, ConstructorTypeError)
-            assert 'create_some_class' in str(err)
-            assert 'missing_arg' in str(err)
+            assert not isinstance(err, inject.ConstructorTypeError)
+            assert "create_some_class" in str(err)
+            assert "missing_arg" in str(err)
