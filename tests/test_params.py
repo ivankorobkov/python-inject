@@ -148,3 +148,19 @@ class TestInjectParams(BaseTestInject):
         assert self.run_async(test_func()) == 123
         assert self.run_async(test_func(321)) == 321
         assert self.run_async(test_func(val=42)) == 42
+
+    def test_params_on_cls(self):
+        @inject.params(val=int)
+        @inject.params("method", val=int)
+        class MyClass:
+            def __init__(self, val: int):
+                self.val = val
+
+            def method(self, val: int):
+                return val
+
+        inject.configure(lambda binder: binder.bind(int, 123))
+        obj = MyClass()
+
+        assert obj.val == 123
+        assert obj.method() == 123
