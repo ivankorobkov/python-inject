@@ -10,5 +10,10 @@ class BaseTestInject(TestCase):
         inject.clear()
 
     def run_async(self, awaitable: t.Awaitable):  # noqa: ANN201
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(awaitable)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            ret = loop.run_until_complete(awaitable)
+        finally:
+            loop.close()
+        return ret
