@@ -391,8 +391,8 @@ class _ParameterInjection(t.Generic[T]):
 class _ParametersInjection(t.Generic[T]):
     __slots__ = ("_params",)
 
-    def __init__(self, **kwargs: Binding) -> None:
-        self._params = kwargs
+    def __init__(self, *, parameters: dict[str, Binding]) -> None:
+        self._params = parameters
 
     @staticmethod
     def _aggregate_sync_stack(
@@ -431,7 +431,8 @@ class _ParametersInjection(t.Generic[T]):
         kwargs.update(executed_kwargs)
 
     def __call__(
-        self, func: t.Callable[..., t.Union[t.Awaitable[T], T]]
+        self,
+        func: t.Callable[..., t.Union[t.Awaitable[T], T]],
     ) -> t.Callable[..., t.Union[t.Awaitable[T], T]]:
         arg_names = inspect.getfullargspec(func).args
         params_to_provide = self._params
@@ -626,7 +627,11 @@ def param(name: str, cls: t.Optional[Binding] = None) -> t.Callable:
     return _ParameterInjection(name, cls)
 
 
-def params(**args_to_classes: Binding) -> t.Callable:
+def params(
+    method_name: t.Union[str, _MISSING] = _MISSING,
+    /,
+    **args_to_classes: Binding,
+) -> t.Callable:
     """
     Return a decorator which injects args into a function.
 
@@ -635,8 +640,30 @@ def params(**args_to_classes: Binding) -> t.Callable:
         @inject.params(cache=RedisCache, db=DbInterface)
         def sign_up(name, email, cache, db):
             pass
+
+    Raises:
+        ValueError: on invalid arguments
+
     """
-    return _ParametersInjection(**args_to_classes)
+    if not args_to_classes:
+        raise ValueError("Params kwargs can't be empty")
+
+    def params_decorator(cls_or_func: t.Callable[..., T]) -> t.Callable[..., T]:
+        fn, cls, m_name = _parse_cls_or_fn(cls_or_func, method_name)
+
+        wrapper: _ParametersInjection[T] = _ParametersInjection(
+            parameters=args_to_classes
+        )
+        wrapped = wrapper(fn)
+
+        if not cls:
+            return wrapped
+
+        setattr(cls_or_func, m_name, wrapped)
+        return cls_or_func
+
+    return params_decorator
+    # return _ParametersInjection(parameters=args_to_classes)
 
 
 # NOTE(pyctrl): only since 3.12
@@ -654,11 +681,14 @@ def autoparams(fn: t.Callable) -> t.Callable: ...
 
 
 @t.overload
-def autoparams(*selected: str) -> t.Callable: ...
+def autoparams(
+    *selected: str,
+    method_name: t.Union[str, _MISSING] = _MISSING,
+) -> t.Callable: ...
 
 
 @t.no_type_check
-def autoparams(*selected: str):
+def autoparams(*selected: str, method_name: t.Union[str, _MISSING] = _MISSING):
     """
     Return a decorator injecting args based on function type hints, only since 3.5.
 
@@ -679,24 +709,39 @@ def autoparams(*selected: str):
     """
     only_these: set[str] = set()
 
-    def autoparams_decorator(fn: t.Callable[..., T]) -> t.Callable[..., T]:
-        if inspect.isclass(fn):
-            types = t.get_type_hints(fn.__init__)
-        else:
-            types = t.get_type_hints(fn)
+    def autoparams_decorator(cls_or_func: t.Callable[..., T]) -> t.Callable[..., T]:
+        # nonlocal method_name
+        # is_class = inspect.isclass(cls_or_func)
+        # if is_class:
+        #     if method_name is _MISSING:
+        #         method_name = "__init__"
+        #     fn = getattr(cls_or_func, method_name)
+        # elif method_name is not _MISSING:
+        #     raise TypeError("You can't provide method name with function")
+        # else:
+        #     fn = cls_or_func
 
-        # Skip the return annotation.
-        types = {name: typ for name, typ in types.items() if name != _RETURN}
+        fn, cls, m_name = _parse_cls_or_fn(cls_or_func, method_name)
+        type_hints = t.get_type_hints(fn)
 
-        # Convert Union types into single types, i.e. Union[A, None] => A.
-        types = {name: _unwrap_union_arg(typ) for name, typ in types.items()}
+        allowlist = set(only_these or type_hints)
+        allowlist.discard(_RETURN)  # Skip the return annotation.
 
-        # Filter types if selected args present.
-        if only_these:
-            types = {name: typ for name, typ in types.items() if name in only_these}
+        parameters = {
+            # Convert Union types into single types, i.e. Union[A, None] => A.
+            name: _unwrap_union_arg(typ)
+            for name, typ in type_hints.items()
+            if name in allowlist
+        }
 
-        wrapper: _ParametersInjection[T] = _ParametersInjection(**types)
-        return wrapper(fn)
+        wrapper: _ParametersInjection[T] = _ParametersInjection(parameters=parameters)
+        wrapped = wrapper(fn)
+
+        if not cls:
+            return wrapped
+
+        setattr(cls_or_func, m_name, wrapped)
+        return cls_or_func
 
     target = selected[0] if selected else None
     if len(selected) == 1 and callable(target):
@@ -770,3 +815,20 @@ def _unwrap_cls_annotation(cls: type, attr_name: str) -> type:
         raise InjectorException(msg) from None
 
     return _unwrap_union_arg(attr_type)
+
+
+def _parse_cls_or_fn(
+    target: t.Callable,
+    method_name: t.Union[str, _MISSING],
+) -> tuple[t.Callable, t.Optional[type], t.Optional[str]]:
+    is_class = inspect.isclass(target)
+    if is_class:
+        if method_name is _MISSING:
+            method_name = "__init__"
+        fn = getattr(target, method_name)
+        return fn, target, method_name
+
+    if method_name is not _MISSING:
+        raise ValueError("Providing 'method_name' argument is forbidden for functions")
+
+    return target, None, None
