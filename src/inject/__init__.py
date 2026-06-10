@@ -112,7 +112,14 @@ _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 Injectable = t.Union[object, t.Any]
 T = t.TypeVar("T", bound=Injectable)
 Binding = t.Union[type[Injectable], t.Hashable]
-Constructor = t.Callable[[], Injectable]
+Constructor = t.Callable[
+    [],
+    t.Union[
+        Injectable,
+        contextlib.AbstractContextManager[Injectable],
+        contextlib.AbstractAsyncContextManager[Injectable],
+    ],
+]
 Provider = Constructor
 BinderCallable = t.Callable[["Binder"], t.Optional["Binder"]]
 
@@ -411,7 +418,7 @@ class _ParametersInjection(t.Generic[T]):
             param: sync_stack.enter_context(inst)
             for param, inst in kwargs.items()
             if param not in provided_params
-            and isinstance(inst, contextlib._GeneratorContextManager)  # noqa: SLF001
+            and isinstance(inst, contextlib.AbstractContextManager)
         }
         kwargs.update(executed_kwargs)
 
@@ -426,7 +433,7 @@ class _ParametersInjection(t.Generic[T]):
             param: await async_stack.enter_async_context(inst)
             for param, inst in kwargs.items()
             if param not in provided_params
-            and isinstance(inst, contextlib._AsyncGeneratorContextManager)  # noqa: SLF001
+            and isinstance(inst, contextlib.AbstractAsyncContextManager)
         }
         kwargs.update(executed_kwargs)
 
