@@ -1,6 +1,10 @@
 python-inject changes
 =====================
 
+### 5.4.0 (2026-07-16)
+- Fix `autoparams` type annotation, #134
+- Support all context managers, #133
+
 ### 5.3.0 (2025-06-20)
 - Handle autoparams usage without braces, #115.
 
@@ -82,7 +86,7 @@ python-inject changes
   (thanks [@scharf](https://github.com/scharf)).
 
 ### 3.2.0 (2014-08-04)
-- Added `inject.configure_once` and `inject.is_configured`, #11. 
+- Added `inject.configure_once` and `inject.is_configured`, #11.
 
 ### 3.1.1 (2014-03-14)
 - Switch from root logger to module logger, #8.
@@ -93,7 +97,7 @@ python-inject changes
 
 ### 3.0.0 (2014-02-10)
 - Smaller, better, faster version with simpler and cleaner API.
- 
+
 ### 2.0.0-alpha1 (2010-08-25)
 - Second version (never made it to stable).
 
