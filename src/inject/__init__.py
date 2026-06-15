@@ -102,6 +102,12 @@ elif _HAS_PEP560_SUPPORT:
 else:
     from typing import _Union  # noqa: ICN003, PLC2701
 
+if t.TYPE_CHECKING:
+    from typing_extensions import ParamSpec
+
+    P = ParamSpec("P")
+else:
+    P = object()
 
 logger = logging.getLogger("inject")
 
@@ -646,26 +652,15 @@ def params(**args_to_classes: Binding) -> t.Callable:
     return _ParametersInjection(**args_to_classes)
 
 
-# NOTE(pyctrl): only since 3.12
-# @t.overload
-# def autoparams[T](fn: t.Callable[..., T]) -> t.Callable[..., T]: ...
+@t.overload
+def autoparams(fn: t.Callable[P, T]) -> t.Callable[P, T]: ...
 
 
 @t.overload
-def autoparams(fn: t.Callable) -> t.Callable: ...
+def autoparams(*selected: str) -> t.Callable[[T], T]: ...
 
 
-# NOTE(pyctrl): only since 3.12
-# @t.overload
-# def autoparams[C: t.Callable](*selected: str) -> t.Callable[[C], C]:
-
-
-@t.overload
-def autoparams(*selected: str) -> t.Callable: ...
-
-
-@t.no_type_check
-def autoparams(*selected: str):
+def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
     """
     Return a decorator injecting args based on function type hints, only since 3.5.
 
