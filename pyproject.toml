@@ -97,7 +97,7 @@ defineConstant = { DEBUG = true }
 exclude = []
 executionEnvironments = []
 ignore = []
-include = ["src/inject", "tests"]
+include = ["src/inject", "tests", "typing_checks"]
 pythonPlatform = "Linux"
 pythonVersion = "3.11"
 reportMissingImports = true
@@ -275,6 +275,7 @@ env_list = [
   "fmt-py",
   "fmt-toml",
   "lint-py",
+  "lint-types",
   #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
   "lint-toml",
   "lint-yaml",
@@ -289,6 +290,7 @@ fmt = [
 ]
 lint = [
   "lint-py",
+  "lint-types",
   #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
   "lint-toml",
   "lint-yaml",
@@ -321,6 +323,18 @@ commands = [
     "check",
     { replace = "posargs", default = [
       "{tox_root}",
+    ], extend = true },
+  ],
+]
+
+[tool.tox.env.lint-types]
+description = "Type-check the public-API typing guards"
+deps = ["mypy"]
+commands = [
+  [
+    "mypy",
+    { replace = "posargs", default = [
+      "typing_checks",
     ], extend = true },
   ],
 ]

@@ -53,6 +53,21 @@ jobs:
 #        run: |
 #          tox -e lint-mypy
 
+  types:
+    name: "Type checking (public API)"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: "Install tox"
+        run: |
+          pip install tox
+      - name: "Type checking (public API)"
+        run: |
+          tox -e lint-types
+
   tests:
     name: "Run unit tests"
     runs-on: ubuntu-24.04
