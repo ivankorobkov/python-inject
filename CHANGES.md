@@ -1,6 +1,9 @@
 python-inject changes
 =====================
 
+### 5.5.0 (unreleased)
+- Drop Python 3.9 support (end of life). Minimum supported version is now 3.10.
+
 ### 5.4.1 (2026-07-27)
 - Fix static typing of inject.attr(Cls), #136
 
