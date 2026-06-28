@@ -221,6 +221,7 @@ env_list = [
   "py311",
   "py312",
   "py313",
+  "py314",
   "fmt-py",
   "fmt-toml",
   "lint-py",
