@@ -4,7 +4,7 @@ SHELL               :=	bash
 MAKEFLAGS           +=	--no-builtin-rules \
                         --warn-undefined-variables
 
-.PHONY: init dist upload clean pytest test
+.PHONY: init dist upload clean pytest
 
 init:
 	uv sync
@@ -23,6 +23,3 @@ clean:
 
 pytest:
 	uv run pytest tests
-
-test:
-	uv run --with nose nosetests tests
