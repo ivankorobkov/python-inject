@@ -10,14 +10,14 @@ Dependency injection the python way, the good way.
 * Transparently integrates into tests.
 * Autoparams leveraging type annotations.
 * Supports type hinting in Python 3.5+.
-* Supports Python 3.9+ (`v5.*`), 3.5-3.8 (`v4.*`) and Python 2.7–3.5 (`v3.*`).
 * Supports context managers.
 
 ## Python Support
 
 | Python  | Inject Version |
 |---------|----------------|
-| 3.9+    | 5.0+           |
+| 3.10+   | 5.5+           |
+| 3.9     | 5.0 - 5.4      |
 | 3.6-3.8 | 4.1+, < 5.0    |
 | 3.5     | 4.0            |
 | < 3.5   | 3.*            |

@@ -13,7 +13,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -22,7 +21,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = []
 
 [project.urls]
@@ -183,55 +182,6 @@ ban-relative-imports = "all"
 quote-style = "double"
 indent-style = "space"
 
-#ignore = [
-#  "B027",   # Allow non-abstract empty methods in abstract base classes
-#  "FBT003", # Allow boolean positional values in function calls, like `dict.get(... True)`
-#  # Ignore checks for possible passwords
-#  "S105",
-#  "S106",
-#  "S107",
-#  # Ignore complexity
-#  "C901",
-#  "PLR0911",
-#  "PLR0912",
-#  "PLR0913",
-#  "PLR0915",
-#  "PLC1901", # empty string comparisons
-#  "PLW2901", # `for` loop variable overwritten
-#  "SIM114",  # Combine `if` branches using logical `or` operator
-#]
-#select = [
-#  "A",
-#  "B",
-#  "C",
-#  "DTZ",
-#  "E",
-#  "EM",
-#  "F",
-#  "FBT",
-#  "I",
-#  "ICN",
-#  "ISC",
-#  "N",
-#  "PLC",
-#  "PLE",
-#  "PLR",
-#  "PLW",
-#  "Q",
-#  "RUF",
-#  "S",
-#  "SIM",
-#  "T",
-#  "TID",
-#  "UP",
-#  "W",
-#  "YTT",
-#]
-#unfixable = [
-#  "F401", # Don't touch unused imports
-#]
-
-
 ####  Pytest & Coverage  ####
 [tool.pytest.ini_options]
 minversion = "8.4"
@@ -267,11 +217,11 @@ runner = "uv-venv-lock-runner"
 skip_missing_interpreters = true
 
 env_list = [
-  "py39",
   "py310",
   "py311",
   "py312",
   "py313",
+  "py314",
   "fmt-py",
   "fmt-toml",
   "lint-py",
@@ -279,7 +229,6 @@ env_list = [
   #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
   "lint-toml",
   "lint-yaml",
-  #"lint-git",
   "coverage",
 ]
 
@@ -294,7 +243,6 @@ lint = [
   #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
   "lint-toml",
   "lint-yaml",
-  #"lint-git",
 ]
 
 # default env

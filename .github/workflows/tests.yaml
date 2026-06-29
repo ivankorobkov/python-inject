@@ -8,7 +8,6 @@ name: tests
 jobs:
 
   misc:
-#    name: "Linting configs and git"
     name: "Linting configs"
     runs-on: ubuntu-latest
     steps:
@@ -28,16 +27,10 @@ jobs:
       - name: "Lint YAMLs"
         run: |
           tox -e lint-yaml
-#      - name: "Lint git"
-#        run: |
-#          tox -e lint-git
 
   lint:
-#    name: "Linting and type checking"
     name: "Linting"
     runs-on: ubuntu-24.04
-#    strategy:
-#      fail-fast: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -49,7 +42,7 @@ jobs:
       - name: "Lint formatting"
         run: |
           tox -e lint-py
-#      - name: "Type checking"
+#      - name: "Type checking" TODO(trin94): revisit linter config and re-enable
 #        run: |
 #          tox -e lint-mypy
 
@@ -74,7 +67,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
