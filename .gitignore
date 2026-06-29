@@ -63,6 +63,10 @@ docs/_build/
 # pyenv virtualenv
 .python-version
 
+# uv
+.venv/
+.uv-cache/
+
 # Generated files
 _version.py
 _version.pyi

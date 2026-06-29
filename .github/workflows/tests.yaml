@@ -5,76 +5,81 @@ name: tests
   push:
   pull_request:
 
+env:
+  UV_PYTHON_DOWNLOADS: never
+  UV_LOCKED: "true"
+
 jobs:
 
   misc:
     name: "Linting configs"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: "Checkout"
+        uses: actions/checkout@v4
         with:
           fetch-depth: 12
-
-      - uses: docker://docker.io/tamasfe/taplo:latest
-        name: "Lint TOMLs"
+      - name: "Setup Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: "Setup uv"
+        uses: astral-sh/setup-uv@v7
+      - name: "Check uv.lock"
+        run: uv lock --check
+      - name: "Lint TOMLs"
+        uses: docker://docker.io/tamasfe/taplo:latest
         with:
           args: fmt --check --diff
-
-      - uses: actions/setup-python@v5
-      - name: "Install tox"
-        run: |
-          pip install tox
       - name: "Lint YAMLs"
-        run: |
-          tox -e lint-yaml
+        run: uv run tox -e lint-yaml
 
   lint:
     name: "Linting"
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: "Checkout"
+        uses: actions/checkout@v4
+      - name: "Setup Python"
+        uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-      - name: "Install tox"
-        run: |
-          pip install tox
+      - name: "Setup uv"
+        uses: astral-sh/setup-uv@v7
       - name: "Lint formatting"
-        run: |
-          tox -e lint-py
+        run: uv run tox -e lint-py
 #      - name: "Type checking" TODO(trin94): revisit linter config and re-enable
-#        run: |
-#          tox -e lint-mypy
+#        run: uv run tox -e lint-mypy
 
   types:
     name: "Type checking (public API)"
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: "Checkout"
+        uses: actions/checkout@v4
+      - name: "Setup Python"
+        uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-      - name: "Install tox"
-        run: |
-          pip install tox
+      - name: "Setup uv"
+        uses: astral-sh/setup-uv@v7
       - name: "Type checking (public API)"
-        run: |
-          tox -e lint-types
+        run: uv run tox -e lint-types
 
   tests:
     name: "Run unit tests"
     runs-on: ubuntu-24.04
     strategy:
-      fail-fast: true
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: "Checkout"
+        uses: actions/checkout@v4
+      - name: "Setup Python"
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: "Installing tox"
-        run: pip install tox
-      - name: "Executing unit tests"
-        run: |
-          tox run -e ${{ matrix.python-version }}
+      - name: "Setup uv"
+        uses: astral-sh/setup-uv@v7
+      - name: "Run tests"
+        run: uv run tox -e ${{ matrix.python-version }}

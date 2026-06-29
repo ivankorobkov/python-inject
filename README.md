@@ -319,6 +319,9 @@ def foo(user):
 ## License
 Apache License 2.0
 
+## Development
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) and `make` for development. Install both, then run `make init` to get started.
+
 ## Contributors
 * Ivan Korobkov [@ivankorobkov](https://github.com/ivankorobkov)
 * Jaime Wyant [@jaimewyant](https://github.com/jaimewyant)

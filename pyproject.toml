@@ -37,6 +37,8 @@ dev = [
   "mypy>=2.1.0",
   "yamllint>=1.38.0",
   "typing-extensions>=4.15.0",
+  "tox>=4.56.1",
+  "tox-uv>=1.35.2",
   { include-group = "tests" },
 ]
 
@@ -44,6 +46,9 @@ tests = [
   "pytest>=9.1.1",
   "pytest-cov>=7.1.0",
 ]
+
+[tool.uv]
+required-version = ">=0.11"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
