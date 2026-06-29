@@ -1,4 +1,4 @@
-# python-inject [![Build Status](https://travis-ci.org/ivankorobkov/python-inject.svg?branch=master)](https://travis-ci.org/ivankorobkov/python-inject)
+# python-inject [![Build Status](https://github.com/ivankorobkov/python-inject/actions/workflows/tests.yaml/badge.svg?branch=master)](https://github.com/ivankorobkov/python-inject/actions/workflows/tests.yaml)
 Dependency injection the python way, the good way.
 
 ## Key features
