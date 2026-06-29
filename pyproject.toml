@@ -32,7 +32,6 @@ issues = "https://github.com/ivankorobkov/python-inject/issues"
 
 [dependency-groups]
 dev = [
-  "ipython>=8.39.0",
   "typing-extensions>=4.15.0",
   { include-group = "tox" },
   { include-group = "ruff" },
