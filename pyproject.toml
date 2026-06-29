@@ -262,7 +262,6 @@ commands = [["pytest", { replace = "posargs", extend = true }]]
 [tool.tox.env.lint-py]
 description = "Lint python files"
 dependency_groups = ["ruff"]
-skip_install = true
 commands = [
   [
     "ruff",
@@ -310,7 +309,6 @@ commands = [
 [tool.tox.env.lint-yaml]
 description = "Lint YAML files"
 dependency_groups = ["yamllint"]
-skip_install = true
 commands = [
   [
     "yamllint",
@@ -324,7 +322,6 @@ commands = [
 [tool.tox.env.fmt-py]
 description = "Format python files"
 dependency_groups = ["ruff"]
-skip_install = true
 commands = [
   [
     "ruff",

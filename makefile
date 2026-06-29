@@ -16,10 +16,12 @@ upload:
 	uv publish
 
 clean:
-	rm -rf ./build/*
 	rm -rf ./dist/*
 	rm -rf ./.mypy_cache
 	rm -rf ./.pytest_cache
+	rm -rf ./.ruff_cache
+	rm -rf ./.tox
+	rm -rf ./.uv-cache
 
 pytest:
 	uv run pytest tests
