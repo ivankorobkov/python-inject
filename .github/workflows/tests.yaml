@@ -28,7 +28,7 @@ jobs:
       - name: "Check uv.lock"
         run: uv lock --check
       - name: "Lint TOMLs"
-        uses: docker://docker.io/tamasfe/taplo:latest
+        uses: docker://docker.io/tamasfe/taplo:0.10.0
         with:
           args: fmt --check --diff
       - name: "Lint YAMLs"
@@ -70,6 +70,7 @@ jobs:
     name: "Run unit tests"
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
@@ -82,4 +83,6 @@ jobs:
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v7
       - name: "Run tests"
-        run: uv run tox -e ${{ matrix.python-version }}
+        run: >-
+          uv run tox -e ${{ matrix.python-version }}
+          --skip-missing-interpreters false
