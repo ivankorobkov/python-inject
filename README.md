@@ -1,4 +1,4 @@
-# python-inject [![Build Status](https://travis-ci.org/ivankorobkov/python-inject.svg?branch=master)](https://travis-ci.org/ivankorobkov/python-inject)
+# python-inject [![Build Status](https://github.com/ivankorobkov/python-inject/actions/workflows/tests.yaml/badge.svg?branch=master)](https://github.com/ivankorobkov/python-inject/actions/workflows/tests.yaml)
 Dependency injection the python way, the good way.
 
 ## Key features
@@ -318,6 +318,9 @@ def foo(user):
 
 ## License
 Apache License 2.0
+
+## Development
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) and `make` for development. Install both, then run `make init` to get started.
 
 ## Contributors
 * Ivan Korobkov [@ivankorobkov](https://github.com/ivankorobkov)

@@ -36,7 +36,6 @@ pip-delete-this-directory.txt
 .tox/
 .coverage
 .cache
-nosetests.xml
 coverage.xml
 
 # Translations
@@ -62,6 +61,10 @@ docs/_build/
 
 # pyenv virtualenv
 .python-version
+
+# uv
+.venv/
+.uv-cache/
 
 # Generated files
 _version.py

@@ -32,19 +32,26 @@ issues = "https://github.com/ivankorobkov/python-inject/issues"
 
 [dependency-groups]
 dev = [
-  "ipython",
-  "ruff",
-  "mypy",
-  "yamllint",
-  "typing-extensions",
+  "typing-extensions>=4.15.0",
+  { include-group = "tox" },
+  { include-group = "ruff" },
+  { include-group = "mypy" },
+  { include-group = "yamllint" },
   { include-group = "tests" },
 ]
 
+tox = ["tox>=4.56.1", "tox-uv>=1.35.2"]
+ruff = ["ruff>=0.15.20"]
+mypy = ["mypy>=2.1.0"]
+yamllint = ["yamllint>=1.38.0"]
+
 tests = [
-  "pytest",
-  "pytest-cov",
+  "pytest>=9.1.1",
+  "pytest-cov>=7.1.0",
 ]
 
+[tool.uv]
+required-version = ">=0.11"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -212,8 +219,6 @@ exclude_also = [
 
 # Tox config
 [tool.tox]
-requires = ["tox>=4.23", "tox-uv>=1.13"]
-runner = "uv-venv-lock-runner"
 skip_missing_interpreters = true
 
 env_list = [
@@ -247,6 +252,7 @@ lint = [
 
 # default env
 [tool.tox.env_run_base]
+runner = "uv-venv-lock-runner"
 description = "Run unit tests with coverage report ({env_name})"
 use_develop = true
 dependency_groups = ["tests"]
@@ -255,8 +261,7 @@ commands = [["pytest", { replace = "posargs", extend = true }]]
 # tox envs
 [tool.tox.env.lint-py]
 description = "Lint python files"
-deps = ["ruff"]
-skip_install = true
+dependency_groups = ["ruff"]
 commands = [
   [
     "ruff",
@@ -277,7 +282,7 @@ commands = [
 
 [tool.tox.env.lint-types]
 description = "Type-check the public-API typing guards"
-deps = ["mypy"]
+dependency_groups = ["mypy"]
 commands = [
   [
     "mypy",
@@ -289,7 +294,7 @@ commands = [
 
 [tool.tox.env.lint-mypy]
 description = "Type checking"
-deps = ["mypy"]
+dependency_groups = ["mypy"]
 commands = [["mypy", { replace = "posargs", default = ["{tox_root}"], extend = true }]]
 
 [tool.tox.env.lint-toml]
@@ -303,8 +308,7 @@ commands = [
 
 [tool.tox.env.lint-yaml]
 description = "Lint YAML files"
-deps = ["yamllint"]
-skip_install = true
+dependency_groups = ["yamllint"]
 commands = [
   [
     "yamllint",
@@ -317,8 +321,7 @@ commands = [
 
 [tool.tox.env.fmt-py]
 description = "Format python files"
-deps = ["ruff"]
-skip_install = true
+dependency_groups = ["ruff"]
 commands = [
   [
     "ruff",
