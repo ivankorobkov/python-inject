@@ -25,14 +25,14 @@ jobs:
           python-version: "3.14"
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
+      - name: "Setup just"
+        uses: extractions/setup-just@v4
       - name: "Check uv.lock"
-        run: uv lock --check
+        run: just lock-check
       - name: "Lint TOMLs"
-        uses: docker://docker.io/tamasfe/taplo:0.10.0
-        with:
-          args: fmt --check --diff
+        run: just lint-toml
       - name: "Lint YAMLs"
-        run: uv run tox -e lint-yaml
+        run: just lint-yaml
 
   lint:
     name: "Linting"
@@ -46,10 +46,10 @@ jobs:
           python-version: "3.14"
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
+      - name: "Setup just"
+        uses: extractions/setup-just@v4
       - name: "Lint formatting"
-        run: uv run tox -e lint-py
-#      - name: "Type checking" TODO(trin94): revisit linter config and re-enable
-#        run: uv run tox -e lint-mypy
+        run: just lint
 
   types:
     name: "Type checking (public API)"
@@ -63,8 +63,12 @@ jobs:
           python-version: "3.14"
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
+      - name: "Setup just"
+        uses: extractions/setup-just@v4
       - name: "Type checking (public API)"
-        run: uv run tox -e lint-types
+        run: just public-typing
+#      - name: "Type checking (full)" TODO: re-enable once green
+#        run: just typing
 
   tests:
     name: "Run unit tests"
@@ -82,7 +86,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
+      - name: "Setup just"
+        uses: extractions/setup-just@v4
       - name: "Run tests"
-        run: >-
-          uv run tox -e ${{ matrix.python-version }}
-          --skip-missing-interpreters false
+        run: just test ${{ matrix.python-version }}
