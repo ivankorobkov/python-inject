@@ -282,7 +282,7 @@ class Injector:
             if not callable(cls):
                 msg = (
                     "Cannot create a runtime binding, the key is not callable,"
-                    f" key={cls}",
+                    f" key={cls}"
                 )
                 raise InjectorException(msg)
 
@@ -717,11 +717,11 @@ def get_injector_or_die() -> Injector:
     """
     Return the current injector or raise an InjectorException.
 
-    Raises:
-        InjectorException: If injector is not configured.
-
     Returns:
       Configured injector.
+
+    Raises:
+        InjectorException: If injector is not configured.
 
     """
     injector = _INJECTOR

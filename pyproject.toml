@@ -33,14 +33,12 @@ issues = "https://github.com/ivankorobkov/python-inject/issues"
 [dependency-groups]
 dev = [
   "typing-extensions>=4.15.0",
-  { include-group = "tox" },
   { include-group = "ruff" },
   { include-group = "mypy" },
   { include-group = "yamllint" },
   { include-group = "tests" },
 ]
 
-tox = ["tox>=4.56.1", "tox-uv>=1.35.2"]
 ruff = ["ruff>=0.15.20"]
 mypy = ["mypy>=2.1.0"]
 yamllint = ["yamllint>=1.38.0"]
@@ -88,7 +86,7 @@ disallow_untyped_decorators = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
 no_implicit_optional = true
-python_version = "3.11"
+python_version = "3.10"
 warn_redundant_casts = true
 warn_return_any = true
 warn_unused_configs = true
@@ -118,11 +116,12 @@ extend-exclude = [".git", ".venv", "docs"]
 preview = true
 extend-select = ["ALL"]
 extend-ignore = [
-  "D10",   # missing documentation
-  "D203",  # 1 of conflicting code-styles
-  "D212",  # 1 of conflicting code-styles
-  "C408",  # allow `dict()` instead of literal
-  "TD003", # don't require issue link
+  "D10",    # missing documentation
+  "D203",   # 1 of conflicting code-styles
+  "D212",   # 1 of conflicting code-styles
+  "C408",   # allow `dict()` instead of literal
+  "TD003",  # don't require issue link
+  "RUF067", # __init__ modules intentionally contain code
   # Completely disable
   "FIX",
   "CPY",
@@ -202,7 +201,7 @@ branch = true
 [tool.coverage.report]
 include_namespace_packages = true
 # Regexes for lines to exclude from consideration
-omit = ["*/.venv/*", "*/.tox/*", "*/.uv-cache/*"]
+omit = ["*/.venv/*", "*/.uv-cache/*"]
 exclude_also = [
   # Don't complain if tests don't hit defensive assertion code:
   "raise NotImplementedError",
@@ -214,145 +213,4 @@ exclude_also = [
   "@(abc\\.)?abstractmethod",
 
   "if TYPE_CHECKING:",
-]
-
-
-# Tox config
-[tool.tox]
-skip_missing_interpreters = true
-
-env_list = [
-  "py310",
-  "py311",
-  "py312",
-  "py313",
-  "py314",
-  "fmt-py",
-  "fmt-toml",
-  "lint-py",
-  "lint-types",
-  #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
-  "lint-toml",
-  "lint-yaml",
-  "coverage",
-]
-
-[tool.tox.labels]
-fmt = [
-  "fmt-py",
-  "fmt-toml",
-]
-lint = [
-  "lint-py",
-  "lint-types",
-  #"lint-mypy",  # TODO(pyctrl): make it green & uncomment
-  "lint-toml",
-  "lint-yaml",
-]
-
-# default env
-[tool.tox.env_run_base]
-runner = "uv-venv-lock-runner"
-description = "Run unit tests with coverage report ({env_name})"
-use_develop = true
-dependency_groups = ["tests"]
-commands = [["pytest", { replace = "posargs", extend = true }]]
-
-# tox envs
-[tool.tox.env.lint-py]
-description = "Lint python files"
-dependency_groups = ["ruff"]
-commands = [
-  [
-    "ruff",
-    "format",
-    "--diff",
-    { replace = "posargs", default = [
-      "{tox_root}",
-    ], extend = true },
-  ],
-  [
-    "ruff",
-    "check",
-    { replace = "posargs", default = [
-      "{tox_root}",
-    ], extend = true },
-  ],
-]
-
-[tool.tox.env.lint-types]
-description = "Type-check the public-API typing guards"
-dependency_groups = ["mypy"]
-commands = [
-  [
-    "mypy",
-    { replace = "posargs", default = [
-      "typing_checks",
-    ], extend = true },
-  ],
-]
-
-[tool.tox.env.lint-mypy]
-description = "Type checking"
-dependency_groups = ["mypy"]
-commands = [["mypy", { replace = "posargs", default = ["{tox_root}"], extend = true }]]
-
-[tool.tox.env.lint-toml]
-description = "Lint TOML files"
-allowlist_externals = ["taplo"]
-skip_install = true
-commands = [
-  ["taplo", "lint", { replace = "posargs", extend = true }],
-  ["taplo", "format", "--check", "--diff", { replace = "posargs", extend = true }],
-]
-
-[tool.tox.env.lint-yaml]
-description = "Lint YAML files"
-dependency_groups = ["yamllint"]
-commands = [
-  [
-    "yamllint",
-    "--strict",
-    { replace = "posargs", default = [
-      "{tox_root}",
-    ], extend = true },
-  ],
-]
-
-[tool.tox.env.fmt-py]
-description = "Format python files"
-dependency_groups = ["ruff"]
-commands = [
-  [
-    "ruff",
-    "format",
-    { replace = "posargs", default = ["{tox_root}"], extend = true },
-  ],
-  [
-    "ruff",
-    "check",
-    "--fix",
-    "--show-fixes",
-    { replace = "posargs", default = ["{tox_root}"], extend = true },
-  ],
-]
-
-[tool.tox.env.fmt-toml]
-description = "Format TOML files"
-allowlist_externals = ["taplo"]
-skip_install = true
-commands = [["taplo", "format", { replace = "posargs", extend = true }]]
-
-[tool.tox.env.coverage]
-description = "run coverage"
-use_develop = true
-dependency_groups = ["tests"]
-commands = [
-  [
-    "pytest",
-    "--cov=.",
-    "--cov-branch",
-    "--cov-report=term-missing:skip-covered",
-    { replace = "posargs", default = ["--cov-report=xml:coverage.xml"], extend = true },
-  ],
 ]
