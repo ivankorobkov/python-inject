@@ -116,11 +116,12 @@ extend-exclude = [".git", ".venv", "docs"]
 preview = true
 extend-select = ["ALL"]
 extend-ignore = [
-  "D10",   # missing documentation
-  "D203",  # 1 of conflicting code-styles
-  "D212",  # 1 of conflicting code-styles
-  "C408",  # allow `dict()` instead of literal
-  "TD003", # don't require issue link
+  "D10",    # missing documentation
+  "D203",   # 1 of conflicting code-styles
+  "D212",   # 1 of conflicting code-styles
+  "C408",   # allow `dict()` instead of literal
+  "TD003",  # don't require issue link
+  "RUF067", # __init__ modules intentionally contain code
   # Completely disable
   "FIX",
   "CPY",
