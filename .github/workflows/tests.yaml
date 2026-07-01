@@ -51,7 +51,24 @@ jobs:
       - name: "Lint formatting"
         run: just lint
 
-  types:
+  typing:
+    name: "Type checking (library code)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v7
+      - name: "Setup Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: "Setup uv"
+        uses: astral-sh/setup-uv@v8.2.0
+      - name: "Setup just"
+        uses: extractions/setup-just@v4
+      - name: "Type checking (library code)"
+        run: just typing
+
+  public-typing:
     name: "Type checking (public API)"
     runs-on: ubuntu-latest
     steps:
@@ -66,9 +83,7 @@ jobs:
       - name: "Setup just"
         uses: extractions/setup-just@v4
       - name: "Type checking (public API)"
-        run: just public-typing
-#      - name: "Type checking (full)" TODO: re-enable once green
-#        run: just typing
+        run: just public-typing-all
 
   tests:
     name: "Run unit tests"
