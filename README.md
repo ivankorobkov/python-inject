@@ -320,7 +320,16 @@ def foo(user):
 Apache License 2.0
 
 ## Development
-We use [uv](https://docs.astral.sh/uv/getting-started/installation/) and `make` for development. Install both, then run `make init` to get started.
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) and
+[just](https://github.com/casey/just#installation) for development. Install both,
+then run `just init` to set up the environment.
+
+Useful recipes:
+
+* `just` lists all recipes
+* `just dev` formats, lints, and tests on the default interpreter (the fast loop)
+* `just test 3.12` runs the tests against a specific Python version
+* `just check` runs the full gate before pushing
 
 ## Contributors
 * Ivan Korobkov [@ivankorobkov](https://github.com/ivankorobkov)

@@ -24,36 +24,46 @@ class MockFoo(Destroyable): ...
 @contextlib.contextmanager
 def get_file_sync():
     obj = MockFile()
-    yield obj
-    obj.destroy()
+    try:
+        yield obj
+    finally:
+        obj.destroy()
 
 
 @contextlib.contextmanager
 def get_conn_sync():
     obj = MockConnection()
-    yield obj
-    obj.destroy()
+    try:
+        yield obj
+    finally:
+        obj.destroy()
 
 
 @contextlib.contextmanager
 def get_foo_sync():
     obj = MockFoo()
-    yield obj
-    obj.destroy()
+    try:
+        yield obj
+    finally:
+        obj.destroy()
 
 
 @contextlib.asynccontextmanager
-async def get_file_async():  # noqa: RUF029
+async def get_file_async():
     obj = MockFile()
-    yield obj
-    obj.destroy()
+    try:
+        yield obj
+    finally:
+        obj.destroy()
 
 
 @contextlib.asynccontextmanager
-async def get_conn_async():  # noqa: RUF029
+async def get_conn_async():
     obj = MockConnection()
-    yield obj
-    obj.destroy()
+    try:
+        yield obj
+    finally:
+        obj.destroy()
 
 
 class TestContextManagerFunctional(BaseTestInject):
