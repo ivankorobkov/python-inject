@@ -710,7 +710,8 @@ def _unwrap_union_arg(typ: type) -> type:
     """Return the first type A in typing.Union[A, B] or typ if not Union."""
     if not _is_union_type(typ):
         return typ
-    return typ.__args__[0]
+    args: tuple[type, ...] = t.get_args(typ)
+    return args[0]
 
 
 def _is_union_type(typ: type) -> bool:
