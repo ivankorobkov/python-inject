@@ -626,14 +626,14 @@ def params(**args_to_classes: Binding) -> _InjectionDecorator:
 
 
 @t.overload
-def autoparams(fn: t.Callable[P, T]) -> t.Callable[P, T]: ...
+def autoparams(fn: t.Callable[P, T], /) -> t.Callable[P, T]: ...
 
 
 @t.overload
 def autoparams(*selected: str) -> t.Callable[[T], T]: ...
 
 
-def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
+def autoparams(*selected: t.Callable[..., t.Any] | str) -> t.Callable[..., t.Any]:
     """
     Return a decorator injecting args based on function type hints.
 
@@ -654,7 +654,9 @@ def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
     """
     only_these: set[str] = set()
 
-    def autoparams_decorator(fn: t.Callable[..., T]) -> t.Callable[..., T]:
+    def autoparams_decorator(
+        fn: t.Callable[..., T],
+    ) -> t.Callable[..., t.Awaitable[T] | T]:
         if inspect.isclass(fn):
             types = t.get_type_hints(fn.__init__)
         else:
@@ -677,7 +679,7 @@ def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
     if len(selected) == 1 and callable(target):
         return autoparams_decorator(target)
 
-    only_these.update(selected)
+    only_these.update(s for s in selected if isinstance(s, str))
     return autoparams_decorator
 
 
