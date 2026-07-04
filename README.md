@@ -272,7 +272,7 @@ import inject
 
 inject.configure(lambda binder: \
     binder.bind('host', 'localhost') \
-    binder.bind('port', 1234))
+          .bind('port', 1234))
 ```
 
 ## Why no scopes?
