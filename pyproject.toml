@@ -147,11 +147,6 @@ extend-ignore = [
   "ISC002",
   "N818",   # Exception name should be named with an Error suffix
   "TRY003",
-  "UP006",
-  "UP007",
-  "UP035",
-  "UP045",
-  "FA100",
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
