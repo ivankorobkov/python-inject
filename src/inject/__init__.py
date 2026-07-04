@@ -223,12 +223,8 @@ class Injector:
         else:
             self._bindings = {}
 
-    # NOTE(pyctrl): only since 3.12
-    # @t.overload
-    # def get_instance(self, cls: type[T]) -> T: ...
-
     @t.overload
-    def get_instance(self, cls: Binding) -> T: ...
+    def get_instance(self, cls: type[T]) -> T: ...
 
     @t.overload
     def get_instance(self, cls: t.Hashable) -> Injectable: ...
