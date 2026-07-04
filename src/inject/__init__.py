@@ -80,27 +80,15 @@ import contextlib
 import functools
 import inspect
 import logging
-import sys
 import threading
 import typing as t
+from types import UnionType
+from typing import _GenericAlias  # noqa: ICN003, PLC2701
 
 from inject._version import __version__ as __version__
 
-# PEP 604
-_HAS_PEP604_SUPPORT = sys.version_info[:3] >= (3, 10, 0)
-# PEP 560
-_HAS_PEP560_SUPPORT = _HAS_PEP604_SUPPORT or sys.version_info[:3] >= (3, 7, 0)
-
 _RETURN = "return"
 _MISSING = object()
-
-if _HAS_PEP604_SUPPORT:
-    from types import UnionType
-    from typing import _GenericAlias  # noqa: ICN003
-elif _HAS_PEP560_SUPPORT:
-    from typing import _GenericAlias  # noqa: ICN003, PLC2701
-else:
-    from typing import _Union  # noqa: ICN003, PLC2701
 
 if t.TYPE_CHECKING:
     from typing_extensions import ParamSpec
@@ -206,7 +194,7 @@ class Binder:
         if not self.allow_override and cls in self._bindings:
             raise InjectorException(f"Duplicate binding, key={cls}")
 
-        if self._is_forward_str(cls):
+        if isinstance(cls, str):
             ref = t.ForwardRef(cls)
             if not self.allow_override and ref in self._bindings:
                 msg = f'Duplicate forward binding, i.e. "int" and int, key={cls}'
@@ -214,18 +202,12 @@ class Binder:
 
     def _maybe_bind_forward(self, cls: Binding, binding: t.Any) -> None:  # noqa: ANN401
         """Bind a string forward reference."""
-        if not _HAS_PEP560_SUPPORT:
-            return
         if not isinstance(cls, str):
             return
 
         ref = t.ForwardRef(cls)
         self._bindings[ref] = binding
         logger.debug('Bound forward ref "%s"', cls)
-
-    @staticmethod
-    def _is_forward_str(kls: Binding) -> bool:
-        return _HAS_PEP560_SUPPORT and isinstance(kls, str)
 
 
 class Injector:
@@ -662,7 +644,7 @@ def autoparams(*selected: str) -> t.Callable[[T], T]: ...
 
 def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
     """
-    Return a decorator injecting args based on function type hints, only since 3.5.
+    Return a decorator injecting args based on function type hints.
 
     For example::
 
@@ -750,17 +732,11 @@ def _is_union_type(typ: type) -> bool:
 
     Source: https://github.com/ilevkivskyi/typing_inspect/blob/master/typing_inspect.py
     """
-    if _HAS_PEP604_SUPPORT:
-        return (
-            typ is t.Union
-            or isinstance(typ, UnionType)
-            or (isinstance(typ, _GenericAlias) and typ.__origin__ is t.Union)
-        )
-    if _HAS_PEP560_SUPPORT:
-        return typ is t.Union or (
-            isinstance(typ, _GenericAlias) and typ.__origin__ is t.Union
-        )
-    return type(typ) is _Union
+    return (
+        typ is t.Union
+        or isinstance(typ, UnionType)
+        or (isinstance(typ, _GenericAlias) and typ.__origin__ is t.Union)
+    )
 
 
 def _unwrap_cls_annotation(cls: type, attr_name: str) -> type:
