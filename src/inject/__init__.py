@@ -89,13 +89,6 @@ from inject._version import __version__ as __version__
 _RETURN = "return"
 _MISSING = object()
 
-if t.TYPE_CHECKING:
-    from typing_extensions import ParamSpec
-
-    P = ParamSpec("P")
-else:
-    P = object()
-
 logger = logging.getLogger("inject")
 
 _INJECTOR = None  # Shared injector instance.
@@ -104,6 +97,7 @@ _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
 Injectable = t.Union[object, t.Any]
 T = t.TypeVar("T", bound=Injectable)
+P = t.ParamSpec("P")
 Binding = t.Union[type[Injectable], t.Hashable]
 Constructor = t.Callable[
     [],
