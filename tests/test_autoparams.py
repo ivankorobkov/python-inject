@@ -1,4 +1,3 @@
-import sys
 import typing as t
 
 import inject
@@ -226,11 +225,8 @@ class TestInjectSelectedAutoparams(BaseTestInject):
         self.assertRaises(TypeError, test_func, a=1, c=3)
 
     def test_autoparams_only_selected_with_optional_pep604_union(self):
-        if not sys.version_info[:3] >= (3, 10, 0):
-            return
-
         @inject.autoparams("a", "c")
-        def test_func(a: A, b: B, *, c: t.Optional[C] = None):
+        def test_func(a: A, b: B, *, c: C | None = None):
             return a, b, c
 
         def config(binder):
