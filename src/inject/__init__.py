@@ -83,7 +83,6 @@ import logging
 import threading
 import typing as t
 from types import UnionType
-from typing import _GenericAlias  # noqa: ICN003, PLC2701
 
 from inject._version import __version__ as __version__
 
@@ -729,14 +728,8 @@ def _is_union_type(typ: type) -> bool:
         is_union_type(Union) == True
         is_union_type(Union[int, int]) == False
         is_union_type(Union[T, int]) == True
-
-    Source: https://github.com/ilevkivskyi/typing_inspect/blob/master/typing_inspect.py
     """
-    return (
-        typ is t.Union
-        or isinstance(typ, UnionType)
-        or (isinstance(typ, _GenericAlias) and typ.__origin__ is t.Union)
-    )
+    return typ is t.Union or isinstance(typ, UnionType) or t.get_origin(typ) is t.Union
 
 
 def _unwrap_cls_annotation(cls: type, attr_name: str) -> type:
