@@ -11,7 +11,7 @@ Usage:
     inject.configure(my_config)
 
 - Use `inject.instance`, `inject.attr` or `inject.param` to inject dependencies::
-    class User(object):
+    class User:
         cache = inject.attr(Cache)
 
         @classmethod
@@ -47,23 +47,23 @@ and `inject.clear()` to clean-up on tear down.
 Runtime bindings greatly reduce the required configuration by automatically creating singletons
 on first access. For example, below only the Config class requires binding configuration,
 all other classes are runtime bindings::
-    class Cache(object):
+    class Cache:
         config = inject.attr(Config)
 
         def __init__(self):
             self._redis = connect(self.config.redis_address)
 
-    class Db(object):
+    class Db:
         pass
 
-    class UserRepo(object):
+    class UserRepo:
         cache = inject.attr(Cache)
         db = inject.attr(Db)
 
         def load(self, user_id):
             return cache.load('user', user_id) or db.load('user', user_id)
 
-    class Config(object):
+    class Config:
         def __init__(self, redis_address):
             self.redis_address = redis_address
 

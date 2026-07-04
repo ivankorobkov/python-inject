@@ -88,7 +88,7 @@ def bar(foo, cache=None):
 
 
 # `inject.attr` creates properties (descriptors) which request dependencies on access.
-class User(object):
+class User:
     cache = inject.attr(Cache)
             
     def __init__(self, id):
@@ -233,16 +233,16 @@ def config(binder):
 For example, only the `Config` class binding is present, other bindings are runtime:
 
 ```python
-class Config(object):
+class Config:
     pass
 
-class Cache(object):
+class Cache:
     config = inject.attr(Config)
 
-class Db(object):
+class Db:
     config = inject.attr(Config)
 
-class User(object):
+class User:
     cache = inject.attr(Cache)
     db = inject.attr(Db)
     
@@ -292,7 +292,7 @@ import inject
 import threading
 
 # Given a user class.
-class User(object):
+class User:
     pass
 
 # Create a thread-local current user storage.
