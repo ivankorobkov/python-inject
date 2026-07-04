@@ -95,19 +95,18 @@ _INJECTOR = None  # Shared injector instance.
 _INJECTOR_LOCK = threading.RLock()  # Guards injector initialization.
 _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
-Injectable = t.Union[object, t.Any]
+Injectable = object | t.Any
 T = t.TypeVar("T", bound=Injectable)
 P = t.ParamSpec("P")
-Binding = t.Union[type[Injectable], t.Hashable]
+Binding = type[Injectable] | t.Hashable
 Constructor = t.Callable[
     [],
-    t.Union[
-        Injectable,
-        contextlib.AbstractContextManager[Injectable],
-        contextlib.AbstractAsyncContextManager[Injectable],
-    ],
+    Injectable
+    | contextlib.AbstractContextManager[Injectable]
+    | contextlib.AbstractAsyncContextManager[Injectable],
 ]
 Provider = Constructor
+# `t.Optional` because PEP 604 unions don't support forward references.
 BinderCallable = t.Callable[["Binder"], t.Optional["Binder"]]
 
 
@@ -208,7 +207,7 @@ class Injector:
 
     def __init__(
         self,
-        config: t.Optional[BinderCallable] = None,
+        config: BinderCallable | None = None,
         # TODO(pyctrl): force following flags to be kwargs
         bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
         allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -278,7 +277,7 @@ class InjectorException(Exception):
 
 
 class _ConstructorBinding(t.Generic[T]):
-    _instance: t.Optional[T]
+    _instance: T | None
 
     def __init__(self, constructor: t.Callable[[], T]) -> None:
         self._constructor = constructor
@@ -333,7 +332,7 @@ class _ConstructorBinding(t.Generic[T]):
 #        - `attr` implementation is inherited from `property`
 #        - `attr` class member is not annotated
 class _AttributeInjection(property):
-    def __init__(self, cls: t.Union[type[T], t.Hashable]) -> None:
+    def __init__(self, cls: type[T] | t.Hashable) -> None:
         self._cls = cls
         super().__init__(
             fget=lambda _: instance(self._cls),
@@ -348,13 +347,13 @@ class _AttributeInjection(property):
 class _ParameterInjection(t.Generic[T]):
     __slots__ = ("_cls", "_name")
 
-    def __init__(self, name: str, cls: t.Optional[Binding] = None) -> None:
+    def __init__(self, name: str, cls: Binding | None = None) -> None:
         self._name = name
         self._cls = cls
 
     def __call__(
-        self, func: t.Callable[..., t.Union[T, t.Awaitable[T]]]
-    ) -> t.Callable[..., t.Union[T, t.Awaitable[T]]]:
+        self, func: t.Callable[..., T | t.Awaitable[T]]
+    ) -> t.Callable[..., T | t.Awaitable[T]]:
         if inspect.iscoroutinefunction(func):
 
             @functools.wraps(func)
@@ -419,8 +418,8 @@ class _ParametersInjection(t.Generic[T]):
         kwargs.update(executed_kwargs)
 
     def __call__(
-        self, func: t.Callable[..., t.Union[t.Awaitable[T], T]]
-    ) -> t.Callable[..., t.Union[t.Awaitable[T], T]]:
+        self, func: t.Callable[..., t.Awaitable[T] | T]
+    ) -> t.Callable[..., t.Awaitable[T] | T]:
         arg_names = inspect.getfullargspec(func).args
         params_to_provide = self._params
 
@@ -470,7 +469,7 @@ class _ParametersInjection(t.Generic[T]):
 
 
 def configure(
-    config: t.Optional[BinderCallable] = None,
+    config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
     bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
     allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -509,7 +508,7 @@ def configure(
 
 
 def configure_once(
-    config: t.Optional[BinderCallable] = None,
+    config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
     bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
     allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -529,7 +528,7 @@ def configure_once(
 
 
 def clear_and_configure(
-    config: t.Optional[BinderCallable] = None,
+    config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
     bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
     allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -605,7 +604,7 @@ def attr(cls=_MISSING):
 attr_dc = attr
 
 
-def param(name: str, cls: t.Optional[Binding] = None) -> t.Callable:
+def param(name: str, cls: Binding | None = None) -> t.Callable:
     """
     Return a decorator which injects an arg into a function.
 
@@ -683,7 +682,7 @@ def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
     return autoparams_decorator
 
 
-def get_injector() -> t.Optional[Injector]:
+def get_injector() -> Injector | None:
     """Return the current injector or None."""
     return _INJECTOR
 
