@@ -714,7 +714,7 @@ def _unwrap_union_arg(typ: type) -> type:
     return args[0]
 
 
-def _is_union_type(typ: type) -> bool:
+def _is_union_type(typ: object) -> bool:
     """
     Test if the type is a union type.
 
