@@ -108,10 +108,13 @@ Constructor = t.Callable[
 Provider = Constructor
 # `t.Optional` because PEP 604 unions don't support forward references.
 BinderCallable = t.Callable[["Binder"], t.Optional["Binder"]]
+_InjectionDecorator = t.Callable[[t.Callable[..., t.Any]], t.Callable[..., t.Any]]
 
 
 class ConstructorTypeError(TypeError):
-    def __init__(self, constructor: t.Callable, previous_error: TypeError) -> None:
+    def __init__(
+        self, constructor: t.Callable[..., t.Any], previous_error: TypeError
+    ) -> None:
         super().__init__(f"{constructor} raised an error: {previous_error}")
 
 
@@ -595,7 +598,7 @@ def attr(cls: type[T]) -> T: ...
 def attr(cls: t.Hashable) -> Injectable: ...
 
 
-def attr(cls=_MISSING):
+def attr(cls: type[T] | t.Hashable = _MISSING) -> Injectable:
     """Return an attribute injection (descriptor)."""
     return _AttributeInjection(cls)
 
@@ -604,7 +607,7 @@ def attr(cls=_MISSING):
 attr_dc = attr
 
 
-def param(name: str, cls: Binding | None = None) -> t.Callable:
+def param(name: str, cls: Binding | None = None) -> _InjectionDecorator:
     """
     Return a decorator which injects an arg into a function.
 
@@ -613,7 +616,7 @@ def param(name: str, cls: Binding | None = None) -> t.Callable:
     return _ParameterInjection(name, cls)
 
 
-def params(**args_to_classes: Binding) -> t.Callable:
+def params(**args_to_classes: Binding) -> _InjectionDecorator:
     """
     Return a decorator which injects args into a function.
 
