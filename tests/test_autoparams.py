@@ -1,4 +1,3 @@
-import sys
 import typing as t
 
 import inject
@@ -24,7 +23,7 @@ class TestInjectEmptyAutoparamsWithBraces(BaseTestInject):
 
     def test_autoparams_by_class(self):
         @self._get_decorator()
-        def test_func(val: t.Optional[int] = None):
+        def test_func(val: int | None = None):
             return val
 
         inject.configure(lambda binder: binder.bind(int, 123))
@@ -103,7 +102,7 @@ class TestInjectEmptyAutoparamsWithBraces(BaseTestInject):
     def test_autoparams_on_method(self):
         class Test:
             @self._get_decorator()
-            def func(self, a=1, b: B = None, *, c: t.Optional[C] = None):
+            def func(self, a=1, b: B = None, *, c: C | None = None):
                 return self, a, b, c
 
         def config(binder):
@@ -129,7 +128,7 @@ class TestInjectEmptyAutoparamsWithBraces(BaseTestInject):
             # note inject must be *before* classmethod!
             @classmethod
             @self._get_decorator()
-            def func(cls, a=1, b: B = None, *, c: t.Optional[C] = None):
+            def func(cls, a=1, b: B = None, *, c: C | None = None):
                 return cls, a, b, c
 
         def config(binder):
@@ -154,7 +153,7 @@ class TestInjectEmptyAutoparamsWithBraces(BaseTestInject):
             # note inject must be *before* classmethod!
             @classmethod
             @self._get_decorator()
-            def func(cls, a=1, b: B = None, *, c: t.Optional[C] = None):
+            def func(cls, a=1, b: B = None, *, c: C | None = None):
                 return cls, a, b, c
 
         def config(binder):
@@ -212,7 +211,8 @@ class TestInjectSelectedAutoparams(BaseTestInject):
 
     def test_autoparams_only_selected_with_optional(self):
         @inject.autoparams("a", "c")
-        def test_func(a: A, b: B, *, c: t.Optional[C] = None):
+        # `t.Optional` coverage is the point
+        def test_func(a: A, b: B, *, c: t.Optional[C] = None):  # noqa: UP045
             return a, b, c
 
         def config(binder):
@@ -226,11 +226,8 @@ class TestInjectSelectedAutoparams(BaseTestInject):
         self.assertRaises(TypeError, test_func, a=1, c=3)
 
     def test_autoparams_only_selected_with_optional_pep604_union(self):
-        if not sys.version_info[:3] >= (3, 10, 0):
-            return
-
         @inject.autoparams("a", "c")
-        def test_func(a: A, b: B, *, c: t.Optional[C] = None):
+        def test_func(a: A, b: B, *, c: C | None = None):
             return a, b, c
 
         def config(binder):

@@ -11,7 +11,7 @@ Usage:
     inject.configure(my_config)
 
 - Use `inject.instance`, `inject.attr` or `inject.param` to inject dependencies::
-    class User(object):
+    class User:
         cache = inject.attr(Cache)
 
         @classmethod
@@ -47,23 +47,23 @@ and `inject.clear()` to clean-up on tear down.
 Runtime bindings greatly reduce the required configuration by automatically creating singletons
 on first access. For example, below only the Config class requires binding configuration,
 all other classes are runtime bindings::
-    class Cache(object):
+    class Cache:
         config = inject.attr(Config)
 
         def __init__(self):
             self._redis = connect(self.config.redis_address)
 
-    class Db(object):
+    class Db:
         pass
 
-    class UserRepo(object):
+    class UserRepo:
         cache = inject.attr(Cache)
         db = inject.attr(Db)
 
         def load(self, user_id):
             return cache.load('user', user_id) or db.load('user', user_id)
 
-    class Config(object):
+    class Config:
         def __init__(self, redis_address):
             self.redis_address = redis_address
 
@@ -80,34 +80,14 @@ import contextlib
 import functools
 import inspect
 import logging
-import sys
 import threading
 import typing as t
+from types import UnionType
 
 from inject._version import __version__ as __version__
 
-# PEP 604
-_HAS_PEP604_SUPPORT = sys.version_info[:3] >= (3, 10, 0)
-# PEP 560
-_HAS_PEP560_SUPPORT = _HAS_PEP604_SUPPORT or sys.version_info[:3] >= (3, 7, 0)
-
 _RETURN = "return"
 _MISSING = object()
-
-if _HAS_PEP604_SUPPORT:
-    from types import UnionType
-    from typing import _GenericAlias  # noqa: ICN003
-elif _HAS_PEP560_SUPPORT:
-    from typing import _GenericAlias  # noqa: ICN003, PLC2701
-else:
-    from typing import _Union  # noqa: ICN003, PLC2701
-
-if t.TYPE_CHECKING:
-    from typing_extensions import ParamSpec
-
-    P = ParamSpec("P")
-else:
-    P = object()
 
 logger = logging.getLogger("inject")
 
@@ -115,23 +95,26 @@ _INJECTOR = None  # Shared injector instance.
 _INJECTOR_LOCK = threading.RLock()  # Guards injector initialization.
 _BINDING_LOCK = threading.RLock()  # Guards runtime bindings.
 
-Injectable = t.Union[object, t.Any]
+Injectable = object | t.Any
 T = t.TypeVar("T", bound=Injectable)
-Binding = t.Union[type[Injectable], t.Hashable]
+P = t.ParamSpec("P")
+Binding = type[Injectable] | t.Hashable
 Constructor = t.Callable[
     [],
-    t.Union[
-        Injectable,
-        contextlib.AbstractContextManager[Injectable],
-        contextlib.AbstractAsyncContextManager[Injectable],
-    ],
+    Injectable
+    | contextlib.AbstractContextManager[Injectable]
+    | contextlib.AbstractAsyncContextManager[Injectable],
 ]
 Provider = Constructor
+# `t.Optional` because PEP 604 unions don't support forward references.
 BinderCallable = t.Callable[["Binder"], t.Optional["Binder"]]
+_InjectionDecorator = t.Callable[[t.Callable[..., t.Any]], t.Callable[..., t.Any]]
 
 
 class ConstructorTypeError(TypeError):
-    def __init__(self, constructor: t.Callable, previous_error: TypeError) -> None:
+    def __init__(
+        self, constructor: t.Callable[..., t.Any], previous_error: TypeError
+    ) -> None:
         super().__init__(f"{constructor} raised an error: {previous_error}")
 
 
@@ -206,7 +189,7 @@ class Binder:
         if not self.allow_override and cls in self._bindings:
             raise InjectorException(f"Duplicate binding, key={cls}")
 
-        if self._is_forward_str(cls):
+        if isinstance(cls, str):
             ref = t.ForwardRef(cls)
             if not self.allow_override and ref in self._bindings:
                 msg = f'Duplicate forward binding, i.e. "int" and int, key={cls}'
@@ -214,8 +197,6 @@ class Binder:
 
     def _maybe_bind_forward(self, cls: Binding, binding: t.Any) -> None:  # noqa: ANN401
         """Bind a string forward reference."""
-        if not _HAS_PEP560_SUPPORT:
-            return
         if not isinstance(cls, str):
             return
 
@@ -223,17 +204,13 @@ class Binder:
         self._bindings[ref] = binding
         logger.debug('Bound forward ref "%s"', cls)
 
-    @staticmethod
-    def _is_forward_str(kls: Binding) -> bool:
-        return _HAS_PEP560_SUPPORT and isinstance(kls, str)
-
 
 class Injector:
     _bindings: dict[Binding, Constructor]
 
     def __init__(
         self,
-        config: t.Optional[BinderCallable] = None,
+        config: BinderCallable | None = None,
         # TODO(pyctrl): force following flags to be kwargs
         bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
         allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -246,12 +223,8 @@ class Injector:
         else:
             self._bindings = {}
 
-    # NOTE(pyctrl): only since 3.12
-    # @t.overload
-    # def get_instance(self, cls: type[T]) -> T: ...
-
     @t.overload
-    def get_instance(self, cls: Binding) -> T: ...
+    def get_instance(self, cls: type[T]) -> T: ...
 
     @t.overload
     def get_instance(self, cls: t.Hashable) -> Injectable: ...
@@ -303,7 +276,7 @@ class InjectorException(Exception):
 
 
 class _ConstructorBinding(t.Generic[T]):
-    _instance: t.Optional[T]
+    _instance: T | None
 
     def __init__(self, constructor: t.Callable[[], T]) -> None:
         self._constructor = constructor
@@ -358,7 +331,7 @@ class _ConstructorBinding(t.Generic[T]):
 #        - `attr` implementation is inherited from `property`
 #        - `attr` class member is not annotated
 class _AttributeInjection(property):
-    def __init__(self, cls: t.Union[type[T], t.Hashable]) -> None:
+    def __init__(self, cls: type[T] | t.Hashable) -> None:
         self._cls = cls
         super().__init__(
             fget=lambda _: instance(self._cls),
@@ -373,13 +346,13 @@ class _AttributeInjection(property):
 class _ParameterInjection(t.Generic[T]):
     __slots__ = ("_cls", "_name")
 
-    def __init__(self, name: str, cls: t.Optional[Binding] = None) -> None:
+    def __init__(self, name: str, cls: Binding | None = None) -> None:
         self._name = name
         self._cls = cls
 
     def __call__(
-        self, func: t.Callable[..., t.Union[T, t.Awaitable[T]]]
-    ) -> t.Callable[..., t.Union[T, t.Awaitable[T]]]:
+        self, func: t.Callable[..., T | t.Awaitable[T]]
+    ) -> t.Callable[..., T | t.Awaitable[T]]:
         if inspect.iscoroutinefunction(func):
 
             @functools.wraps(func)
@@ -444,8 +417,8 @@ class _ParametersInjection(t.Generic[T]):
         kwargs.update(executed_kwargs)
 
     def __call__(
-        self, func: t.Callable[..., t.Union[t.Awaitable[T], T]]
-    ) -> t.Callable[..., t.Union[t.Awaitable[T], T]]:
+        self, func: t.Callable[..., t.Awaitable[T] | T]
+    ) -> t.Callable[..., t.Awaitable[T] | T]:
         arg_names = inspect.getfullargspec(func).args
         params_to_provide = self._params
 
@@ -495,7 +468,7 @@ class _ParametersInjection(t.Generic[T]):
 
 
 def configure(
-    config: t.Optional[BinderCallable] = None,
+    config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
     bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
     allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -534,7 +507,7 @@ def configure(
 
 
 def configure_once(
-    config: t.Optional[BinderCallable] = None,
+    config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
     bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
     allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -554,7 +527,7 @@ def configure_once(
 
 
 def clear_and_configure(
-    config: t.Optional[BinderCallable] = None,
+    config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
     bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
     allow_override: bool = False,  # noqa: FBT001, FBT002
@@ -621,7 +594,7 @@ def attr(cls: type[T]) -> T: ...
 def attr(cls: t.Hashable) -> Injectable: ...
 
 
-def attr(cls=_MISSING):
+def attr(cls: type[T] | t.Hashable = _MISSING) -> Injectable:
     """Return an attribute injection (descriptor)."""
     return _AttributeInjection(cls)
 
@@ -630,7 +603,7 @@ def attr(cls=_MISSING):
 attr_dc = attr
 
 
-def param(name: str, cls: t.Optional[Binding] = None) -> t.Callable:
+def param(name: str, cls: Binding | None = None) -> _InjectionDecorator:
     """
     Return a decorator which injects an arg into a function.
 
@@ -639,7 +612,7 @@ def param(name: str, cls: t.Optional[Binding] = None) -> t.Callable:
     return _ParameterInjection(name, cls)
 
 
-def params(**args_to_classes: Binding) -> t.Callable:
+def params(**args_to_classes: Binding) -> _InjectionDecorator:
     """
     Return a decorator which injects args into a function.
 
@@ -653,16 +626,16 @@ def params(**args_to_classes: Binding) -> t.Callable:
 
 
 @t.overload
-def autoparams(fn: t.Callable[P, T]) -> t.Callable[P, T]: ...
+def autoparams(fn: t.Callable[P, T], /) -> t.Callable[P, T]: ...
 
 
 @t.overload
 def autoparams(*selected: str) -> t.Callable[[T], T]: ...
 
 
-def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
+def autoparams(*selected: t.Callable[..., t.Any] | str) -> t.Callable[..., t.Any]:
     """
-    Return a decorator injecting args based on function type hints, only since 3.5.
+    Return a decorator injecting args based on function type hints.
 
     For example::
 
@@ -681,7 +654,9 @@ def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
     """
     only_these: set[str] = set()
 
-    def autoparams_decorator(fn: t.Callable[..., T]) -> t.Callable[..., T]:
+    def autoparams_decorator(
+        fn: t.Callable[..., T],
+    ) -> t.Callable[..., t.Awaitable[T] | T]:
         if inspect.isclass(fn):
             types = t.get_type_hints(fn.__init__)
         else:
@@ -704,11 +679,11 @@ def autoparams(*selected: t.Callable[P, T] | str) -> t.Callable[..., T]:
     if len(selected) == 1 and callable(target):
         return autoparams_decorator(target)
 
-    only_these.update(selected)
+    only_these.update(s for s in selected if isinstance(s, str))
     return autoparams_decorator
 
 
-def get_injector() -> t.Optional[Injector]:
+def get_injector() -> Injector | None:
     """Return the current injector or None."""
     return _INJECTOR
 
@@ -735,10 +710,11 @@ def _unwrap_union_arg(typ: type) -> type:
     """Return the first type A in typing.Union[A, B] or typ if not Union."""
     if not _is_union_type(typ):
         return typ
-    return typ.__args__[0]
+    args: tuple[type, ...] = t.get_args(typ)
+    return args[0]
 
 
-def _is_union_type(typ: type) -> bool:
+def _is_union_type(typ: object) -> bool:
     """
     Test if the type is a union type.
 
@@ -747,20 +723,8 @@ def _is_union_type(typ: type) -> bool:
         is_union_type(Union) == True
         is_union_type(Union[int, int]) == False
         is_union_type(Union[T, int]) == True
-
-    Source: https://github.com/ilevkivskyi/typing_inspect/blob/master/typing_inspect.py
     """
-    if _HAS_PEP604_SUPPORT:
-        return (
-            typ is t.Union
-            or isinstance(typ, UnionType)
-            or (isinstance(typ, _GenericAlias) and typ.__origin__ is t.Union)
-        )
-    if _HAS_PEP560_SUPPORT:
-        return typ is t.Union or (
-            isinstance(typ, _GenericAlias) and typ.__origin__ is t.Union
-        )
-    return type(typ) is _Union
+    return typ is t.Union or isinstance(typ, UnionType) or t.get_origin(typ) is t.Union
 
 
 def _unwrap_cls_annotation(cls: type, attr_name: str) -> type:
