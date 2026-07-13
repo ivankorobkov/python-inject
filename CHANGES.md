@@ -1,16 +1,16 @@
 python-inject changes
 =====================
 
-### 5.5.0 (2026-08-13)
+### 5.5.0 (2026-07-13)
 - Drop Python 3.9 support (end of life). Minimum supported version is now 3.10.
 - Adopt uv for dependencies and CI, #138.
 - Migrate dev tooling from make + tox to just, #139.
 - Fix mypy, #140.
 
-### 5.4.1 (2026-07-27)
+### 5.4.1 (2026-06-27)
 - Fix static typing of inject.attr(Cls), #136
 
-### 5.4.0 (2026-07-16)
+### 5.4.0 (2026-06-16)
 - Fix `autoparams` type annotation, #134
 - Support all context managers, #133
 
