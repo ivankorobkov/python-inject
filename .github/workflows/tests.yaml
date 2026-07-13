@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: "3.14"
       - name: "Setup uv"
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@v8.3.2
       - name: "Setup just"
         uses: extractions/setup-just@v4
       - name: "Check uv.lock"
@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: "3.14"
       - name: "Setup uv"
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@v8.3.2
       - name: "Setup just"
         uses: extractions/setup-just@v4
       - name: "Lint formatting"
@@ -62,7 +62,7 @@ jobs:
         with:
           python-version: "3.14"
       - name: "Setup uv"
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@v8.3.2
       - name: "Setup just"
         uses: extractions/setup-just@v4
       - name: "Type checking (library code)"
@@ -79,7 +79,7 @@ jobs:
         with:
           python-version: "3.14"
       - name: "Setup uv"
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@v8.3.2
       - name: "Setup just"
         uses: extractions/setup-just@v4
       - name: "Type checking (public API)"
@@ -100,7 +100,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: "Setup uv"
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@v8.3.2
       - name: "Setup just"
         uses: extractions/setup-just@v4
       - name: "Run tests"
