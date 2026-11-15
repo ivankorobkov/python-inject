@@ -1,6 +1,6 @@
 """Static-typing regression guard for ``inject.Injector.get_instance``."""
 
-from typing_extensions import assert_type
+import typing as t
 
 import inject
 
@@ -11,5 +11,5 @@ class _Service:
 
 injector = inject.Injector()
 
-assert_type(injector.get_instance(_Service), _Service)
-assert_type(injector.get_instance("service"), inject.Injectable)
+t.assert_type(injector.get_instance(_Service), _Service)
+t.assert_type(injector.get_instance("service"), inject.Injectable)

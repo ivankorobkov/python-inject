@@ -8,6 +8,7 @@ name: tests
 env:
   UV_PYTHON_DOWNLOADS: never
   UV_LOCKED: "true"
+  PYTHON_LATEST: "3.15"
 
 jobs:
 
@@ -22,7 +23,7 @@ jobs:
       - name: "Setup Python"
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
       - name: "Setup just"
@@ -43,7 +44,7 @@ jobs:
       - name: "Setup Python"
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
       - name: "Setup just"
@@ -60,7 +61,7 @@ jobs:
       - name: "Setup Python"
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
       - name: "Setup just"
@@ -77,7 +78,7 @@ jobs:
       - name: "Setup Python"
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
         uses: astral-sh/setup-uv@v8.2.0
       - name: "Setup just"
@@ -91,7 +92,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - name: "Checkout"
         uses: actions/checkout@v7
