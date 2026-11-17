@@ -9,14 +9,15 @@ Dependency injection the python way, the good way.
 * Does not try to manage your application object graph.
 * Transparently integrates into tests.
 * Autoparams leveraging type annotations.
-* Supports type hinting in Python 3.5+.
+* Supports type hinting.
 * Supports context managers.
 
 ## Python Support
 
 | Python  | Inject Version |
 |---------|----------------|
-| 3.10+   | 5.5+           |
+| 3.11+   | unreleased     |
+| 3.10    | 5.5            |
 | 3.9     | 5.0 - 5.4      |
 | 3.6-3.8 | 4.1+, < 5.0    |
 | 3.5     | 4.0            |
@@ -32,7 +33,7 @@ pip install inject
 
 ## Autoparams example
 `@inject.autoparams` returns a decorator which automatically injects arguments into a function 
-that uses type annotations. This is supported only in Python >= 3.5.
+that uses type annotations.
 
 ```python
 @inject.autoparams
@@ -65,7 +66,7 @@ def foo(bar):
 
 
 # `inject.params` injects dependencies as keyword arguments or positional argument. 
-# Also you can use @inject.autoparams in Python 3.5, see the example above.
+# Also you can use @inject.autoparams, see the example above.
 @inject.params(cache=Cache, user=CurrentUser)
 def baz(foo, cache=None, user=None):
     cache.save('foo', foo, user)
