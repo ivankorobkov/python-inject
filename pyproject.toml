@@ -61,18 +61,8 @@ version-file = "src/inject/_version.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/inject"]
 
-[tool.hatch.build.targets.wheel.shared-data]
-
 [tool.hatch.version]
 source = "vcs"
-
-
-[tool.isort]
-case_sensitive = true
-include_trailing_comma = true
-line_length = 120
-multi_line_output = 3
-profile = "black"
 
 
 [tool.mypy]
@@ -80,19 +70,6 @@ ignore_missing_imports = true
 python_version = "3.11"
 strict = true
 exclude = ["tests", ".venv"]
-
-
-# TODO(pyctrl): deprecate pyright — stay with mypy
-[tool.pyright]
-defineConstant = { DEBUG = true }
-exclude = []
-executionEnvironments = []
-ignore = []
-include = ["src/inject", "tests", "typing_checks"]
-pythonPlatform = "Linux"
-pythonVersion = "3.11"
-reportMissingImports = true
-reportMissingTypeStubs = false
 
 
 [tool.ruff]
@@ -172,7 +149,6 @@ indent-style = "space"
 
 ####  Pytest & Coverage  ####
 [tool.pytest.ini_options]
-minversion = "8.4"
 addopts = "-vvv -ra --strict-markers --strict-config"
 testpaths = ["tests"]
 #filterwarnings = ["error"]  # TODO(pyctrl): handle all warnings later
