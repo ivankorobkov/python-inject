@@ -1,9 +1,9 @@
 set shell := ["bash", "-euc"]
 
-python_oldest := "3.10" # Oldest supported version
-python_latest := "3.14" # Newest supported version
-python := "3.14" # Default version for dev loop
-python_versions := "3.10 3.11 3.12 3.13 3.14"
+python_oldest := "3.11" # Oldest supported version
+python_latest := "3.15" # Newest supported version
+python := "3.15" # Default version for dev loop
+python_versions := "3.11 3.12 3.13 3.14 3.15"
 
 taplo := "uvx taplo@0.9.3"
 
@@ -25,7 +25,7 @@ check: lock-check lint lint-toml lint-yaml public-typing typing test-all
 # Install locked dependencies
 [group('project')]
 init:
-    uv sync
+    uv sync --python {{ python }}
 
 [group('project')]
 dist:

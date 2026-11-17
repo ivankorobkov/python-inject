@@ -1,6 +1,10 @@
 python-inject changes
 =====================
 
+### Unreleased
+- Drop Python 3.10 support (end of life). Minimum supported version is now 3.11.
+- Add Python 3.15 support.
+
 ### 5.5.0 (2026-07-13)
 - Drop Python 3.9 support (end of life). Minimum supported version is now 3.10.
 - Adopt uv for dependencies and CI, #138.

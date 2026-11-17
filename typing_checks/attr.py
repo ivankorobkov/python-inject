@@ -1,6 +1,6 @@
 """Static-typing regression guard for ``inject.attr``."""
 
-from typing_extensions import assert_type
+import typing as t
 
 import inject
 
@@ -13,5 +13,5 @@ class _Repository:
     pass
 
 
-assert_type(inject.attr(_Service), _Service)
-assert_type(inject.attr(_Repository), _Repository)
+t.assert_type(inject.attr(_Service), _Service)
+t.assert_type(inject.attr(_Repository), _Repository)
