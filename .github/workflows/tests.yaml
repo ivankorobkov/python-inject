@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 12
       - name: "Setup Python"
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
@@ -42,7 +42,7 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v7
       - name: "Setup Python"
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
@@ -59,7 +59,7 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v7
       - name: "Setup Python"
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
@@ -76,7 +76,7 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v7
       - name: "Setup Python"
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_LATEST }}
       - name: "Setup uv"
@@ -97,7 +97,7 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v7
       - name: "Setup Python"
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: "Setup uv"
