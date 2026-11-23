@@ -72,7 +72,7 @@ all other classes are runtime bindings::
 
     inject.configure(my_config)
 
-"""  # noqa: E501
+"""
 
 from __future__ import annotations
 
@@ -121,7 +121,7 @@ class ConstructorTypeError(TypeError):
 class Binder:
     _bindings: dict[Binding, Constructor]
 
-    def __init__(self, allow_override: bool = False) -> None:  # noqa: FBT001, FBT002
+    def __init__(self, allow_override: bool = False) -> None:
         self._bindings = {}
         self.allow_override = allow_override
 
@@ -134,7 +134,7 @@ class Binder:
         """Bind a class to an instance."""
         self._check_class(cls)
 
-        b = lambda: instance  # noqa: E731
+        b = lambda: instance
         self._bindings[cls] = b
         self._maybe_bind_forward(cls, b)
 
@@ -212,14 +212,14 @@ class Injector:
         self,
         config: BinderCallable | None = None,
         # TODO(pyctrl): force following flags to be kwargs
-        bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
-        allow_override: bool = False,  # noqa: FBT001, FBT002
+        bind_in_runtime: bool = True,
+        allow_override: bool = False,
     ) -> None:
         self._bind_in_runtime = bind_in_runtime
         if config:
             binder = Binder(allow_override)
             config(binder)
-            self._bindings = binder._bindings  # noqa: SLF001
+            self._bindings = binder._bindings
         else:
             self._bindings = {}
 
@@ -262,7 +262,7 @@ class Injector:
             try:
                 instance = cls()
             except TypeError as previous_error:
-                raise ConstructorTypeError(cls, previous_error)  # noqa: B904
+                raise ConstructorTypeError(cls, previous_error)
 
             self._bindings[cls] = lambda: instance
 
@@ -444,7 +444,7 @@ class _ParametersInjection(t.Generic[T]):
                             )
                             return await async_func(*args, **kwargs)
                 except TypeError as previous_error:
-                    raise ConstructorTypeError(func, previous_error)  # noqa: B904
+                    raise ConstructorTypeError(func, previous_error)
 
             return async_injection_wrapper
 
@@ -462,7 +462,7 @@ class _ParametersInjection(t.Generic[T]):
                     self._aggregate_sync_stack(sync_stack, provided_params, kwargs)
                     return sync_func(*args, **kwargs)
             except TypeError as previous_error:
-                raise ConstructorTypeError(func, previous_error)  # noqa: B904
+                raise ConstructorTypeError(func, previous_error)
 
         return injection_wrapper
 
@@ -470,10 +470,10 @@ class _ParametersInjection(t.Generic[T]):
 def configure(
     config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
-    bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
-    allow_override: bool = False,  # noqa: FBT001, FBT002
-    clear: bool = False,  # noqa: FBT001, FBT002
-    once: bool = False,  # noqa: FBT001, FBT002
+    bind_in_runtime: bool = True,
+    allow_override: bool = False,
+    clear: bool = False,
+    once: bool = False,
 ) -> Injector:
     """
     Create an injector using callable config.
@@ -482,7 +482,7 @@ def configure(
         InjectorException: if already configured.
 
     """
-    global _INJECTOR  # noqa: PLW0603
+    global _INJECTOR
 
     if clear and once:
         msg = "clear and once are mutually exclusive, only one can be True"
@@ -509,8 +509,8 @@ def configure(
 def configure_once(
     config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
-    bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
-    allow_override: bool = False,  # noqa: FBT001, FBT002
+    bind_in_runtime: bool = True,
+    allow_override: bool = False,
 ) -> Injector:
     """
     Create an injector with a callable config if not present, otherwise, do nothing.
@@ -529,8 +529,8 @@ def configure_once(
 def clear_and_configure(
     config: BinderCallable | None = None,
     # TODO(pyctrl): force following flags to be kwargs
-    bind_in_runtime: bool = True,  # noqa: FBT001, FBT002
-    allow_override: bool = False,  # noqa: FBT001, FBT002
+    bind_in_runtime: bool = True,
+    allow_override: bool = False,
 ) -> Injector:
     """
     Clear an existing injector and create another one with a callable config.
@@ -559,7 +559,7 @@ def clear() -> None:
 
 def _clear_injector() -> None:
     """Clear an existing injector if present."""
-    global _INJECTOR  # noqa: PLW0603
+    global _INJECTOR
 
     with _INJECTOR_LOCK:
         if _INJECTOR is None:

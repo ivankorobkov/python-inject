@@ -139,7 +139,7 @@ class TestInjectParams(BaseTestInject):
 
     def test_async_params(self):
         @inject.params(val=int)
-        async def test_func(val):  # noqa: RUF029
+        async def test_func(val):
             return val
 
         inject.configure(lambda binder: binder.bind(int, 123))

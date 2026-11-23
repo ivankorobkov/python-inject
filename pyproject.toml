@@ -38,7 +38,7 @@ dev = [
   { include-group = "tests" },
 ]
 
-ruff = ["ruff>=0.15.20"]
+ruff = ["ruff>=0.17.6"]
 mypy = ["mypy>=2.4.1"]
 yamllint = ["yamllint>=1.38.0"]
 
@@ -72,63 +72,15 @@ strict = true
 exclude = ["tests", ".venv"]
 
 
-[tool.ruff]
-line-length = 88
-extend-exclude = [".git", ".venv", "docs"]
-
 [tool.ruff.lint]
-preview = true
-extend-select = ["ALL"]
-extend-ignore = [
-  "D10",    # missing documentation
-  "D203",   # 1 of conflicting code-styles
-  "D212",   # 1 of conflicting code-styles
-  "C408",   # allow `dict()` instead of literal
-  "TD003",  # don't require issue link
-  "RUF067", # __init__ modules intentionally contain code
-  # Completely disable
-  "FIX",
-  "CPY",
-  # formatter conflict rules
-  "W191",
-  "E111",
-  "E114",
-  "E117",
-  "EM101",
-  "EM102",
-  "ERA001", # commented code
-  "D206",
-  "D300",
-  "DOC201",
-  "DOC402",
-  "Q000",
-  "Q001",
-  "Q002",
-  "Q003",
-  "COM812",
-  "COM819",
-  "ISC001",
-  "ISC002",
-  "N818",   # Exception name should be named with an Error suffix
-  "TRY003",
+extend-select = [
+  "ANN",    # annotations
+  "ICN",    # import conventions, configured below
+  "TID252", # relative imports
 ]
 
-[tool.ruff.lint.extend-per-file-ignores]
-"**/tests/**/test_*.py" = [
-  "ANN",     # annotations not required in tests
-  "E731",    # Do not assign a `lambda` expression, use a `def`
-  "PLC2701", # Private name import
-  "PLR0913", # Too many arguments in function definition
-  "PLR0917", # Too many positional arguments
-  "PLR2004", # allow "magic" values in tests
-  "PLR6301", # Method could be a function, class method, or static method
-  "PT017",   # Found assertion on exception `except` block, use `pytest.raises()` instead
-  "PT027",   # Use `pytest.raises` instead of unittest-style `assertRaisesRegex`
-  "S101",    # allow asserts
-  "S311",    # Standard pseudo-random generators are not suitable for cryptographic purposes
-  "SLF001",  # allow private member access
-]
-"/**/tests/__init__.py" = ["PLR6301"]
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN"] # annotations not required in tests
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
 "typing" = "t"
@@ -142,10 +94,6 @@ known-first-party = ["inject"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
 
 ####  Pytest & Coverage  ####
 [tool.pytest.ini_options]
