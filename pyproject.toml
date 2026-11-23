@@ -43,7 +43,7 @@ mypy = ["mypy>=2.4.1"]
 yamllint = ["yamllint>=1.38.0"]
 
 tests = [
-  "pytest>=9.1.1",
+  "pytest>=9.2.0",
   "pytest-cov>=7.1.0",
 ]
 
