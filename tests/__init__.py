@@ -9,7 +9,7 @@ class BaseTestInject(TestCase):
     def tearDown(self) -> None:
         inject.clear()
 
-    def run_async(self, awaitable: t.Awaitable):  # noqa: ANN201
+    def run_async(self, awaitable: t.Awaitable):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:

@@ -45,7 +45,7 @@ There is an option to specify which arguments we want to inject without attempts
 injecting everything:
 
 ```python
-@inject.autoparams('cache', 'db')
+@inject.autoparams("cache", "db")
 def sign_up(name, email, cache: RedisCache, db: DbInterface):
     pass
 ```
@@ -62,50 +62,52 @@ import inject
 # `inject.instance` requests dependencies from the injector.
 def foo(bar):
     cache = inject.instance(Cache)
-    cache.save('bar', bar)
+    cache.save("bar", bar)
 
 
-# `inject.params` injects dependencies as keyword arguments or positional argument. 
+# `inject.params` injects dependencies as keyword arguments or positional argument.
 # Also you can use @inject.autoparams, see the example above.
 @inject.params(cache=Cache, user=CurrentUser)
 def baz(foo, cache=None, user=None):
-    cache.save('foo', foo, user)
+    cache.save("foo", foo, user)
+
 
 # this can be called in different ways:
 # with injected arguments
-baz('foo')
+baz("foo")
 
 # with positional arguments
-baz('foo', my_cache)
+baz("foo", my_cache)
 
 # with keyword arguments
-baz('foo', my_cache, user=current_user)
+baz("foo", my_cache, user=current_user)
 
 
 # `inject.param` is deprecated, use `inject.params` instead.
-@inject.param('cache', Cache)
+@inject.param("cache", Cache)
 def bar(foo, cache=None):
-    cache.save('foo', foo)
+    cache.save("foo", foo)
 
 
 # `inject.attr` creates properties (descriptors) which request dependencies on access.
 class User:
     cache = inject.attr(Cache)
-            
+
     def __init__(self, id):
         self.id = id
 
     def save(self):
-        self.cache.save('users', self)
-    
+        self.cache.save("users", self)
+
     @classmethod
     def load(cls, id):
-        return cls.cache.load('users', id)
+        return cls.cache.load("users", id)
 
 
 # Create an optional configuration.
 def my_config(binder):
-    binder.bind(Cache, RedisCache('localhost:1234'))
+    binder.bind(Cache, RedisCache("localhost:1234"))
+
 
 # Configure a shared injector.
 inject.configure(my_config)
@@ -116,8 +118,8 @@ user = User(10)
 user.save()
 
 # Call the functions, the dependencies are automatically injected.
-foo('Hello')
-bar('world')
+foo("Hello")
+bar("world")
 ```
 
 
@@ -133,11 +135,13 @@ def get_file_sync():
     yield obj
     obj.destroy()
 
+
 @contextlib.asynccontextmanager
 async def get_conn_async():
     obj = MockConnection()
     yield obj
     obj.destroy()
+
 
 def config(binder):
     binder.bind_to_provider(MockFile, get_file_sync)
@@ -146,6 +150,7 @@ def config(binder):
     binder.bind_to_provider(MockConnection, get_conn_sync)
 
     inject.configure(config)
+
 
 @inject.autoparams()
 def example(conn: MockConnection, file: MockFile):
@@ -160,12 +165,14 @@ Django can load some modules multiple times which can lead to
 is guaranteed to run only once when the injector is absent:
 ```python
 import inject
+
 inject.configure(my_config, once=True)
 ```
 
 ## Testing
 In tests use `inject.configure(callable, clear=True)` to create a new injector on setup,
 and optionally `inject.clear()` to clean up on tear down:
+<!-- fmt: off -->
 ```python
 class MyTest(unittest.TestCase):
     def setUp(self):
@@ -173,30 +180,32 @@ class MyTest(unittest.TestCase):
             .bind(Cache, MockCache()) \
             .bind(Validator, TestValidator()),
             clear=True)
-    
+
     def tearDown(self):
         inject.clear()
 ```
+<!-- fmt: on -->
 
 ## Composable configurations
 You can reuse configurations and override already registered dependencies to fit the needs 
 in different environments or specific tests.
 ```python
-    def base_config(binder):
-        # ... more dependencies registered here
-        binder.bind(Validator, RealValidator())
-        binder.bind(Cache, RedisCache('localhost:1234'))
+def base_config(binder):
+    # ... more dependencies registered here
+    binder.bind(Validator, RealValidator())
+    binder.bind(Cache, RedisCache("localhost:1234"))
 
-    def tests_config(binder):
-        # reuse existing configuration
-        binder.install(base_config)
 
-        # override only certain dependencies
-        binder.bind(Validator, TestValidator())
-        binder.bind(Cache, MockCache())
-    
-    inject.configure(tests_config, allow_override=True, clear=True)
-        
+def tests_config(binder):
+    # reuse existing configuration
+    binder.install(base_config)
+
+    # override only certain dependencies
+    binder.bind(Validator, TestValidator())
+    binder.bind(Cache, MockCache())
+
+
+inject.configure(tests_config, allow_override=True, clear=True)
 ```
 
 ## Thread-safety
@@ -206,7 +215,9 @@ After configuration the injector is thread-safe and can be safely reused by mult
 **Instance** bindings always return the same instance:
 
 ```python
-redis = RedisCache(address='localhost:1234')
+redis = RedisCache(address="localhost:1234")
+
+
 def config(binder):
     binder.bind(Cache, redis)
 ```
@@ -216,7 +227,7 @@ def config(binder):
 ```python
 def config(binder):
     # Creates a redis cache singleton on first injection.
-    binder.bind_to_constructor(Cache, lambda: RedisCache(address='localhost:1234'))
+    binder.bind_to_constructor(Cache, lambda: RedisCache(address="localhost:1234"))
 ```
 
 **Provider** bindings call the provider on injection:
@@ -225,9 +236,10 @@ def config(binder):
 def get_my_thread_local_cache():
     pass
 
+
 def config(binder):
     # Executes the provider on each injection.
-    binder.bind_to_provider(Cache, get_my_thread_local_cache) 
+    binder.bind_to_provider(Cache, get_my_thread_local_cache)
 ```
 
 **Runtime** bindings automatically create singletons on injection, require no configuration.
@@ -237,20 +249,24 @@ For example, only the `Config` class binding is present, other bindings are runt
 class Config:
     pass
 
+
 class Cache:
     config = inject.attr(Config)
+
 
 class Db:
     config = inject.attr(Config)
 
+
 class User:
     cache = inject.attr(Cache)
     db = inject.attr(Db)
-    
+
     @classmethod
     def load(cls, user_id):
-        return cls.cache.load('users', user_id) or cls.db.load('users', user_id)
-    
+        return cls.cache.load("users", user_id) or cls.db.load("users", user_id)
+
+
 inject.configure(lambda binder: binder.bind(Config, load_config_file()))
 user = User.load(10)
 ```
@@ -268,13 +284,15 @@ tries to get an unbound instance.
 ## Keys
 It is possible to use any hashable object as a binding key. For example:
 
+<!-- fmt: off -->
 ```python
 import inject
 
 inject.configure(lambda binder: \
-    binder.bind('host', 'localhost') \
-          .bind('port', 1234))
+    binder.bind("host", "localhost") \
+          .bind("port", 1234))
 ```
+<!-- fmt: on -->
 
 ## Why no scopes?
 I've used Guice and Spring in Java for a lot of years, and I don't like their scopes.
@@ -292,21 +310,27 @@ For example, a thread-local current user provider:
 import inject
 import threading
 
+
 # Given a user class.
 class User:
     pass
 
+
 # Create a thread-local current user storage.
 _LOCAL = threading.local()
 
+
 def get_current_user():
-    return getattr(_LOCAL, 'user', None)
+    return getattr(_LOCAL, "user", None)
+
 
 def set_current_user(user):
     _LOCAL.user = user
 
+
 # Bind User to a custom provider.
 inject.configure(lambda binder: binder.bind_to_provider(User, get_current_user))
+
 
 # Inject the current user.
 @inject.params(user=User)

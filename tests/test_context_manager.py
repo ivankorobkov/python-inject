@@ -99,7 +99,7 @@ class TestContextManagerFunctional(BaseTestInject):
         inject.configure(config)
 
         @inject.autoparams()
-        async def mock_func(  # noqa: RUF029
+        async def mock_func(
             conn: MockConnection,
             name: str,
             f: MockFile,

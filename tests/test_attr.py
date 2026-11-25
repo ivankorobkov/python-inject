@@ -8,7 +8,7 @@ class TestInjectAttr(BaseTestInject):
     def test_attr(self):
         @dataclasses.dataclass
         class MyDataClass:
-            field = inject.attr(int)  # noqa: RUF045
+            field = inject.attr(int)
 
         class MyClass:
             field = inject.attr(int)
@@ -42,7 +42,7 @@ class TestInjectAttr(BaseTestInject):
 
         @dataclasses.dataclass
         class MyDataClass:
-            field = descriptor  # noqa: RUF045
+            field = descriptor
 
         class MyClass:
             field = descriptor
